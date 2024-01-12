@@ -3,6 +3,7 @@ package my.edu.utem.ftmk.fis9.hall.controller.mbean;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -32,7 +33,7 @@ import javax.faces.context.FacesContext;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -226,7 +227,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				{
 					if (smallProduct
 							.getSmallProductID() == smallProductRoyaltyRate
-							.getSmallProductID())
+									.getSmallProductID())
 					{
 						tempSmallProduct.add(smallProduct);
 						break;
@@ -245,7 +246,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				taggings = tFacade.getTaggings(true, 0, endYear);
 				hallOfficers = mFacade.getHallOfficers(today, "A");
 				licenses = rFacade.getLicenses("A");
-				if(!logSizes.isEmpty())
+				if (!logSizes.isEmpty())
 				{
 					for (LogSize ls : logSizes)
 					{
@@ -260,7 +261,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			else
 			{
 				State state = mFacade.getState(stateID);
-				if(!logSizes.isEmpty())
+				if (!logSizes.isEmpty())
 				{
 					for (LogSize ls : logSizes)
 					{
@@ -271,7 +272,12 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						}
 					}
 				}
-				if (state.getDirectorID().equals(staffID) || (state.getDeputyDirector1ID() != null && state.getDeputyDirector1ID().equals(staffID)) || (state.getDeputyDirector2ID() != null && state.getDeputyDirector2ID().equals(staffID)) || designationID == 6 || designationID == 12)
+				if (state.getDirectorID().equals(staffID)
+						|| (state.getDeputyDirector1ID() != null
+								&& state.getDeputyDirector1ID().equals(staffID))
+						|| (state.getDeputyDirector2ID() != null
+								&& state.getDeputyDirector2ID().equals(staffID))
+						|| designationID == 6 || designationID == 12)
 				{
 					accessLevel = 1;
 					taggings = tFacade.getTaggings(state, true, 0, endYear);
@@ -281,17 +287,22 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				else
 				{
 					hallOfficers = mFacade.getHallOfficers(today, user);
-					if(hallOfficers.size() == 0)
+					if (hallOfficers.size() == 0)
 					{
 						district = mFacade.getDistrict(user);
 						if (district != null)
 						{
-							taggings = tFacade.getTaggings(district, true, 0, endYear);
+							taggings = tFacade.getTaggings(district, true, 0,
+									endYear);
 							licenses = rFacade.getLicenses(district, "A");
-							if(staffID.equals(district.getOfficerID()) || (district.getAsstOfficerID() != null && staffID.equals(district.getAsstOfficerID())))
+							if (staffID.equals(district.getOfficerID())
+									|| (district.getAsstOfficerID() != null
+											&& staffID.equals(district
+													.getAsstOfficerID())))
 							{
 								accessLevel = 1;
-								hallOfficers = mFacade.getHallOfficers(today, district);
+								hallOfficers = mFacade.getHallOfficers(today,
+										district);
 							}
 							else
 							{
@@ -302,7 +313,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						else
 						{
 							accessLevel = 0;
-							if(mFacade.getHallOfficers(user) != null)
+							if (mFacade.getHallOfficers(user) != null)
 							{
 								errorMessage = "Anda tidak boleh mengeluarkan pas memindah kerana tidak dilantik sebagai pegawai balai bagi Balai Pemeriksa Hutan.";
 							}
@@ -318,56 +329,65 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						taggings = new ArrayList<Tagging>();
 						licenses = new ArrayList<License>();
 						ArrayList<Integer> districtIDs = new ArrayList<Integer>();
-						ArrayList<District> districts = new ArrayList<District>();						
-						for(HallOfficer hallOfficer : hallOfficers)
+						ArrayList<District> districts = new ArrayList<District>();
+						for (HallOfficer hallOfficer : hallOfficers)
 						{
-							if(!districtIDs.contains(hallOfficer.getDistrictID()))
+							if (!districtIDs
+									.contains(hallOfficer.getDistrictID()))
 							{
-								System.out.println("semua hallOfficer.getDistrictID()=" + hallOfficer.getDistrictID());
-								System.out.println("hallOfficer.getDistrictID()=" + hallOfficer.getDistrictID());
+								System.out.println(
+										"semua hallOfficer.getDistrictID()="
+												+ hallOfficer.getDistrictID());
+								System.out
+										.println("hallOfficer.getDistrictID()="
+												+ hallOfficer.getDistrictID());
 								districtIDs.add(hallOfficer.getDistrictID());
 								District district = new District();
-								district.setDistrictID(hallOfficer.getDistrictID());
+								district.setDistrictID(
+										hallOfficer.getDistrictID());
 								districts.add(district);
 							}
 						}
 
-						for(District district : districts)
+						for (District district : districts)
 						{
-							ArrayList<License> tempLicenses = rFacade.getLicenses(district, "A");
-							for(License license : tempLicenses)
+							ArrayList<License> tempLicenses = rFacade
+									.getLicenses(district, "A");
+							for (License license : tempLicenses)
 							{
 								licenses.add(license);
 							}
-							
-						}	
-						
+
+						}
+
 						districtIDs = null;
 						districts = null;
 					}
 				}
 			}
 
-			if(logSizeExist == false)
+			if (logSizeExist == false)
 			{
-				if(errorMessage == null)
+				if (errorMessage == null)
 				{
 					errorMessage = "Pas Memindah tidak dapat diproses kerana saiz balak bagi Negeri Sembilan Darul Khusus tidak direkodkan.";
 				}
 				else
 				{
-					errorMessage = errorMessage + " Pas Memindah tidak dapat diproses kerana saiz balak bagi Negeri Sembilan Darul Khusus tidak direkodkan.";
+					errorMessage = errorMessage
+							+ " Pas Memindah tidak dapat diproses kerana saiz balak bagi Negeri Sembilan Darul Khusus tidak direkodkan.";
 				}
 			}
-			if(hallOfficers.isEmpty())
+			if (hallOfficers.isEmpty())
 			{
-				if(errorMessage == null)
+				if (errorMessage == null)
 				{
 					errorMessage = "Pas Memindah tidak dapat diproses kerana tiada pegawai balai yang aktif.";
 				}
 				else
 				{
-					errorMessage = errorMessage + " Pas Memindah tidak dapat diproses kerana tiada pegawai balai yang aktif.";
+					errorMessage = errorMessage
+							+ " Pas Memindah tidak dapat diproses kerana tiada pegawai balai yang aktif.";
 				}
 			}
 
@@ -403,7 +423,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						if (license.getEndDate().compareTo(today) < 0)
 						{
 							license.setStatus("E");
-							if(accessLevel < 3)
+							if (accessLevel < 3)
 							{
 								tempLicenses.add(license);
 							}
@@ -428,13 +448,14 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			}
 			else
 			{
-				if(errorMessage == null)
+				if (errorMessage == null)
 				{
 					errorMessage = "Pas Memindah tidak dapat diproses kerana tiada lesen yang aktif.";
 				}
 				else
 				{
-					errorMessage = errorMessage + " Pas Memindah tidak dapat diproses kerana tiada lesen yang aktif.";
+					errorMessage = errorMessage
+							+ " Pas Memindah tidak dapat diproses kerana tiada lesen yang aktif.";
 				}
 			}
 			System.out.println("errorMessage=" + errorMessage);
@@ -673,8 +694,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		return royaltyAndCessRateExist;
 	}
 
-	public void setRoyaltyAndCessRateExist(
-			boolean royaltyAndCessRateExist)
+	public void setRoyaltyAndCessRateExist(boolean royaltyAndCessRateExist)
 	{
 		this.royaltyAndCessRateExist = royaltyAndCessRateExist;
 	}
@@ -1031,11 +1051,13 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		this.hallOfficerErrorMessage = hallOfficerErrorMessage;
 	}
 
-	public String getErrorMessage() {
+	public String getErrorMessage()
+	{
 		return errorMessage;
 	}
 
-	public void setErrorMessage(String errorMessage) {
+	public void setErrorMessage(String errorMessage)
+	{
 		this.errorMessage = errorMessage;
 	}
 
@@ -1094,7 +1116,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 
 		barLicense = false;
 
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); HallFacade hFacade = new HallFacade(); TaggingFacade tFacade = new TaggingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				HallFacade hFacade = new HallFacade();
+				TaggingFacade tFacade = new TaggingFacade())
 		{
 			license = null;
 			for (License l : licenses)
@@ -1216,65 +1240,88 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		message = message + " Baki had pengeluaran lesen adalah ";
 		if (license.getLogLimit().compareTo(maximumLimit) != 0)
 		{
-			message = message + df.format(license.getLogLimit().setScale(2,	BigDecimal.ROUND_HALF_UP))+ " m\u00B3 kayu balak";
+			message = message + df.format(
+					license.getLogLimit().setScale(2, BigDecimal.ROUND_HALF_UP))
+					+ " m\u00B3 kayu balak";
 		}
 		else
 		{
 			BigDecimal volume = BigDecimal.ZERO;
 			if (license.getResinLimit().compareTo(maximumLimit) != 0)
 			{
-				volume = volume.add(license.getResinLimit().setScale(2,	BigDecimal.ROUND_HALF_UP));
+				volume = volume.add(license.getResinLimit().setScale(2,
+						BigDecimal.ROUND_HALF_UP));
 			}
 			if (license.getNonResinLimit().compareTo(maximumLimit) != 0)
 			{
-				volume = volume.add(license.getNonResinLimit().setScale(2,	BigDecimal.ROUND_HALF_UP));
+				volume = volume.add(license.getNonResinLimit().setScale(2,
+						BigDecimal.ROUND_HALF_UP));
 			}
 			if (license.getChengalLimit().compareTo(maximumLimit) != 0)
 			{
-				volume = volume.add(license.getChengalLimit().setScale(2,	BigDecimal.ROUND_HALF_UP));
+				volume = volume.add(license.getChengalLimit().setScale(2,
+						BigDecimal.ROUND_HALF_UP));
 			}
-			message = message + volume.setScale(2,	BigDecimal.ROUND_HALF_UP) + " m\u00B3 ";
+			message = message + volume.setScale(2, BigDecimal.ROUND_HALF_UP)
+					+ " m\u00B3 ";
 
 			if (license.getResinLimit().compareTo(maximumLimit) != 0)
 			{
-				message = message +  "( Kaum Damar = " + df.format(license.getResinLimit().setScale(2,	BigDecimal.ROUND_HALF_UP))+ " m\u00B3 )";
+				message = message
+						+ "( Kaum Damar = " + df.format(license.getResinLimit()
+								.setScale(2, BigDecimal.ROUND_HALF_UP))
+						+ " m\u00B3 )";
 			}
 			if (license.getNonResinLimit().compareTo(maximumLimit) != 0)
 			{
-				if(license.getResinLimit().compareTo(maximumLimit) != 0)
+				if (license.getResinLimit().compareTo(maximumLimit) != 0)
 				{
-					message = message +  ", ";
+					message = message + ", ";
 				}
-				if (license.getJarasLimit().compareTo(maximumLimit) == 0 && license.getChengalLimit().compareTo(maximumLimit) == 0)
+				if (license.getJarasLimit().compareTo(maximumLimit) == 0
+						&& license.getChengalLimit()
+								.compareTo(maximumLimit) == 0)
 				{
-					message = message +  "dan ";
+					message = message + "dan ";
 				}
-				message = message +  "( Kaum Bukan Damar = " + df.format(license.getNonResinLimit().setScale(2,	BigDecimal.ROUND_HALF_UP))+ " m\u00B3 )";
+				message = message + "( Kaum Bukan Damar = "
+						+ df.format(license.getNonResinLimit().setScale(2,
+								BigDecimal.ROUND_HALF_UP))
+						+ " m\u00B3 )";
 			}
 			if (license.getChengalLimit().compareTo(maximumLimit) != 0)
 			{
-				if(license.getResinLimit().compareTo(maximumLimit) != 0 || license.getNonResinLimit().compareTo(maximumLimit) != 0)
+				if (license.getResinLimit().compareTo(maximumLimit) != 0
+						|| license.getNonResinLimit()
+								.compareTo(maximumLimit) != 0)
 				{
-					message = message +  ", ";
+					message = message + ", ";
 				}
 				if (license.getJarasLimit().compareTo(maximumLimit) == 0)
 				{
-					message = message +  "dan ";
+					message = message + "dan ";
 				}
-				message = message +  "( Chengal = " + df.format(license.getChengalLimit().setScale(2,	BigDecimal.ROUND_HALF_UP))+ " m\u00B3 )";		
+				message = message
+						+ "( Chengal = " + df.format(license.getChengalLimit()
+								.setScale(2, BigDecimal.ROUND_HALF_UP))
+						+ " m\u00B3 )";
 			}
 		}
 
 		if (license.getJarasLimit().compareTo(maximumLimit) != 0)
 		{
-			if(license.getLogLimit().compareTo(maximumLimit) != 0 || license.getResinLimit().compareTo(maximumLimit) != 0 || license.getNonResinLimit().compareTo(maximumLimit) != 0 || license.getChengalLimit().compareTo(maximumLimit) != 0)
+			if (license.getLogLimit().compareTo(maximumLimit) != 0
+					|| license.getResinLimit().compareTo(maximumLimit) != 0
+					|| license.getNonResinLimit().compareTo(maximumLimit) != 0
+					|| license.getChengalLimit().compareTo(maximumLimit) != 0)
 			{
-				message = message +  " dan ";
+				message = message + " dan ";
 			}
-			message = message +  license.getJarasLimit().setScale(0,BigDecimal.ROUND_HALF_UP) + " batang kayu jaras";
+			message = message + license.getJarasLimit().setScale(0,
+					BigDecimal.ROUND_HALF_UP) + " batang kayu jaras";
 		}
 
-		message = message +  ".";
+		message = message + ".";
 
 		return message;
 	}
@@ -1362,8 +1409,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		{
 			SmallProductTransferPassRecord smallProductTransferPassRecord = new SmallProductTransferPassRecord();
 			smallProductTransferPassRecord
-			.setSmallProductTransferPassRecordID(current + i);
-			smallProductTransferPassRecord.setTransferPassID(model.getTransferPassID());
+					.setSmallProductTransferPassRecordID(current + i);
+			smallProductTransferPassRecord
+					.setTransferPassID(model.getTransferPassID());
 			smallProductTransferPassRecords.add(smallProductTransferPassRecord);
 		}
 
@@ -1378,7 +1426,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		{
 			SpecialTransferPassRecord specialTransferPassRecord = new SpecialTransferPassRecord();
 			specialTransferPassRecord
-			.setSpecialTransferPassRecordID(current + i);
+					.setSpecialTransferPassRecordID(current + i);
 			specialTransferPassRecords.add(specialTransferPassRecord);
 		}
 	}
@@ -1392,7 +1440,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		{
 			if (smallProductTransferPassRecord
 					.getSmallProductID() == smallProductRoyaltyRate
-					.getSmallProductID())
+							.getSmallProductID())
 			{
 				Unit unit = new Unit();
 				unit.setUnitID(smallProductRoyaltyRate.getUnitID());
@@ -1416,8 +1464,8 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		try (HallFacade hFacade = new HallFacade())
 		{
 			long current = System.currentTimeMillis();
-			model.setTransferPassNo(model.getTransferPassNo().replaceAll("\\s", "")
-					.toUpperCase());
+			model.setTransferPassNo(model.getTransferPassNo()
+					.replaceAll("\\s", "").toUpperCase());
 
 			if (model.getCode() == 0)
 			{
@@ -1440,9 +1488,11 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				{
 					SmallProductTransferPassRecord smallProductTransferPassRecord = new SmallProductTransferPassRecord();
 					smallProductTransferPassRecord
-					.setSmallProductTransferPassRecordID(current + i);
-					smallProductTransferPassRecord.setTransferPassID(model.getTransferPassID());
-					smallProductTransferPassRecords.add(smallProductTransferPassRecord);
+							.setSmallProductTransferPassRecordID(current + i);
+					smallProductTransferPassRecord
+							.setTransferPassID(model.getTransferPassID());
+					smallProductTransferPassRecords
+							.add(smallProductTransferPassRecord);
 				}
 
 				units = new ArrayList<Unit>();
@@ -1458,8 +1508,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				{
 					SpecialTransferPassRecord specialTransferPassRecord = new SpecialTransferPassRecord();
 					specialTransferPassRecord
-					.setSpecialTransferPassRecordID(current + i);
-					specialTransferPassRecord.setTransferPassID(model.getTransferPassID());
+							.setSpecialTransferPassRecordID(current + i);
+					specialTransferPassRecord
+							.setTransferPassID(model.getTransferPassID());
 					specialTransferPassRecords.add(specialTransferPassRecord);
 				}
 
@@ -1494,7 +1545,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 					sort(models);
 
 					int count = 0;
-					if(model.getCode() == 0)
+					if (model.getCode() == 0)
 					{
 						selectedLogs = null;
 						sort(model.getMainRevenueTransferPassRecords());
@@ -1504,26 +1555,28 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							if (hFacade.addMainRevenueTransferPassRecord(
 									mainRevenueTransferPassRecord) != 0)
 							{
-								count ++;
+								count++;
 								log(hFacade,
 										"Tambah rekod pas memindah hasil utama, ID "
 												+ mainRevenueTransferPassRecord
-												.getMainRevenueTransferPassRecordID());
+														.getMainRevenueTransferPassRecordID());
 
 								Log log = new Log();
-								log.setLogID(
-										mainRevenueTransferPassRecord.getLogID());
+								log.setLogID(mainRevenueTransferPassRecord
+										.getLogID());
 								log.setStatus("P");
 								if (hFacade.updateLogStatus(log) != 0)
 								{
-									log(hFacade, "Kemaskini status tual balak, ID "
-											+ mainRevenueTransferPassRecord
-											.getMainRevenueTransferPassRecordID());
+									log(hFacade,
+											"Kemaskini status tual balak, ID "
+													+ mainRevenueTransferPassRecord
+															.getMainRevenueTransferPassRecordID());
 								}
-								for(Iterator<Log> logIterator = logs.iterator(); logIterator.hasNext();)
+								for (Iterator<Log> logIterator = logs
+										.iterator(); logIterator.hasNext();)
 								{
 									Log l = logIterator.next();
-									if(l.getLogID() == log.getLogID())
+									if (l.getLogID() == log.getLogID())
 									{
 										logIterator.remove();
 									}
@@ -1533,14 +1586,16 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							else
 							{
 								addMessage(FacesMessage.SEVERITY_WARN, null,
-										"tual balak " + mainRevenueTransferPassRecord.getLogSerialNo() + " tidak dapat ditambah.");
+										"tual balak "
+												+ mainRevenueTransferPassRecord
+														.getLogSerialNo()
+												+ " tidak dapat ditambah.");
 							}
 						}
-						addMessage(FacesMessage.SEVERITY_INFO, null,
-								"Sebanyak " + count
-								+ " tual balak berjaya ditambahkan.");
+						addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak "
+								+ count + " tual balak berjaya ditambahkan.");
 					}
-					else if(model.getCode() == 1)
+					else if (model.getCode() == 1)
 					{
 						sort(model.getSmallProductTransferPassRecords());
 						for (SmallProductTransferPassRecord smallProductTransferPassRecord : model
@@ -1553,20 +1608,26 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								log(hFacade,
 										"Tambah rekod pas memindah keluaran kecil, ID "
 												+ smallProductTransferPassRecord
-												.getSmallProductTransferPassRecordID());
+														.getSmallProductTransferPassRecordID());
 							}
 							else
 							{
 								addMessage(FacesMessage.SEVERITY_WARN, null,
-										"rekod pas memindah " + smallProductTransferPassRecord.getSmallProductCode() + " - " + smallProductTransferPassRecord.getSmallProductName() + " tidak dapat ditambah.");
+										"rekod pas memindah "
+												+ smallProductTransferPassRecord
+														.getSmallProductCode()
+												+ " - "
+												+ smallProductTransferPassRecord
+														.getSmallProductName()
+												+ " tidak dapat ditambah.");
 							}
 						}
 
-						addMessage(FacesMessage.SEVERITY_INFO, null,
-								"Sebanyak " + count
+						addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak "
+								+ count
 								+ " rekod pas memindah keluaran kecil berjaya ditambahkan.");
 					}
-					else if(model.getCode() == 2)
+					else if (model.getCode() == 2)
 					{
 						sort(model.getSpecialTransferPassRecords());
 						for (SpecialTransferPassRecord specialTransferPassRecord : model
@@ -1579,25 +1640,33 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								log(hFacade,
 										"Tambah rekod pas memindah projek, ID "
 												+ specialTransferPassRecord
-												.getSpecialTransferPassRecordID());
+														.getSpecialTransferPassRecordID());
 							}
 							else
 							{
 								addMessage(FacesMessage.SEVERITY_WARN, null,
-										"tual balak " + specialTransferPassRecord.getSpeciesCode() + " - " + specialTransferPassRecord.getSpeciesName() + " tidak dapat ditambah.");
+										"tual balak "
+												+ specialTransferPassRecord
+														.getSpeciesCode()
+												+ " - "
+												+ specialTransferPassRecord
+														.getSpeciesName()
+												+ " tidak dapat ditambah.");
 							}
 						}
-						addMessage(FacesMessage.SEVERITY_INFO, null,
-								"Sebanyak " + count
-								+ " tual balak berjaya ditambahkan.");
+						addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak "
+								+ count + " tual balak berjaya ditambahkan.");
 					}
-
 
 					if (rFacade.subtractFundAndLimit(updateResin,
 							totalDipterokarp, updateNonResin,
-							totalNonDipterokarp, updateChengal, totalChengal, updateLog, totalDipterokarp.add(totalNonDipterokarp.add(totalChengal)), updateJaras, totalJaras,
+							totalNonDipterokarp, updateChengal, totalChengal,
+							updateLog,
+							totalDipterokarp
+									.add(totalNonDipterokarp.add(totalChengal)),
+							updateJaras, totalJaras,
 							model.getRoyaltyAmount().add(model.getCessAmount())
-							.setScale(2, BigDecimal.ROUND_HALF_UP),
+									.setScale(2, BigDecimal.ROUND_HALF_UP),
 							license) != 0)
 					{
 						license.setWoodWorkFund(license.getWoodWorkFund()
@@ -1614,11 +1683,12 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							license.setChengalLimit(license.getChengalLimit()
 									.subtract(totalChengal));
 						if (updateLog == true)
-							license.setLogLimit(license.getLogLimit()
-									.subtract(totalDipterokarp.add(totalNonDipterokarp.add(totalChengal))));
+							license.setLogLimit(license.getLogLimit().subtract(
+									totalDipterokarp.add(totalNonDipterokarp
+											.add(totalChengal))));
 						if (updateJaras == true)
 							license.setJarasLimit(license.getJarasLimit()
-									.subtract(totalJaras));							
+									.subtract(totalJaras));
 
 						log(hFacade,
 								"Kemaskini wang amanah dan had keluaran bagi lesen, ID "
@@ -1630,7 +1700,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								"Kemaskini wang amanah dan had keluaran bagi lesen "
 										+ license
 										+ " tidak dapat dilaksanakan.");
-					}				
+					}
 				}
 
 				else
@@ -1731,7 +1801,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							{
 								if (specialTransferPassRecord
 										.getSpeciesID() == species
-										.getSpeciesID())
+												.getSpeciesID())
 								{
 									counter++;
 								}
@@ -1794,35 +1864,40 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			transferPassNoExist = false;
 			transferPassNoExist = hFacade.selectTransferPassNo(model);
 
-			if(model.getCode() == 0)
-			{				
+			if (model.getCode() == 0)
+			{
 				long logID = System.currentTimeMillis();
 
 				for (Log log : selectedLogs)
 				{
 					MainRevenueTransferPassRecord mainRevenueTransferPassRecord = new MainRevenueTransferPassRecord();
 					mainRevenueTransferPassRecord
-					.setMainRevenueTransferPassRecordID(logID + count);
-					mainRevenueTransferPassRecord.setTransferPassID(model.getTransferPassID());
+							.setMainRevenueTransferPassRecordID(logID + count);
+					mainRevenueTransferPassRecord
+							.setTransferPassID(model.getTransferPassID());
 					mainRevenueTransferPassRecord.setLogID(log.getLogID());
 					mainRevenueTransferPassRecord.setLogNo(log.getLogNo());
 					mainRevenueTransferPassRecord
-					.setLogSerialNo(log.getLogSerialNo());
+							.setLogSerialNo(log.getLogSerialNo());
 					mainRevenueTransferPassRecord
-					.setSpeciesCode(log.getSpeciesCode());
+							.setSpeciesCode(log.getSpeciesCode());
 					mainRevenueTransferPassRecord
-					.setSpeciesName(log.getSpeciesName());
+							.setSpeciesName(log.getSpeciesName());
 					mainRevenueTransferPassRecord
-					.setSpeciesTypeID(log.getSpeciesTypeID());
-					mainRevenueTransferPassRecord.setDiameter(log.getDiameter());
+							.setSpeciesTypeID(log.getSpeciesTypeID());
+					mainRevenueTransferPassRecord
+							.setDiameter(log.getDiameter());
 					mainRevenueTransferPassRecord.setLength(log.getLength());
 					mainRevenueTransferPassRecord
-					.setGrossVolume(log.getGrossVolume());
+							.setGrossVolume(log.getGrossVolume());
 					mainRevenueTransferPassRecord
-					.setHoleDiameter(log.getHoleDiameter());
-					mainRevenueTransferPassRecord.setNetVolume(log.getNetVolume());
-					mainRevenueTransferPassRecord.setTaggingRecordID(log.getTaggingRecordID());
-					mainRevenueTransferPassRecord.setSpeciesID(log.getSpeciesID());
+							.setHoleDiameter(log.getHoleDiameter());
+					mainRevenueTransferPassRecord
+							.setNetVolume(log.getNetVolume());
+					mainRevenueTransferPassRecord
+							.setTaggingRecordID(log.getTaggingRecordID());
+					mainRevenueTransferPassRecord
+							.setSpeciesID(log.getSpeciesID());
 
 					royaltyAndCessRateExist = false;
 
@@ -1833,37 +1908,42 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						{
 							royaltyAndCessRateExist = true;
 							mainRevenueTransferPassRecord
-							.setMainRevenueRoyaltyRateID(
-									mrrr.getMainRevenueRoyaltyRateID());
+									.setMainRevenueRoyaltyRateID(
+											mrrr.getMainRevenueRoyaltyRateID());
 							mainRevenueTransferPassRecord.setBigSizeRoyaltyRate(
 									mrrr.getBigSizeRoyaltyRate());
-							mainRevenueTransferPassRecord.setSmallSizeRoyaltyRate(
-									mrrr.getSmallSizeRoyaltyRate());
 							mainRevenueTransferPassRecord
-							.setCessRate(mrrr.getCessRate());
+									.setSmallSizeRoyaltyRate(
+											mrrr.getSmallSizeRoyaltyRate());
+							mainRevenueTransferPassRecord
+									.setCessRate(mrrr.getCessRate());
 							mainRevenueTransferPassRecord.setJarasRoyaltyRate(
 									mrrr.getJarasRoyaltyRate());
 							mainRevenueTransferPassRecord
-							.setJarasCessRate(mrrr.getJarasCessRate());
+									.setJarasCessRate(mrrr.getJarasCessRate());
 							break;
 						}
 					}
 
 					if (royaltyAndCessRateExist == true)
 					{
-						if (mainRevenueTransferPassRecord.getDiameter().compareTo(
-								new BigDecimal(logSize.getMinBigSize())) >= 0)
+						if (mainRevenueTransferPassRecord.getDiameter()
+								.compareTo(new BigDecimal(
+										logSize.getMinBigSize())) >= 0)
 						{
 							mainRevenueTransferPassRecord.setRoyalty(
 									mainRevenueTransferPassRecord.getNetVolume()
-									.multiply(mainRevenueTransferPassRecord
-											.getBigSizeRoyaltyRate())
-									.setScale(2, BigDecimal.ROUND_HALF_UP));
+											.multiply(
+													mainRevenueTransferPassRecord
+															.getBigSizeRoyaltyRate())
+											.setScale(2,
+													BigDecimal.ROUND_HALF_UP));
 							mainRevenueTransferPassRecord.setRoyalty(
 									mainRevenueTransferPassRecord.getRoyalty()
-									.multiply(new BigDecimal(
-											model.getRoyaltyRate()))
-									.setScale(2, BigDecimal.ROUND_HALF_UP));
+											.multiply(new BigDecimal(
+													model.getRoyaltyRate()))
+											.setScale(2,
+													BigDecimal.ROUND_HALF_UP));
 						}
 						else
 						{
@@ -1872,18 +1952,20 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 											logSize.getMinSmallSize())) >= 0)
 							{
 								mainRevenueTransferPassRecord.setRoyalty(
-										mainRevenueTransferPassRecord.getNetVolume()
-										.multiply(
-												mainRevenueTransferPassRecord
-												.getSmallSizeRoyaltyRate())
-										.setScale(2,
-												BigDecimal.ROUND_HALF_UP));
+										mainRevenueTransferPassRecord
+												.getNetVolume()
+												.multiply(
+														mainRevenueTransferPassRecord
+																.getSmallSizeRoyaltyRate())
+												.setScale(2,
+														BigDecimal.ROUND_HALF_UP));
 								mainRevenueTransferPassRecord.setRoyalty(
-										mainRevenueTransferPassRecord.getRoyalty()
-										.multiply(new BigDecimal(
-												model.getRoyaltyRate()))
-										.setScale(2,
-												BigDecimal.ROUND_HALF_UP));
+										mainRevenueTransferPassRecord
+												.getRoyalty()
+												.multiply(new BigDecimal(
+														model.getRoyaltyRate()))
+												.setScale(2,
+														BigDecimal.ROUND_HALF_UP));
 							}
 							else
 							{
@@ -1893,21 +1975,21 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 
 						mainRevenueTransferPassRecord.setCess(
 								mainRevenueTransferPassRecord.getNetVolume()
-								.multiply(mainRevenueTransferPassRecord
-										.getCessRate())
-								.setScale(2, BigDecimal.ROUND_HALF_UP));
+										.multiply(mainRevenueTransferPassRecord
+												.getCessRate())
+										.setScale(2, BigDecimal.ROUND_HALF_UP));
 
 						mainRevenueTransferPassRecord
-						.setCess(mainRevenueTransferPassRecord.getCess()
-								.multiply(
-										new BigDecimal(model.getCessRate()))
-								.setScale(2, BigDecimal.ROUND_HALF_UP));
+								.setCess(mainRevenueTransferPassRecord.getCess()
+										.multiply(new BigDecimal(
+												model.getCessRate()))
+										.setScale(2, BigDecimal.ROUND_HALF_UP));
 
 						model.getMainRevenueTransferPassRecords()
-						.add(mainRevenueTransferPassRecord);
+								.add(mainRevenueTransferPassRecord);
 
-						model.setRoyaltyAmount(model.getRoyaltyAmount()
-								.add(mainRevenueTransferPassRecord.getRoyalty()));
+						model.setRoyaltyAmount(model.getRoyaltyAmount().add(
+								mainRevenueTransferPassRecord.getRoyalty()));
 						model.setCessAmount(model.getCessAmount()
 								.add(mainRevenueTransferPassRecord.getCess()));
 
@@ -1916,7 +1998,8 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						{
 							if ("1201".equals(log.getSpeciesCode()))
 							{
-								totalChengal = totalChengal.add(log.getNetVolume());
+								totalChengal = totalChengal
+										.add(log.getNetVolume());
 							}
 							else
 							{
@@ -1945,27 +2028,31 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			}
 			else
 			{
-				if(model.getCode() == 1)
+				if (model.getCode() == 1)
 				{
-					long smallProductTransferPassRecordID = System.currentTimeMillis();
+					long smallProductTransferPassRecordID = System
+							.currentTimeMillis();
 
 					for (SmallProductTransferPassRecord smallProductTransferPassRecord : smallProductTransferPassRecords)
 					{
-						if (smallProductTransferPassRecord.getSmallProductID() != 0)
+						if (smallProductTransferPassRecord
+								.getSmallProductID() != 0)
 						{
-							smallProductTransferPassRecord
-							.setTransferPassID(model.getTransferPassID());
+							smallProductTransferPassRecord.setTransferPassID(
+									model.getTransferPassID());
 
 							for (SmallProduct smallProduct : smallProducts)
 							{
 								if (smallProduct
 										.getSmallProductID() == smallProductTransferPassRecord
-										.getSmallProductID())
+												.getSmallProductID())
 								{
-									smallProductTransferPassRecord.setSmallProductCode(
-											smallProduct.getCode());
-									smallProductTransferPassRecord.setSmallProductName(
-											smallProduct.getName());
+									smallProductTransferPassRecord
+											.setSmallProductCode(
+													smallProduct.getCode());
+									smallProductTransferPassRecord
+											.setSmallProductName(
+													smallProduct.getName());
 									break;
 								}
 							}
@@ -1976,9 +2063,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 										.getUnitID())
 								{
 									smallProductTransferPassRecord
-									.setUnitCode(unit.getCode());
+											.setUnitCode(unit.getCode());
 									smallProductTransferPassRecord
-									.setUnitName(unit.getName());
+											.setUnitName(unit.getName());
 									break;
 								}
 							}
@@ -1988,62 +2075,77 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							{
 								if (smallProductRoyaltyRate
 										.getSmallProductID() == smallProductTransferPassRecord
-										.getSmallProductID()
+												.getSmallProductID()
 										&& smallProductRoyaltyRate
-										.getUnitID() == smallProductTransferPassRecord
-										.getUnitID())
+												.getUnitID() == smallProductTransferPassRecord
+														.getUnitID())
 								{
 									royaltyAndCessRateExist = true;
 
 									smallProductTransferPassRecord
-									.setSmallProductTransferPassRecordID(
-											smallProductTransferPassRecordID
-											+ count);
+											.setSmallProductTransferPassRecordID(
+													smallProductTransferPassRecordID
+															+ count);
 									smallProductTransferPassRecord
-									.setSmallProductRoyaltyRateID(
-											smallProductRoyaltyRate
-											.getSmallProductRoyaltyRateID());
-
-									smallProductTransferPassRecord.setRoyaltyRate(
-											smallProductRoyaltyRate.getRoyaltyRate());
-
-									smallProductTransferPassRecord.setCessRate(
-											smallProductRoyaltyRate.getCessRate());
+											.setSmallProductRoyaltyRateID(
+													smallProductRoyaltyRate
+															.getSmallProductRoyaltyRateID());
 
 									smallProductTransferPassRecord
-									.setRoyalty(smallProductTransferPassRecord
-											.getRoyaltyRate().multiply(
-													smallProductTransferPassRecord
-													.getQuantity()));
+											.setRoyaltyRate(
+													smallProductRoyaltyRate
+															.getRoyaltyRate());
+
+									smallProductTransferPassRecord
+											.setCessRate(smallProductRoyaltyRate
+													.getCessRate());
 
 									smallProductTransferPassRecord.setRoyalty(
-											smallProductTransferPassRecord.getRoyalty()
-											.multiply(new BigDecimal(
-													model.getRoyaltyRate())));
+											smallProductTransferPassRecord
+													.getRoyaltyRate().multiply(
+															smallProductTransferPassRecord
+																	.getQuantity()));
 
-									smallProductTransferPassRecord
-									.setCess(smallProductTransferPassRecord
-											.getCessRate().multiply(
-													smallProductTransferPassRecord
-													.getQuantity()));
+									smallProductTransferPassRecord.setRoyalty(
+											smallProductTransferPassRecord
+													.getRoyalty()
+													.multiply(new BigDecimal(
+															model.getRoyaltyRate())));
 
-									smallProductTransferPassRecord
-									.setCess(smallProductTransferPassRecord
-											.getCess().multiply(new BigDecimal(
-													model.getCessRate())));
+									smallProductTransferPassRecord.setCess(
+											smallProductTransferPassRecord
+													.getCessRate().multiply(
+															smallProductTransferPassRecord
+																	.getQuantity()));
 
-									model.setRoyaltyAmount(model.getRoyaltyAmount()
+									smallProductTransferPassRecord.setCess(
+											smallProductTransferPassRecord
+													.getCess()
+													.multiply(new BigDecimal(
+															model.getCessRate())));
+
+									model.setRoyaltyAmount(model
+											.getRoyaltyAmount()
 											.add(smallProductTransferPassRecord
 													.getRoyalty()));
 
-									model.setCessAmount(model.getCessAmount().add(
-											smallProductTransferPassRecord.getCess()));
+									model.setCessAmount(model.getCessAmount()
+											.add(smallProductTransferPassRecord
+													.getCess()));
 
 									model.getSmallProductTransferPassRecords()
-									.add(smallProductTransferPassRecord);
-									if(smallProductTransferPassRecord.getSmallProductCode().regionMatches(0, "JB", 0, 2) || smallProductTransferPassRecord.getSmallProductCode().regionMatches(0, "JK", 0, 2))
+											.add(smallProductTransferPassRecord);
+									if (smallProductTransferPassRecord
+											.getSmallProductCode()
+											.regionMatches(0, "JB", 0, 2)
+											|| smallProductTransferPassRecord
+													.getSmallProductCode()
+													.regionMatches(0, "JK", 0,
+															2))
 									{
-										totalJaras = totalJaras.add(smallProductTransferPassRecord.getQuantity());
+										totalJaras = totalJaras.add(
+												smallProductTransferPassRecord
+														.getQuantity());
 									}
 
 									count++;
@@ -2056,11 +2158,12 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 										.getSmallProductCode()
 										+ " - "
 										+ smallProductTransferPassRecord
-										.getSmallProductName()
+												.getSmallProductName()
 										+ " dengan unit "
-										+ smallProductTransferPassRecord.getUnitCode()
-										+ " - "
-										+ smallProductTransferPassRecord.getUnitName();
+										+ smallProductTransferPassRecord
+												.getUnitCode()
+										+ " - " + smallProductTransferPassRecord
+												.getUnitName();
 								break;
 							}
 						}
@@ -2068,10 +2171,11 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				}
 				else
 				{
-					if(model.getCode() == 2)
+					if (model.getCode() == 2)
 					{
 						model.setLogSizeID(logSize.getLogSizeID());
-						long specialTransferPassRecordID = System.currentTimeMillis();
+						long specialTransferPassRecordID = System
+								.currentTimeMillis();
 
 						for (SpecialTransferPassRecord specialTransferPassRecord : specialTransferPassRecords)
 						{
@@ -2079,19 +2183,23 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							{
 								for (Species species : specieses)
 								{
-									if (specialTransferPassRecord.getSpeciesID() == species
-											.getSpeciesID())
+									if (specialTransferPassRecord
+											.getSpeciesID() == species
+													.getSpeciesID())
 									{
 										specialTransferPassRecord
-										.setSpecialTransferPassRecordID(
-												specialTransferPassRecordID
-												+ count);
+												.setSpecialTransferPassRecordID(
+														specialTransferPassRecordID
+																+ count);
 										specialTransferPassRecord
-										.setSpeciesCode(species.getCode());
+												.setSpeciesCode(
+														species.getCode());
 										specialTransferPassRecord
-										.setSpeciesName(species.getName());
-										specialTransferPassRecord.setSpeciesTypeID(
-												species.getSpeciesTypeID());
+												.setSpeciesName(
+														species.getName());
+										specialTransferPassRecord
+												.setSpeciesTypeID(species
+														.getSpeciesTypeID());
 										count++;
 										break;
 									}
@@ -2102,65 +2210,81 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								{
 									if (mrrr.getSpeciesID() == specialTransferPassRecord
 											.getSpeciesID()
-											&& mrrr.getStateID() == license.getStateID())
+											&& mrrr.getStateID() == license
+													.getStateID())
 									{
 										royaltyAndCessRateExist = true;
 										specialTransferPassRecord
-										.setMainRevenueRoyaltyRateID(
-												mrrr.getMainRevenueRoyaltyRateID());
-										specialTransferPassRecord.setBigSizeRoyaltyRate(
-												mrrr.getBigSizeRoyaltyRate());
-										specialTransferPassRecord.setSmallSizeRoyaltyRate(
-												mrrr.getSmallSizeRoyaltyRate());
+												.setMainRevenueRoyaltyRateID(
+														mrrr.getMainRevenueRoyaltyRateID());
 										specialTransferPassRecord
-										.setCessRate(mrrr.getCessRate());
-										specialTransferPassRecord.setJarasRoyaltyRate(
-												mrrr.getJarasRoyaltyRate());
+												.setBigSizeRoyaltyRate(mrrr
+														.getBigSizeRoyaltyRate());
 										specialTransferPassRecord
-										.setJarasCessRate(mrrr.getJarasCessRate());
+												.setSmallSizeRoyaltyRate(mrrr
+														.getSmallSizeRoyaltyRate());
+										specialTransferPassRecord.setCessRate(
+												mrrr.getCessRate());
+										specialTransferPassRecord
+												.setJarasRoyaltyRate(mrrr
+														.getJarasRoyaltyRate());
+										specialTransferPassRecord
+												.setJarasCessRate(mrrr
+														.getJarasCessRate());
 										break;
 									}
 								}
 
 								if (royaltyAndCessRateExist == true)
 								{
-									if (specialTransferPassRecord.getDiameter().compareTo(
-											new BigDecimal(logSize.getMinBigSize())) >= 0)
+									if (specialTransferPassRecord.getDiameter()
+											.compareTo(new BigDecimal(logSize
+													.getMinBigSize())) >= 0)
 									{
 										specialTransferPassRecord.setRoyalty(
-												specialTransferPassRecord.getVolume()
-												.multiply(specialTransferPassRecord
-														.getBigSizeRoyaltyRate())
-												.setScale(2,
-														BigDecimal.ROUND_HALF_UP));
+												specialTransferPassRecord
+														.getVolume()
+														.multiply(
+																specialTransferPassRecord
+																		.getBigSizeRoyaltyRate())
+														.setScale(2,
+																BigDecimal.ROUND_HALF_UP));
 
 										specialTransferPassRecord.setRoyalty(
-												specialTransferPassRecord.getRoyalty()
-												.multiply(new BigDecimal(
-														model.getRoyaltyRate()))
-												.setScale(2,
-														BigDecimal.ROUND_HALF_UP));
+												specialTransferPassRecord
+														.getRoyalty()
+														.multiply(
+																new BigDecimal(
+																		model.getRoyaltyRate()))
+														.setScale(2,
+																BigDecimal.ROUND_HALF_UP));
 									}
 									else
 									{
-										if (specialTransferPassRecord.getDiameter()
+										if (specialTransferPassRecord
+												.getDiameter()
 												.compareTo(new BigDecimal(
 														logSize.getMinSmallSize())) >= 0)
 										{
-											specialTransferPassRecord.setRoyalty(
-													specialTransferPassRecord.getVolume()
-													.multiply(
+											specialTransferPassRecord
+													.setRoyalty(
 															specialTransferPassRecord
-															.getSmallSizeRoyaltyRate())
-													.setScale(2,
-															BigDecimal.ROUND_HALF_UP));
+																	.getVolume()
+																	.multiply(
+																			specialTransferPassRecord
+																					.getSmallSizeRoyaltyRate())
+																	.setScale(2,
+																			BigDecimal.ROUND_HALF_UP));
 
-											specialTransferPassRecord.setRoyalty(
-													specialTransferPassRecord.getRoyalty()
-													.multiply(new BigDecimal(
-															model.getRoyaltyRate()))
-													.setScale(2,
-															BigDecimal.ROUND_HALF_UP));
+											specialTransferPassRecord
+													.setRoyalty(
+															specialTransferPassRecord
+																	.getRoyalty()
+																	.multiply(
+																			new BigDecimal(
+																					model.getRoyaltyRate()))
+																	.setScale(2,
+																			BigDecimal.ROUND_HALF_UP));
 										}
 										else
 										{
@@ -2169,49 +2293,62 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 									}
 
 									specialTransferPassRecord
-									.setCess(specialTransferPassRecord.getVolume()
-											.multiply(specialTransferPassRecord
-													.getCessRate())
-											.setScale(2, BigDecimal.ROUND_HALF_UP));
+											.setCess(specialTransferPassRecord
+													.getVolume()
+													.multiply(
+															specialTransferPassRecord
+																	.getCessRate())
+													.setScale(2,
+															BigDecimal.ROUND_HALF_UP));
 
-									specialTransferPassRecord
-									.setCess(specialTransferPassRecord.getCess()
-											.multiply(new BigDecimal(
-													model.getCessRate()))
-											.setScale(2, BigDecimal.ROUND_HALF_UP));
+									specialTransferPassRecord.setCess(
+											specialTransferPassRecord.getCess()
+													.multiply(new BigDecimal(
+															model.getCessRate()))
+													.setScale(2,
+															BigDecimal.ROUND_HALF_UP));
 
 									model.getSpecialTransferPassRecords()
-									.add(specialTransferPassRecord);
+											.add(specialTransferPassRecord);
 
-									model.setRoyaltyAmount(model.getRoyaltyAmount()
-											.add(specialTransferPassRecord.getRoyalty()));
+									model.setRoyaltyAmount(
+											model.getRoyaltyAmount().add(
+													specialTransferPassRecord
+															.getRoyalty()));
 
 									model.setCessAmount(model.getCessAmount()
-											.add(specialTransferPassRecord.getCess()));
+											.add(specialTransferPassRecord
+													.getCess()));
 
-									if (specialTransferPassRecord.getSpeciesTypeID() == 1
+									if (specialTransferPassRecord
+											.getSpeciesTypeID() == 1
 											|| specialTransferPassRecord
-											.getSpeciesTypeID() == 2)
+													.getSpeciesTypeID() == 2)
 									{
-										if (specialTransferPassRecord.getSpeciesCode()
+										if (specialTransferPassRecord
+												.getSpeciesCode()
 												.equalsIgnoreCase("1201"))
 											totalChengal = totalChengal.add(
-													specialTransferPassRecord.getVolume());
+													specialTransferPassRecord
+															.getVolume());
 										else
-											totalDipterokarp = totalDipterokarp.add(
-													specialTransferPassRecord.getVolume());
+											totalDipterokarp = totalDipterokarp
+													.add(specialTransferPassRecord
+															.getVolume());
 									}
 									else if (specialTransferPassRecord
 											.getSpeciesTypeID() == 3)
 										totalNonDipterokarp = totalNonDipterokarp
-										.add(specialTransferPassRecord.getVolume());
+												.add(specialTransferPassRecord
+														.getVolume());
 
 								}
 								else
 								{
 									royaltyRateNotExistMessage = specialTransferPassRecord
 											.getSpeciesCode() + " - "
-											+ specialTransferPassRecord.getSpeciesName();
+											+ specialTransferPassRecord
+													.getSpeciesName();
 									break;
 								}
 							}
@@ -2227,7 +2364,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						+ " tidak dapat diproses kerana kadar royalti bagi "
 						+ royaltyRateNotExistMessage
 						+ " yang dipilih tidak didaftarkan.\n";
-			}		
+			}
 			else
 			{
 				if ((model.getRoyaltyAmount().add(model.getCessAmount())
@@ -2239,7 +2376,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				}
 				else
 				{
-					if(model.getCode() != 1)
+					if (model.getCode() != 1)
 					{
 						if (updateResin == true)
 						{
@@ -2282,8 +2419,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 
 						if (updateLog == true)
 						{
-							if (license.getLogLimit()
-									.compareTo(totalDipterokarp.add(totalNonDipterokarp.add(totalChengal))) < 0)
+							if (license.getLogLimit().compareTo(
+									totalDipterokarp.add(totalNonDipterokarp
+											.add(totalChengal))) < 0)
 							{
 								exceedLogLimit = true;
 							}
@@ -2293,8 +2431,10 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							}
 						}
 
-						if (exceedResinLimit == true || exceedNonResinLimit == true
-								|| exceedChengalLimit == true || exceedLogLimit == true)
+						if (exceedResinLimit == true
+								|| exceedNonResinLimit == true
+								|| exceedChengalLimit == true
+								|| exceedLogLimit == true)
 						{
 							if (exceedResinLimit == true)
 							{
@@ -2302,17 +2442,17 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 										+ " tidak dapat ditambahkan kerana had damar pas memindah melebihi dari jumlah had damar yang dibenarkan bagi pelesen.\n";
 							}
 							else if (exceedNonResinLimit == true)
-							{								
+							{
 								confirmationPageMessages = model
 										+ " tidak dapat ditambahkan kerana had bukan damar pas memindah melebihi dari jumlah had bukan damar yang dibenarkan bagi pelesen.\n";
 							}
 							else if (exceedChengalLimit == true)
-							{								
+							{
 								confirmationPageMessages = model
 										+ " tidak dapat ditambahkan kerana had chengal pas memindah melebihi dari jumlah had chengal yang dibenarkan bagi pelesen.\n";
 							}
 							else if (exceedLogLimit == true)
-							{								
+							{
 								confirmationPageMessages = model
 										+ " tidak dapat ditambahkan kerana had isipadu pas memindah melebihi dari jumlah had isipadu balak yang dibenarkan bagi pelesen.\n";
 							}
@@ -2328,8 +2468,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 					}
 					else
 					{
-						if (license.getJarasLimit()
-								.compareTo(totalJaras) < 0)
+						if (license.getJarasLimit().compareTo(totalJaras) < 0)
 						{
 							exceedJarasLimit = true;
 						}
@@ -2338,10 +2477,10 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							exceedJarasLimit = false;
 						}
 						if (exceedJarasLimit == true)
-						{								
+						{
 							confirmationPageMessages = model
 									+ " tidak dapat ditambahkan kerana had jaras pas memindah melebihi dari jumlah had jaras yang dibenarkan bagi pelesen.\n";
-						}	
+						}
 						else
 						{
 							if (transferPassNoExist)
@@ -2367,15 +2506,15 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 	public void backButtonTransferPass()
 	{
 		backButtonClicked = true;
-		if(model.getCode() == 0)
+		if (model.getCode() == 0)
 		{
 			execute("PF('popupLog').hide()");
 		}
-		else if(model.getCode() == 1)
+		else if (model.getCode() == 1)
 		{
 			execute("PF('popupSmallProductTransferPassRecord').hide()");
 		}
-		else if(model.getCode() == 2)
+		else if (model.getCode() == 2)
 		{
 			execute("PF('popupSpecialTransferPassRecord').hide()");
 		}
@@ -2386,19 +2525,19 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 	{
 		backButtonClicked = true;
 		execute("PF('popupConfirmation').hide()");
-		if(model.getCode() == 0)
+		if (model.getCode() == 0)
 		{
 			model.setMainRevenueTransferPassRecords(null);
-			model.setMainRevenueTransferPassRecords(new ArrayList<>());			
+			model.setMainRevenueTransferPassRecords(new ArrayList<>());
 			execute("PF('popupLog').show()");
 		}
-		else if(model.getCode() == 1)
+		else if (model.getCode() == 1)
 		{
 			model.setSmallProductTransferPassRecords(null);
 			model.setSmallProductTransferPassRecords(new ArrayList<>());
 			execute("PF('popupSmallProductTransferPassRecord').show()");
 		}
-		else if(model.getCode() == 2)
+		else if (model.getCode() == 2)
 		{
 			model.setSpecialTransferPassRecords(null);
 			model.setSpecialTransferPassRecords(new ArrayList<>());
@@ -2419,7 +2558,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				log(facade,
 						"Padam rekod pas memindah hasil utama, ID "
 								+ mainRevenueTransferPassRecord
-								.getMainRevenueTransferPassRecordID());
+										.getMainRevenueTransferPassRecordID());
 				Log log = new Log();
 				log.setLogID(mainRevenueTransferPassRecord.getLogID());
 				log.setStatus("C");
@@ -2443,7 +2582,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							+ model.getTransferPassID());
 				}
 				model.getMainRevenueTransferPassRecords()
-				.remove(mainRevenueTransferPassRecord);
+						.remove(mainRevenueTransferPassRecord);
 				sort(model.getMainRevenueTransferPassRecords());
 				mainRevenueTransferPassRecord = null;
 			}
@@ -2451,7 +2590,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			{
 				addMessage(FacesMessage.SEVERITY_WARN, null,
 						mainRevenueTransferPassRecord
-						+ " tidak dapat dipadamkan.");
+								+ " tidak dapat dipadamkan.");
 			}
 
 		}
@@ -2471,12 +2610,12 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			{
 				addMessage(FacesMessage.SEVERITY_INFO, null,
 						smallProductTransferPassRecord
-						+ " berjaya dipadamkan.");
+								+ " berjaya dipadamkan.");
 
 				log(facade,
 						"Padam rekod pas memindah keluaran kecil, ID "
 								+ smallProductTransferPassRecord
-								.getSmallProductTransferPassRecordID());
+										.getSmallProductTransferPassRecordID());
 
 				model.setRoyaltyAmount(model.getRoyaltyAmount()
 						.subtract(smallProductTransferPassRecord.getRoyalty()));
@@ -2486,7 +2625,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				log(facade, "Kemaskini pas memindah, ID "
 						+ model.getTransferPassID());
 				model.getSmallProductTransferPassRecords()
-				.remove(smallProductTransferPassRecord);
+						.remove(smallProductTransferPassRecord);
 				sort(model.getSmallProductTransferPassRecords());
 				smallProductTransferPassRecord = null;
 				model.setRoyaltyAmount(model.getRoyaltyAmount()
@@ -2503,7 +2642,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			{
 				addMessage(FacesMessage.SEVERITY_WARN, null,
 						smallProductTransferPassRecord
-						+ " tidak dapat dipadamkan.");
+								+ " tidak dapat dipadamkan.");
 			}
 
 		}
@@ -2533,40 +2672,95 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 
 				if (model.getCode() == 0)
 				{
-					System.out.println(model.getMainRevenueTransferPassRecords().size());
+					System.out.println(
+							model.getMainRevenueTransferPassRecords().size());
 					for (MainRevenueTransferPassRecord mainRevenueTransferPassRecord : model
 							.getMainRevenueTransferPassRecords())
 					{
 
 						Log log = new Log();
 
-						System.out.println("mainRevenueTransferPassRecord.getLogID()=" + mainRevenueTransferPassRecord.getLogID());
-						System.out.println("mainRevenueTransferPassRecord.getLogNo()=" + mainRevenueTransferPassRecord.getLogNo());
-						System.out.println("mainRevenueTransferPassRecord.getLogSerialNo()=" + mainRevenueTransferPassRecord.getLogSerialNo());
-						System.out.println("mainRevenueTransferPassRecord.getLength()=" + mainRevenueTransferPassRecord.getLength());
-						System.out.println("mainRevenueTransferPassRecord.getDiameter()=" + mainRevenueTransferPassRecord.getDiameter());
-						System.out.println("mainRevenueTransferPassRecord.getGrossVolume()=" + mainRevenueTransferPassRecord.getGrossVolume());
-						System.out.println("mainRevenueTransferPassRecord.getHoleDiameter()=" + mainRevenueTransferPassRecord.getHoleDiameter());
-						System.out.println("mainRevenueTransferPassRecord.getNetVolume()=" + mainRevenueTransferPassRecord.getNetVolume());
-						System.out.println("mainRevenueTransferPassRecord.getTaggingRecordID()=" + mainRevenueTransferPassRecord.getTaggingRecordID());
-						System.out.println("mainRevenueTransferPassRecord.getSpeciesID()=" + mainRevenueTransferPassRecord.getSpeciesID());
-						System.out.println("mainRevenueTransferPassRecord.getSpeciesCode()=" + mainRevenueTransferPassRecord.getSpeciesCode());
-						System.out.println("mainRevenueTransferPassRecord.getSpeciesName()=" + mainRevenueTransferPassRecord.getSpeciesName());
-						System.out.println("mainRevenueTransferPassRecord.getSpeciesTypeID()=" + mainRevenueTransferPassRecord.getSpeciesTypeID());
-												log.setLogID(mainRevenueTransferPassRecord.getLogID());
-												log.setLogNo(mainRevenueTransferPassRecord.getLogNo());
-												log.setLogSerialNo(mainRevenueTransferPassRecord.getLogSerialNo());
-												log.setLength(mainRevenueTransferPassRecord.getLength());
-												log.setDiameter(mainRevenueTransferPassRecord.getDiameter());
-//												log.setGrossVolume(mainRevenueTransferPassRecord.getGrossVolume());
-												log.setHoleDiameter(mainRevenueTransferPassRecord.getHoleDiameter());
-//												log.setGrossVolume(mainRevenueTransferPassRecord.getNetVolume());
-												log.setTaggingRecordID(mainRevenueTransferPassRecord.getTaggingRecordID());
-												log.setSpeciesID(mainRevenueTransferPassRecord.getSpeciesID());
-												log.setSpeciesCode(mainRevenueTransferPassRecord.getSpeciesCode());
-												log.setSpeciesName(mainRevenueTransferPassRecord.getSpeciesName());
-												log.setSummaryTaggingRecord(mainRevenueTransferPassRecord.getLogNo()+"-( "+mainRevenueTransferPassRecord.getSpeciesCode()+"-"+mainRevenueTransferPassRecord.getSpeciesName()+" )");
-												log.setSpeciesTypeID(mainRevenueTransferPassRecord.getSpeciesTypeID());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getLogID()="
+										+ mainRevenueTransferPassRecord
+												.getLogID());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getLogNo()="
+										+ mainRevenueTransferPassRecord
+												.getLogNo());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getLogSerialNo()="
+										+ mainRevenueTransferPassRecord
+												.getLogSerialNo());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getLength()="
+										+ mainRevenueTransferPassRecord
+												.getLength());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getDiameter()="
+										+ mainRevenueTransferPassRecord
+												.getDiameter());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getGrossVolume()="
+										+ mainRevenueTransferPassRecord
+												.getGrossVolume());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getHoleDiameter()="
+										+ mainRevenueTransferPassRecord
+												.getHoleDiameter());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getNetVolume()="
+										+ mainRevenueTransferPassRecord
+												.getNetVolume());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getTaggingRecordID()="
+										+ mainRevenueTransferPassRecord
+												.getTaggingRecordID());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getSpeciesID()="
+										+ mainRevenueTransferPassRecord
+												.getSpeciesID());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getSpeciesCode()="
+										+ mainRevenueTransferPassRecord
+												.getSpeciesCode());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getSpeciesName()="
+										+ mainRevenueTransferPassRecord
+												.getSpeciesName());
+						System.out.println(
+								"mainRevenueTransferPassRecord.getSpeciesTypeID()="
+										+ mainRevenueTransferPassRecord
+												.getSpeciesTypeID());
+						log.setLogID(mainRevenueTransferPassRecord.getLogID());
+						log.setLogNo(mainRevenueTransferPassRecord.getLogNo());
+						log.setLogSerialNo(
+								mainRevenueTransferPassRecord.getLogSerialNo());
+						log.setLength(
+								mainRevenueTransferPassRecord.getLength());
+						log.setDiameter(
+								mainRevenueTransferPassRecord.getDiameter());
+						// log.setGrossVolume(mainRevenueTransferPassRecord.getGrossVolume());
+						log.setHoleDiameter(mainRevenueTransferPassRecord
+								.getHoleDiameter());
+						// log.setGrossVolume(mainRevenueTransferPassRecord.getNetVolume());
+						log.setTaggingRecordID(mainRevenueTransferPassRecord
+								.getTaggingRecordID());
+						log.setSpeciesID(
+								mainRevenueTransferPassRecord.getSpeciesID());
+						log.setSpeciesCode(
+								mainRevenueTransferPassRecord.getSpeciesCode());
+						log.setSpeciesName(
+								mainRevenueTransferPassRecord.getSpeciesName());
+						log.setSummaryTaggingRecord(
+								mainRevenueTransferPassRecord.getLogNo() + "-( "
+										+ mainRevenueTransferPassRecord
+												.getSpeciesCode()
+										+ "-" + mainRevenueTransferPassRecord
+												.getSpeciesName()
+										+ " )");
+						log.setSpeciesTypeID(mainRevenueTransferPassRecord
+								.getSpeciesTypeID());
 						log.setStatus("C");
 
 						if (log.getSpeciesTypeID() == 1
@@ -2591,7 +2785,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 										.add(log.getNetVolume());
 							}
 						}
-						//TODO
+						// TODO
 						if (hFacade.updateLogStatus(log) != 0)
 						{
 							log(mFacade, "Kemaskini tual balak, ID "
@@ -2608,7 +2802,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							}
 							taggingRecord = null;
 						}
-						if(logs != null)
+						if (logs != null)
 						{
 							logs.add(log);
 						}
@@ -2619,11 +2813,19 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				{
 					if (model.getCode() == 1)
 					{
-						for (SmallProductTransferPassRecord smallProductTransferPassRecord : model.getSmallProductTransferPassRecords())
-						{											
-							if(smallProductTransferPassRecord.getSmallProductCode().regionMatches(0, "JB", 0, 2) || smallProductTransferPassRecord.getSmallProductCode().regionMatches(0, "JK", 0, 2))
+						for (SmallProductTransferPassRecord smallProductTransferPassRecord : model
+								.getSmallProductTransferPassRecords())
+						{
+							if (smallProductTransferPassRecord
+									.getSmallProductCode()
+									.regionMatches(0, "JB", 0, 2)
+									|| smallProductTransferPassRecord
+											.getSmallProductCode()
+											.regionMatches(0, "JK", 0, 2))
 							{
-								totalJaras = totalJaras.add(smallProductTransferPassRecord.getQuantity());
+								totalJaras = totalJaras
+										.add(smallProductTransferPassRecord
+												.getQuantity());
 							}
 						}
 
@@ -2638,7 +2840,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								if (specialTransferPassRecord
 										.getSpeciesTypeID() == 1
 										|| specialTransferPassRecord
-										.getSpeciesTypeID() == 2)
+												.getSpeciesTypeID() == 2)
 								{
 									if ("1201".equals(specialTransferPassRecord
 											.getSpeciesCode()))
@@ -2671,9 +2873,13 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 
 				if (rFacade.addFundAndLimit(updateResin, totalDipterokarp,
 						updateNonResin, totalNonDipterokarp, updateChengal,
-						totalChengal, updateLog, totalDipterokarp.add(totalNonDipterokarp.add(totalChengal)).setScale(2, BigDecimal.ROUND_HALF_UP), updateJaras, totalJaras, 
+						totalChengal, updateLog,
+						totalDipterokarp
+								.add(totalNonDipterokarp.add(totalChengal))
+								.setScale(2, BigDecimal.ROUND_HALF_UP),
+						updateJaras, totalJaras,
 						model.getRoyaltyAmount().add(model.getCessAmount())
-						.setScale(2, BigDecimal.ROUND_HALF_UP),
+								.setScale(2, BigDecimal.ROUND_HALF_UP),
 						license) != 0)
 				{
 					license.setWoodWorkFund(license.getWoodWorkFund()
@@ -2690,8 +2896,12 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						license.setChengalLimit(
 								license.getChengalLimit().add(totalChengal));
 					if (updateLog == true)
-						license.setLogLimit(
-								license.getLogLimit().add(totalDipterokarp.add(totalNonDipterokarp.add(totalChengal)).setScale(2, BigDecimal.ROUND_HALF_UP)));
+						license.setLogLimit(license.getLogLimit()
+								.add(totalDipterokarp
+										.add(totalNonDipterokarp
+												.add(totalChengal))
+										.setScale(2,
+												BigDecimal.ROUND_HALF_UP)));
 					if (updateJaras == true)
 						license.setJarasLimit(
 								license.getJarasLimit().add(totalJaras));
@@ -2706,7 +2916,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				addMessage(FacesMessage.SEVERITY_INFO, null,
 						model + " berjaya dipadamkan.");
 
-				//models.remove(model);
+				// models.remove(model);
 				sort(models);
 			}
 			else
@@ -2786,8 +2996,22 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			ShuttleReportGenerator.generate(file, bigSizeLogShuttleReport,
 					smallSizeLogShuttleReport, month, year);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -2804,7 +3028,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		ExternalContext external = context.getExternalContext();
 
 		String name = "PasMemindah_" + transferPass.getTransferPassNo()
-		+ ".pdf";
+				+ ".pdf";
 		File file = new File(external.getRealPath("/") + "files/hall/" + name);
 		StreamedContent content = null;
 
@@ -2820,8 +3044,22 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			TransferPassGenerator.generate(file, transferPassString,
 					transferPassRecordStrings, transferPass.getCode());
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -2860,8 +3098,22 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				BukuKawalanPengeluaranGenerator.generate(file, generalInfo,
 						currentStatusTaggingRecords, today);
 
-				content = new DefaultStreamedContent(new FileInputStream(file),
-						"application/pdf", name);
+				content = DefaultStreamedContent.builder()
+						.contentType("application/pdf").name(name).stream(() ->
+						{
+							FileInputStream fis = null;
+
+							try
+							{
+								fis = new FileInputStream(file);
+							}
+							catch (IOException e)
+							{
+								e.printStackTrace();
+							}
+
+							return fis;
+						}).build();
 			}
 		}
 		catch (Exception e)
@@ -2923,32 +3175,38 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								startDate, endDate, selectedLicenseID);
 				ArrayList<String[]> ringkasanPengeluaranTableSmallLog = hFacade
 						.getRingkasanPasMemindahYangDikeluarkanDiBalaiDariTarikhMulaHinggaTarikhAkhirBagiPelesenRingkasanPengeluaranTableSmallLog(
-								startDate, endDate, selectedLicenseID);				
+								startDate, endDate, selectedLicenseID);
 				String[] ringkasanPembayaranTableBigLog = hFacade
 						.getRingkasanPasMemindahYangDikeluarkanDiBalaiDariTarikhMulaHinggaTarikhAkhirBagiPelesenRingkasanPembayaranTableBigLog(
 								startDate, endDate, selectedLicenseID);
 				String[] ringkasanPembayaranTableSmallLog = hFacade
 						.getRingkasanPasMemindahYangDikeluarkanDiBalaiDariTarikhMulaHinggaTarikhAkhirBagiPelesenRingkasanPembayaranTableSmallLog(
-								startDate, endDate, selectedLicenseID);				
+								startDate, endDate, selectedLicenseID);
 				String[][] page2 = hFacade
 						.getRingkasanPasMemindahYangDikeluarkanDiBalaiDariTarikhMulaHinggaTarikhAkhirBagiPelesenDetailTransferPass(
 								startDate, endDate, selectedLicenseID);
 				String[] infoLain = new String[5];
-				infoLain[0] = sdf.format(license.getStartDate()) + " hingga " + sdf.format(startDate);
-				infoLain[1] = df.format(Double.valueOf(page2[2][page2[2].length-1]));
+				infoLain[0] = sdf.format(license.getStartDate()) + " hingga "
+						+ sdf.format(startDate);
+				infoLain[1] = df
+						.format(Double.valueOf(page2[2][page2[2].length - 1]));
 				infoLain[2] = "Kayu Balak";
-				infoLain[3] = license.getForestName() + ", " + license.getDistrictName() + ".";
+				infoLain[3] = license.getForestName() + ", "
+						+ license.getDistrictName() + ".";
 				infoLain[4] = user.getName();
-
 
 				file = new File(
 						external.getRealPath("/") + "files/hall/" + name);
 
 				RingkasanPasMemindahYangDikeluarkanDiBalaiDariTarikhMulaHinggaTarikhAkhirBagiPelesenGenerator
-				.generate(file, headerInfo, smallLogs, bigLogs,
-						bigJaras, smallJaras, ringkasanPengeluaranTableBigLog, ringkasanPengeluaranTableSmallLog,
-						ringkasanPembayaranTableBigLog, ringkasanPembayaranTableSmallLog, page2, infoLain, startDate,
-						endDate, selectedLicenseID);
+						.generate(file, headerInfo, smallLogs, bigLogs,
+								bigJaras, smallJaras,
+								ringkasanPengeluaranTableBigLog,
+								ringkasanPengeluaranTableSmallLog,
+								ringkasanPembayaranTableBigLog,
+								ringkasanPembayaranTableSmallLog, page2,
+								infoLain, startDate, endDate,
+								selectedLicenseID);
 			}
 			else
 			{
@@ -2957,9 +3215,9 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 					name = "Laporan_Pengeluaran_Kayu_Balak_DiBalai_Bagi_"
 							+ "_Dari_"
 							+ new SimpleDateFormat("dd_MMM_yyyy")
-							.format(startDate)
+									.format(startDate)
 							+ "_Hingga_" + new SimpleDateFormat("dd_MMM_yyyy")
-							.format(endDate)
+									.format(endDate)
 							+ ".pdf";
 					ArrayList<String[]> data = hFacade
 							.getLaporanPengeluaranKayuBalakDiBalai(startDate,
@@ -2976,8 +3234,24 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 			}
 
 			file.getParentFile().mkdirs();
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+
+			File temp = file;
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(temp);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -3043,10 +3317,24 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 							startDate, endDate, license.getLicenseID());
 
 			RingkasanPengeluaranHasilHutanDariBulanDanTahunMulaHinggaBulanDanTahunAkhirGenerator
-			.generate(file, startDate, endDate, header, contents);
+					.generate(file, startDate, endDate, header, contents);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -3099,113 +3387,128 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 					.getReceipt(licensee.getReceiptID());
 			Receipt contractorReceipt = contractor != null
 					? rFacade.getReceipt(contractor.getReceiptID())
-							: null;
+					: null;
 
-					staffIDs.add(tempDistrict.getOfficerID());
+			staffIDs.add(tempDistrict.getOfficerID());
 
-					if (tempDistrict.getAsstOfficerID() != null)
-						staffIDs.add(tempDistrict.getAsstOfficerID());
+			if (tempDistrict.getAsstOfficerID() != null)
+				staffIDs.add(tempDistrict.getAsstOfficerID());
 
-					if (tempDistrict.getClerk1ID() != null)
-						staffIDs.add(tempDistrict.getClerk1ID());
+			if (tempDistrict.getClerk1ID() != null)
+				staffIDs.add(tempDistrict.getClerk1ID());
 
-					if (tempDistrict.getClerk2ID() != null)
-						staffIDs.add(tempDistrict.getClerk2ID());
+			if (tempDistrict.getClerk2ID() != null)
+				staffIDs.add(tempDistrict.getClerk2ID());
 
-					if (tempDistrict.getClerk3ID() != null)
-						staffIDs.add(tempDistrict.getClerk3ID());
+			if (tempDistrict.getClerk3ID() != null)
+				staffIDs.add(tempDistrict.getClerk3ID());
 
-					for (Range range : tempDistrict.getRanges())
-						staffIDs.add(range.getAsstOfficerID());
+			for (Range range : tempDistrict.getRanges())
+				staffIDs.add(range.getAsstOfficerID());
 
-					for (HallOfficer officer : officers)
+			for (HallOfficer officer : officers)
+			{
+				staffIDs.add(officer.getStaffID());
+				hammerNos.add(officer.getHammerNo());
+			}
+
+			staffIDs.add(license.getRecorderID());
+			staffIDs.add(licensee.getRecorderID());
+			staffIDs.add(licenseReceipt.getRecorderID());
+			staffIDs.add(licenseeReceipt.getRecorderID());
+
+			if (contractorReceipt != null)
+			{
+				staffIDs.add(contractorReceipt.getRecorderID());
+				staffIDs.add(contractor.getRecorderID());
+			}
+
+			int index1 = 0, index2 = 0, index3 = 0, index4 = 0,
+					size = taggings.size();
+			Staff[] staffs = new Staff[staffIDs.size()];
+			Hammer[] hammers = new Hammer[hammerNos.size()];
+			PreFellingSurvey[] preFellingSurveys = new PreFellingSurvey[size];
+			Tagging[] taggingArray = new Tagging[size];
+
+			for (String staffID : staffIDs)
+				staffs[index1++] = mFacade.getStaff(staffID, null);
+
+			for (String hammerNo : hammerNos)
+				hammers[index2++] = mFacade.getHammer(hammerNo);
+
+			for (int i = 0; i < size; i++)
+			{
+				Tagging tagging = taggings.get(i);
+				PreFellingSurvey preFellingSurvey = pFacade
+						.getPreFellingSurvey(tagging.getPreFellingSurveyID());
+				preFellingSurveys[i] = preFellingSurvey;
+				taggingArray[i] = tagging;
+
+				tagging.setTaggingForms(tFacade.getTaggingForms(tagging));
+
+				if (preFellingSurvey.getTenderNo() != null)
+					tenderNos.add(preFellingSurvey.getTenderNo());
+
+				if (tagging.getTenderNo() != null)
+					tenderNos.add(tagging.getTenderNo());
+			}
+
+			Tender[] tenders = new Tender[tenderNos.size()];
+
+			for (String tenderNo : tenderNos)
+			{
+				Tender tender = mFacade.getTender(tenderNo);
+				tenders[index3++] = tender;
+
+				contractorIDs.add(tender.getContractorID());
+			}
+
+			Contractor[] contractors = new Contractor[contractorIDs.size()];
+
+			for (String contractorID : contractorIDs)
+				contractors[index4++] = mFacade.getContractor(contractorID);
+
+			try (ObjectOutputStream oos = new ObjectOutputStream(
+					new GZIPOutputStream(new FileOutputStream(file))))
+			{
+				oos.writeInt(51);
+				oos.writeObject(contractors);
+				oos.writeObject(tenders);
+				oos.writeObject(staffs);
+				oos.writeObject(hammers);
+				oos.writeObject(tempDistrict);
+				oos.writeObject(officers.toArray(new HallOfficer[0]));
+				oos.writeObject(preFellingSurveys);
+				oos.writeObject(taggingArray);
+				oos.writeObject(licenseeReceipt);
+				oos.writeObject(licensee);
+				oos.writeObject(contractorReceipt);
+				oos.writeObject(contractor);
+				oos.writeObject(licenseReceipt);
+				oos.writeObject(license);
+				oos.writeObject(mainRevenueRoyaltyRates
+						.toArray(new MainRevenueRoyaltyRate[0]));
+				oos.writeObject(smallProductRoyaltyRates
+						.toArray(new SmallProductRoyaltyRate[0]));
+			}
+
+			content = DefaultStreamedContent.builder()
+					.contentType("application/octet-stream").name(name)
+					.stream(() ->
 					{
-						staffIDs.add(officer.getStaffID());
-						hammerNos.add(officer.getHammerNo());
-					}
+						FileInputStream fis = null;
 
-					staffIDs.add(license.getRecorderID());
-					staffIDs.add(licensee.getRecorderID());
-					staffIDs.add(licenseReceipt.getRecorderID());
-					staffIDs.add(licenseeReceipt.getRecorderID());
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
 
-					if (contractorReceipt != null)
-					{
-						staffIDs.add(contractorReceipt.getRecorderID());
-						staffIDs.add(contractor.getRecorderID());
-					}
-
-					int index1 = 0, index2 = 0, index3 = 0, index4 = 0,
-							size = taggings.size();
-					Staff[] staffs = new Staff[staffIDs.size()];
-					Hammer[] hammers = new Hammer[hammerNos.size()];
-					PreFellingSurvey[] preFellingSurveys = new PreFellingSurvey[size];
-					Tagging[] taggingArray = new Tagging[size];
-
-					for (String staffID : staffIDs)
-						staffs[index1++] = mFacade.getStaff(staffID, null);
-
-					for (String hammerNo : hammerNos)
-						hammers[index2++] = mFacade.getHammer(hammerNo);
-
-					for (int i = 0; i < size; i++)
-					{
-						Tagging tagging = taggings.get(i);
-						PreFellingSurvey preFellingSurvey = pFacade
-								.getPreFellingSurvey(tagging.getPreFellingSurveyID());
-						preFellingSurveys[i] = preFellingSurvey;
-						taggingArray[i] = tagging;
-
-						tagging.setTaggingForms(tFacade.getTaggingForms(tagging));
-
-						if (preFellingSurvey.getTenderNo() != null)
-							tenderNos.add(preFellingSurvey.getTenderNo());
-
-						if (tagging.getTenderNo() != null)
-							tenderNos.add(tagging.getTenderNo());
-					}
-
-					Tender[] tenders = new Tender[tenderNos.size()];
-
-					for (String tenderNo : tenderNos)
-					{
-						Tender tender = mFacade.getTender(tenderNo);
-						tenders[index3++] = tender;
-
-						contractorIDs.add(tender.getContractorID());
-					}
-
-					Contractor[] contractors = new Contractor[contractorIDs.size()];
-
-					for (String contractorID : contractorIDs)
-						contractors[index4++] = mFacade.getContractor(contractorID);
-
-					try (ObjectOutputStream oos = new ObjectOutputStream(
-							new GZIPOutputStream(new FileOutputStream(file))))
-					{
-						oos.writeInt(51);
-						oos.writeObject(contractors);
-						oos.writeObject(tenders);
-						oos.writeObject(staffs);
-						oos.writeObject(hammers);
-						oos.writeObject(tempDistrict);
-						oos.writeObject(officers.toArray(new HallOfficer[0]));
-						oos.writeObject(preFellingSurveys);
-						oos.writeObject(taggingArray);
-						oos.writeObject(licenseeReceipt);
-						oos.writeObject(licensee);
-						oos.writeObject(contractorReceipt);
-						oos.writeObject(contractor);
-						oos.writeObject(licenseReceipt);
-						oos.writeObject(license);
-						oos.writeObject(mainRevenueRoyaltyRates
-								.toArray(new MainRevenueRoyaltyRate[0]));
-						oos.writeObject(smallProductRoyaltyRates
-								.toArray(new SmallProductRoyaltyRate[0]));
-					}
-
-					content = new DefaultStreamedContent(new FileInputStream(file),
-							"application/octet-stream", name);
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -3249,8 +3552,23 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 				}
 			}
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/octet-stream", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/octet-stream").name(name)
+					.stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -3268,7 +3586,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		if (file != null)
 		{
 			try (ObjectInputStream ois = new ObjectInputStream(
-					new GZIPInputStream(file.getInputstream()));
+					new GZIPInputStream(file.getInputStream()));
 					MaintenanceFacade mFacade = new MaintenanceFacade();
 					PreFellingFacade pFacade = new PreFellingFacade();
 					TaggingFacade tFacade = new TaggingFacade();
@@ -3420,7 +3738,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 										log(tFacade,
 												"Tambah rekod penandaan, ID "
 														+ taggingRecord
-														.getTaggingRecordID());
+																.getTaggingRecordID());
 								}
 							}
 						}
@@ -3502,18 +3820,18 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 					{
 						for (MainRevenueRoyaltyRate mrrr : this.mainRevenueRoyaltyRates)
 							if (mainRevenueRoyaltyRate.getStateID() == mrrr
-							.getStateID()
-							&& mainRevenueRoyaltyRate
-							.getSpeciesID() == mrrr
-							.getSpeciesID())
+									.getStateID()
+									&& mainRevenueRoyaltyRate
+											.getSpeciesID() == mrrr
+													.getSpeciesID())
 								deletablesMR.add(mrrr);
 
 						this.mainRevenueRoyaltyRates
-						.add(mainRevenueRoyaltyRate);
+								.add(mainRevenueRoyaltyRate);
 						log(mFacade,
 								"Tambah kadar royalti hasil utama, ID "
 										+ mainRevenueRoyaltyRate
-										.getMainRevenueRoyaltyRateID());
+												.getMainRevenueRoyaltyRateID());
 					}
 				}
 
@@ -3527,16 +3845,16 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 						for (SmallProductRoyaltyRate sprr : this.smallProductRoyaltyRates)
 							if (smallProductRoyaltyRate
 									.getSmallProductID() == sprr
-									.getSmallProductID()
+											.getSmallProductID()
 									&& smallProductRoyaltyRate
-									.getUnitID() == sprr.getUnitID())
+											.getUnitID() == sprr.getUnitID())
 								deletablesSP.add(sprr);
 
 						this.smallProductRoyaltyRates
-						.add(smallProductRoyaltyRate);
+								.add(smallProductRoyaltyRate);
 						log(mFacade, "Tambah kadar royalti keluaran kecil, ID "
 								+ smallProductRoyaltyRate
-								.getSmallProductRoyaltyRateID());
+										.getSmallProductRoyaltyRateID());
 
 						boolean contains = false;
 
@@ -3591,7 +3909,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 		if (file != null)
 		{
 			try (ObjectInputStream ois = new ObjectInputStream(
-					new GZIPInputStream(file.getInputstream()));
+					new GZIPInputStream(file.getInputStream()));
 					TaggingFacade tFacade = new TaggingFacade();
 					RevenueFacade rFacade = new RevenueFacade();
 					HallFacade hFacade = new HallFacade())
@@ -3687,7 +4005,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								long mainRevenueTransferPassRecordID = mainRevenueTransferPassRecord
 										.getMainRevenueTransferPassRecordID(),
 										logID = mainRevenueTransferPassRecord
-										.getLogID();
+												.getLogID();
 								Log log = map.get(logID);
 
 								log(hFacade,
@@ -3700,14 +4018,14 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								{
 									if ("1201".equals(log.getSpeciesCode()))
 										totalChengal = totalChengal
-										.add(log.getNetVolume());
+												.add(log.getNetVolume());
 									else
 										totalDipterokarp = totalDipterokarp
-										.add(log.getNetVolume());
+												.add(log.getNetVolume());
 								}
 								else if (log.getSpeciesTypeID() == 3)
 									totalNonDipterokarp = totalNonDipterokarp
-									.add(log.getNetVolume());
+											.add(log.getNetVolume());
 
 								if (hFacade.updateLogStatus(log) != 0)
 									log(hFacade,
@@ -3731,7 +4049,7 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								log(hFacade,
 										"Tambah rekod pas memindah keluaran kecil, ID "
 												+ smallProductTransferPassRecord
-												.getSmallProductTransferPassRecordID());
+														.getSmallProductTransferPassRecordID());
 							}
 						}
 					}
@@ -3750,28 +4068,28 @@ public class TransferPassManagedBean extends AbstractManagedBean<TransferPass>
 								log(hFacade,
 										"Tambah rekod pas memindah projek, ID "
 												+ specialTransferPassRecord
-												.getSpecialTransferPassRecordID());
+														.getSpecialTransferPassRecordID());
 
 								if (specialTransferPassRecord
 										.getSpeciesTypeID() == 1
 										|| specialTransferPassRecord
-										.getSpeciesTypeID() == 2)
+												.getSpeciesTypeID() == 2)
 								{
 									if ("1201".equals(specialTransferPassRecord
 											.getSpeciesCode()))
 										totalChengal = totalChengal
-										.add(specialTransferPassRecord
-												.getVolume());
+												.add(specialTransferPassRecord
+														.getVolume());
 									else
 										totalDipterokarp = totalDipterokarp
-										.add(specialTransferPassRecord
-												.getVolume());
+												.add(specialTransferPassRecord
+														.getVolume());
 								}
 								else if (specialTransferPassRecord
 										.getSpeciesTypeID() == 3)
 									totalNonDipterokarp = totalNonDipterokarp
-									.add(specialTransferPassRecord
-											.getVolume());
+											.add(specialTransferPassRecord
+													.getVolume());
 							}
 						}
 					}

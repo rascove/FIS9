@@ -32,7 +32,7 @@ public abstract class AbstractFacade implements AutoCloseable
 			if (usePooling)
 				ds = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/fis9");
 			else
-				Class.forName("com.mysql.jdbc.Driver");
+				Class.forName("com.mysql.cj.jdbc.Driver");
 		}
 		catch (NamingException | ClassNotFoundException e)
 		{

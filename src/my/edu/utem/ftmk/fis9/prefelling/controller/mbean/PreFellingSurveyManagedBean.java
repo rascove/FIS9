@@ -29,7 +29,7 @@ import javax.mail.MessagingException;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -61,7 +61,8 @@ import my.edu.utem.ftmk.fis9.prefelling.util.PreFellingSurveyLetterGenerator;
  */
 @ViewScoped
 @ManagedBean(name = "preFellingSurveyMBean")
-public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingSurvey>
+public class PreFellingSurveyManagedBean
+		extends AbstractManagedBean<PreFellingSurvey>
 {
 	private static final long serialVersionUID = VERSION;
 	private CuttingLimit cuttingLimit;
@@ -88,13 +89,15 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 	public PreFellingSurveyManagedBean()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID();
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID();
 
 			forestList = new ArrayList<>();
 			yearList = new ArrayList<>();
@@ -107,7 +110,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					if (i == yearRange[0])
 						yearList.add(new SelectItem(i, String.valueOf(i)));
 					else
-						yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+						yearList.add(new SelectItem(i,
+								Math.max(i - 4, yearRange[0]) + " - " + i));
 				}
 			}
 
@@ -123,16 +127,20 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 					for (District district : districts)
 					{
-						SelectItemGroup group = new SelectItemGroup(district.getName() + ", " + state.getName());
+						SelectItemGroup group = new SelectItemGroup(
+								district.getName() + ", " + state.getName());
 						ArrayList<SelectItem> items = new ArrayList<>();
 
 						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
+							if (forest.getDistrictID() == district
+									.getDistrictID())
+								items.add(new SelectItem(forest.getForestID(),
+										forest.toString()));
 
 						if (!items.isEmpty())
 						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							forestList.add(group);
 						}
 					}
@@ -157,7 +165,11 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				State state = mFacade.getState(stateID);
 				forests = mFacade.getForests(state);
 
-				if (staffID.equals(state.getDirectorID()) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()))
+				if (staffID.equals(state.getDirectorID())
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID()))
 				{
 					accessLevel = staffID.equals(state.getDirectorID()) ? 1 : 7;
 					downtype = "csoh";
@@ -167,16 +179,20 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 					for (District district : districts)
 					{
-						SelectItemGroup group = new SelectItemGroup(district.getName());
+						SelectItemGroup group = new SelectItemGroup(
+								district.getName());
 						ArrayList<SelectItem> items = new ArrayList<>();
 
 						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
+							if (forest.getDistrictID() == district
+									.getDistrictID())
+								items.add(new SelectItem(forest.getForestID(),
+										forest.toString()));
 
 						if (!items.isEmpty())
 						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							forestList.add(group);
 						}
 					}
@@ -188,15 +204,20 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					if (district != null)
 					{
 						ranges = district.getRanges();
-						accessLevel = district.getOfficerID().equals(staffID) ? 2 : 3;
+						accessLevel = district.getOfficerID().equals(staffID)
+								? 2
+								: 3;
 						uptype = "csoh";
 						downtype = "csoo";
 
 						for (Forest forest : forests)
 						{
-							if (forest.getDistrictID() == district.getDistrictID())
+							if (forest.getDistrictID() == district
+									.getDistrictID())
 							{
-								SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+								SelectItem item = new SelectItem(
+										forest.getForestID(),
+										forest.toString());
 
 								if (!forestList.contains(item))
 									forestList.add(item);
@@ -208,7 +229,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 						range = mFacade.getRange(user);
 						staffs = mFacade.getStaffs(state);
 						staffList = new ArrayList<>();
-						ArrayList<Designation> designations = mFacade.getDesignations();
+						ArrayList<Designation> designations = mFacade
+								.getDesignations();
 
 						if (range != null)
 						{
@@ -229,19 +251,25 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 						{
 							designationID = designation.getDesignationID();
 
-							if ((designationID == 18 || designationID == 19) && user.getDesignationID() <= designationID)
+							if ((designationID == 18 || designationID == 19)
+									&& user.getDesignationID() <= designationID)
 							{
 								ArrayList<SelectItem> items = new ArrayList<>();
 
 								for (Staff staff : staffs)
-									if (staff.getDesignationID() == designationID)
-										items.add(new SelectItem(staff.getStaffID(), staff.toString()));
+									if (staff
+											.getDesignationID() == designationID)
+										items.add(new SelectItem(
+												staff.getStaffID(),
+												staff.toString()));
 
 								if (!items.isEmpty())
 								{
-									SelectItemGroup group = new SelectItemGroup(designation.getName());
+									SelectItemGroup group = new SelectItemGroup(
+											designation.getName());
 
-									group.setSelectItems(ArrayListConverter.asSelectItem(items));
+									group.setSelectItems(ArrayListConverter
+											.asSelectItem(items));
 									staffList.add(group);
 								}
 							}
@@ -282,7 +310,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 		return models;
 	}
 
-	public void setPreFellingSurveys(ArrayList<PreFellingSurvey> preFellingSurveys)
+	public void setPreFellingSurveys(
+			ArrayList<PreFellingSurvey> preFellingSurveys)
 	{
 		this.models = preFellingSurveys;
 	}
@@ -419,34 +448,50 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 	public void handleYearChange()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID(), endYear = selectedYearRange, startYear = selectedYearRange - 4;
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID(),
+					endYear = selectedYearRange,
+					startYear = selectedYearRange - 4;
 
 			if (stateID == 0)
 			{
 				if (designationID == 0)
 					models = pFacade.getPreFellingSurveys(startYear, endYear);
 				else
-					models = pFacade.getPreFellingSurveys(user, startYear, endYear);
+					models = pFacade.getPreFellingSurveys(user, startYear,
+							endYear);
 			}
 			else
 			{
 				State state = mFacade.getState(stateID);
 
-				if (staffID.equals(state.getDirectorID()) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()))
+				if (staffID.equals(state.getDirectorID())
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID()))
 				{
-					models = pFacade.getPreFellingSurveys(state, startYear, endYear);
-					ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
+					models = pFacade.getPreFellingSurveys(state, startYear,
+							endYear);
+					ExternalContext external = FacesContext.getCurrentInstance()
+							.getExternalContext();
 
 					for (PreFellingSurvey preFellingSurvey : models)
 					{
-						String name = "PenetapanHBT_" + preFellingSurvey.getForestName().replaceAll(" ", "") + "_" + preFellingSurvey.getComptBlockNo() + "_" + preFellingSurvey.getYear() + ".pdf";
-						File file = new File(external.getRealPath("/") + "files/pre-f/" + name);
+						String name = "PenetapanHBT_"
+								+ preFellingSurvey.getForestName()
+										.replaceAll(" ", "")
+								+ "_" + preFellingSurvey.getComptBlockNo() + "_"
+								+ preFellingSurvey.getYear() + ".pdf";
+						File file = new File(external.getRealPath("/")
+								+ "files/pre-f/" + name);
 
 						preFellingSurvey.setRecommended(file.exists());
 					}
@@ -456,15 +501,18 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					district = mFacade.getDistrict(user);
 
 					if (district != null)
-						models = pFacade.getPreFellingSurveys(district, startYear, endYear);
+						models = pFacade.getPreFellingSurveys(district,
+								startYear, endYear);
 					else
 					{
 						range = mFacade.getRange(user);
 
 						if (range != null)
-							models = pFacade.getPreFellingSurveys(range, startYear, endYear);
+							models = pFacade.getPreFellingSurveys(range,
+									startYear, endYear);
 						else
-							models = pFacade.getPreFellingSurveys(user, startYear, endYear);
+							models = pFacade.getPreFellingSurveys(user,
+									startYear, endYear);
 
 						if (models != null)
 						{
@@ -472,9 +520,12 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 							{
 								for (PreFellingSurvey preFellingSurvey : models)
 								{
-									if (forest.getForestID() == preFellingSurvey.getForestID())
+									if (forest.getForestID() == preFellingSurvey
+											.getForestID())
 									{
-										SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+										SelectItem item = new SelectItem(
+												forest.getForestID(),
+												forest.toString());
 
 										if (!forestList.contains(item))
 											forestList.add(item);
@@ -489,15 +540,20 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 			if (models != null)
 			{
 				sort(models);
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
 
 				for (PreFellingSurvey preFellingSurvey : models)
 				{
-					String path = external.getRealPath("/") + "files/pre-f/", name = "_" + preFellingSurvey.getPreFellingSurveyID() + ".png";
+					String path = external.getRealPath("/") + "files/pre-f/",
+							name = "_"
+									+ preFellingSurvey.getPreFellingSurveyID()
+									+ ".png";
 					File file1 = new File(path + "pelan" + name);
 					File file2 = new File(path + "stok" + name);
 
-					preFellingSurvey.setRecorders(mFacade.getStaffs(preFellingSurvey));
+					preFellingSurvey
+							.setRecorders(mFacade.getStaffs(preFellingSurvey));
 					preFellingSurvey.setPlanUploaded(file1.exists());
 					preFellingSurvey.setStockUploaded(file2.exists());
 				}
@@ -633,24 +689,32 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					if (species.getSpeciesID() == cuttingLimit.getSpeciesID())
 						cuttingLimit.setSpeciesName(species.getName());
 
-					if (treeLimit != null && "1201".equals(species.getCode()) && cuttingLimit.getMinDiameter() < treeLimit.getChengalLimit())
+					if (treeLimit != null && "1201".equals(species.getCode())
+							&& cuttingLimit.getMinDiameter() < treeLimit
+									.getChengalLimit())
 						valid = false;
 				}
 
 				if (valid)
 				{
-					ArrayList<CuttingLimit> cuttingLimits = model.getCuttingLimits();
+					ArrayList<CuttingLimit> cuttingLimits = model
+							.getCuttingLimits();
 
 					if (cuttingLimits.contains(cuttingLimit))
-						addMessage(FacesMessage.SEVERITY_WARN, "messages", cuttingLimit.getSpeciesName() + " tidak dapat ditambahkan kerana telah direkodkan sebelumnya.");
+						addMessage(FacesMessage.SEVERITY_WARN, "messages",
+								cuttingLimit.getSpeciesName()
+										+ " tidak dapat ditambahkan kerana telah direkodkan sebelumnya.");
 					else
 						cuttingLimits.add(cuttingLimit);
 				}
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, "messages", cuttingLimit.getSpeciesName() + " tidak dapat ditambahkan kerana kurang dari had tebangan yang ditetapkan.");
+					addMessage(FacesMessage.SEVERITY_WARN, "messages",
+							cuttingLimit.getSpeciesName()
+									+ " tidak dapat ditambahkan kerana kurang dari had tebangan yang ditetapkan.");
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, "messages", "Sila pilih spesis lain-lain.");
+				addMessage(FacesMessage.SEVERITY_WARN, "messages",
+						"Sila pilih spesis lain-lain.");
 		}
 
 		cuttingLimit = new CuttingLimit();
@@ -659,7 +723,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 	public void preFellingSurveyEntry()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade())
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
@@ -696,7 +761,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					{
 						for (Tender tender : tenders)
 						{
-							if (tender.getTenderNo().equals(model.getTenderNo()))
+							if (tender.getTenderNo()
+									.equals(model.getTenderNo()))
 							{
 								model.setStartDate(tender.getStartDate());
 								model.setEndDate(tender.getEndDate());
@@ -707,7 +773,10 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 			}
 
 			if (addOperation)
-				finalizeModelEntry(pFacade.addPreFellingSurvey(model, true), addOperation, pFacade, "bancian, ID " + model.getPreFellingSurveyID(), null, models, model);
+				finalizeModelEntry(pFacade.addPreFellingSurvey(model, true),
+						addOperation, pFacade,
+						"bancian, ID " + model.getPreFellingSurveyID(), null,
+						models, model);
 			else
 			{
 				boolean valid = true;
@@ -726,23 +795,32 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 				if (!model.isOpen())
 				{
-					PreFellingCuttingOption preFellingCuttingOption = model.getPreFellingCuttingOption();
+					PreFellingCuttingOption preFellingCuttingOption = model
+							.getPreFellingCuttingOption();
 
 					if (preFellingCuttingOption != null)
 					{
-						model.setCuttingOptionID(preFellingCuttingOption.getCuttingOptionID());
-						model.setDipterocarpLimit(preFellingCuttingOption.getDipterocarpLimit());
-						model.setNonDipterocarpLimit(preFellingCuttingOption.getNonDipterocarpLimit());
-						preFellingCuttingOption.setOriginalStandRatio(model.getPreFellingReport().getOriginalStandRatio());
+						model.setCuttingOptionID(
+								preFellingCuttingOption.getCuttingOptionID());
+						model.setDipterocarpLimit(
+								preFellingCuttingOption.getDipterocarpLimit());
+						model.setNonDipterocarpLimit(preFellingCuttingOption
+								.getNonDipterocarpLimit());
+						preFellingCuttingOption.setOriginalStandRatio(model
+								.getPreFellingReport().getOriginalStandRatio());
 					}
 					else
 						valid = false;
 				}
 
 				if (valid)
-					finalizeModelEntry(pFacade.updatePreFellingSurvey(model), addOperation, pFacade, "bancian, ID " + model.getPreFellingSurveyID(), null, models, model);
+					finalizeModelEntry(pFacade.updatePreFellingSurvey(model),
+							addOperation, pFacade,
+							"bancian, ID " + model.getPreFellingSurveyID(),
+							null, models, model);
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, null, "Sila pilih had batas tebangan.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							"Sila pilih had batas tebangan.");
 			}
 
 			if (updateYear(model))
@@ -758,14 +836,18 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				PreFellingCuttingOption preFellingCuttingOption = null;
 				FacesContext context = FacesContext.getCurrentInstance();
 				ExternalContext external = context.getExternalContext();
-				String name = "Bancian_" + model.getForestName().replaceAll(" ", "") + "_" + model.getComptBlockNo() + "_" + model.getYear() + ".pdf";
+				String name = "Bancian_"
+						+ model.getForestName().replaceAll(" ", "") + "_"
+						+ model.getComptBlockNo() + "_" + model.getYear()
+						+ ".pdf";
 				int level = 0;
 
 				if (accessLevel == 0 || accessLevel == 1)
 				{
 					level = 1;
 					name = (model.isOpen() ? "Buka" : "Tutup") + name;
-					preFellingCuttingOption = model.getPreFellingCuttingOption();
+					preFellingCuttingOption = model
+							.getPreFellingCuttingOption();
 
 					for (District d : districts)
 						if (d.getDistrictID() == model.getDistrictID())
@@ -793,7 +875,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				}
 
 				String message = null;
-				File file = new File(external.getRealPath("/") + "files/pre-f/" + name);
+				File file = new File(
+						external.getRealPath("/") + "files/pre-f/" + name);
 
 				file.getParentFile().mkdirs();
 
@@ -801,28 +884,48 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				{
 					Staff user = getCurrentUser();
 					State state = mFacade.getState(user.getStateID());
-					message = "Sesi Inventori Hutan Sebelum Tebangan (Pre-Felling) telah ditutup oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr></table>";
+					message = "Sesi Inventori Hutan Sebelum Tebangan (Pre-Felling) telah ditutup oleh "
+							+ model.getCreatorName()
+							+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+							+ model.getForestName()
+							+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+							+ model.getComptBlockNo() + "</td></tr></table>";
 
-					ClosingLetterGenerator.generate(file, model, state, treeLimit, user);
+					ClosingLetterGenerator.generate(file, model, state,
+							treeLimit, user);
 				}
 				else
 				{
 					if (level != 0)
 					{
-						PreFellingSurveyLetterGenerator.generate(file, model, district, range, level);
+						PreFellingSurveyLetterGenerator.generate(file, model,
+								district, range, level);
 
 						if (addOperation)
-							message = "Sesi Inventori Hutan Sebelum Tebangan (Pre-Felling) baru telah dibuka oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr><tr><td>- Keluasan</td><td>:</td><td>" + model.getArea() + " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
+							message = "Sesi Inventori Hutan Sebelum Tebangan (Pre-Felling) baru telah dibuka oleh "
+									+ model.getCreatorName()
+									+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+									+ model.getForestName()
+									+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+									+ model.getComptBlockNo()
+									+ "</td></tr><tr><td>- Keluasan</td><td>:</td><td>"
+									+ model.getArea()
+									+ " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
 					}
 				}
 
 				if (message != null)
-					new EmailSender().send(true, "Inventori Hutan Sebelum Tebangan - " + model.getForestName() + " " + model.getComptBlockNo(), message, district.getOfficerID());
+					new EmailSender().send(true,
+							"Inventori Hutan Sebelum Tebangan - "
+									+ model.getForestName() + " "
+									+ model.getComptBlockNo(),
+							message, district.getOfficerID());
 			}
 			catch (IOException | MessagingException e)
 			{
 				e.printStackTrace();
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Sistem tidak berjaya menghantar emel notifikasi.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Sistem tidak berjaya menghantar emel notifikasi.");
 			}
 			catch (Exception e)
 			{
@@ -843,7 +946,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 	public void preFellingSurveyEntryBypass()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade())
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
@@ -866,24 +970,34 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 			for (CuttingOption cuttingOption : cuttingOptions)
 			{
-				if (cuttingOption.getCuttingOptionID() == model.getCuttingOptionID())
+				if (cuttingOption.getCuttingOptionID() == model
+						.getCuttingOptionID())
 				{
-					PreFellingCuttingOption preFellingCuttingOption = model.getPreFellingCuttingOption();
+					PreFellingCuttingOption preFellingCuttingOption = model
+							.getPreFellingCuttingOption();
 
-					preFellingCuttingOption.setPreFellingSurveyID(model.getPreFellingSurveyID());
+					preFellingCuttingOption.setPreFellingSurveyID(
+							model.getPreFellingSurveyID());
 					preFellingCuttingOption.setStateID(model.getStateID());
 					preFellingCuttingOption.setStateName(model.getStateName());
-					preFellingCuttingOption.setCuttingOptionID(cuttingOption.getCuttingOptionID());
-					preFellingCuttingOption.setDipterocarpLimit(cuttingOption.getDipterocarpLimit());
-					preFellingCuttingOption.setNonDipterocarpLimit(cuttingOption.getNonDipterocarpLimit());
+					preFellingCuttingOption.setCuttingOptionID(
+							cuttingOption.getCuttingOptionID());
+					preFellingCuttingOption.setDipterocarpLimit(
+							cuttingOption.getDipterocarpLimit());
+					preFellingCuttingOption.setNonDipterocarpLimit(
+							cuttingOption.getNonDipterocarpLimit());
 
-					model.setDipterocarpLimit(cuttingOption.getDipterocarpLimit());
-					model.setNonDipterocarpLimit(cuttingOption.getNonDipterocarpLimit());
+					model.setDipterocarpLimit(
+							cuttingOption.getDipterocarpLimit());
+					model.setNonDipterocarpLimit(
+							cuttingOption.getNonDipterocarpLimit());
 					break;
 				}
 			}
 
-			finalizeModelEntry(pFacade.addPreFellingSurvey(model, true), true, pFacade, "bancian, ID " + model.getPreFellingSurveyID(), null, models, model);
+			finalizeModelEntry(pFacade.addPreFellingSurvey(model, true), true,
+					pFacade, "bancian, ID " + model.getPreFellingSurveyID(),
+					null, models, model);
 
 			if (updateYear(model))
 			{
@@ -908,7 +1022,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 	{
 		if (!model.isOpen())
 		{
-			try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+			try (MaintenanceFacade mFacade = new MaintenanceFacade();
+					PreFellingFacade pFacade = new PreFellingFacade();)
 			{
 				AbstractFacade.group(mFacade, pFacade);
 
@@ -921,13 +1036,19 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 				if (model.getPreFellingReport() == null)
 				{
-					PreFellingReport preFellingReport = new PreFellingReport(model, mFacade.getTimberGroups(), mFacade.getCuttingOptions(state), mFacade.getLogQualities());
+					PreFellingReport preFellingReport = new PreFellingReport(
+							model, mFacade.getTimberGroups(),
+							mFacade.getCuttingOptions(state),
+							mFacade.getLogQualities());
 
-					model.setPreFellingSurveyCards(pFacade.getPreFellingSurveyCards(model));
+					model.setPreFellingSurveyCards(
+							pFacade.getPreFellingSurveyCards(model));
 					model.setPreFellingReport(preFellingReport);
 
-					ArrayList<Integer> recommendations = pFacade.getCuttingOptionRecommendations(model);
-					ArrayList<PreFellingCuttingOption> scos = preFellingReport.getPreFellingCuttingOptions();
+					ArrayList<Integer> recommendations = pFacade
+							.getCuttingOptionRecommendations(model);
+					ArrayList<PreFellingCuttingOption> scos = preFellingReport
+							.getPreFellingCuttingOptions();
 					int size = recommendations.size();
 
 					for (int i = 0; i < size; i++)
@@ -935,7 +1056,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 						int cuttingOptionID = recommendations.get(i);
 
 						for (PreFellingCuttingOption preFellingCuttingOption : scos)
-							if (cuttingOptionID == preFellingCuttingOption.getCuttingOptionID())
+							if (cuttingOptionID == preFellingCuttingOption
+									.getCuttingOptionID())
 								preFellingCuttingOption.setRank(i + 1);
 					}
 
@@ -953,11 +1075,16 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 		}
 	}
 
-	public StreamedContent download(PreFellingSurvey preFellingSurvey, int level)
+	public StreamedContent download(PreFellingSurvey preFellingSurvey,
+			int level)
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "Bancian_" + preFellingSurvey.getForestName().replaceAll(" ", "") + "_" + preFellingSurvey.getComptBlockNo() + "_" + preFellingSurvey.getYear() + "." + (level != 0 ? "pdf" : downtype), type = null;
+		String name = "Bancian_"
+				+ preFellingSurvey.getForestName().replaceAll(" ", "") + "_"
+				+ preFellingSurvey.getComptBlockNo() + "_"
+				+ preFellingSurvey.getYear() + "."
+				+ (level != 0 ? "pdf" : downtype), type = null;
 
 		if (level != 0)
 		{
@@ -985,7 +1112,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					if (accessLevel == 0 || accessLevel == 1)
 					{
 						for (District d : districts)
-							if (d.getDistrictID() == preFellingSurvey.getDistrictID())
+							if (d.getDistrictID() == preFellingSurvey
+									.getDistrictID())
 								district = d;
 					}
 					else if (accessLevel == 2)
@@ -996,7 +1124,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					}
 
 					if (level != 4)
-						PreFellingSurveyLetterGenerator.generate(file, preFellingSurvey, district, range, level);
+						PreFellingSurveyLetterGenerator.generate(file,
+								preFellingSurvey, district, range, level);
 				}
 
 				type = "application/pdf";
@@ -1009,19 +1138,23 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				Contractor contractor = null;
 				Tender tender = null;
 
-				ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+				ObjectOutputStream oos = new ObjectOutputStream(
+						new GZIPOutputStream(new FileOutputStream(file)));
 
 				try (MaintenanceFacade facade = new MaintenanceFacade())
 				{
-					district = facade.getDistrict(preFellingSurvey.getDistrictID());
+					district = facade
+							.getDistrict(preFellingSurvey.getDistrictID());
 					ArrayList<Range> ranges = district.getRanges();
 					ArrayList<Staff> temp = new ArrayList<>();
 
-					temp.add(facade.getStaff(preFellingSurvey.getCreatorID(), null));
+					temp.add(facade.getStaff(preFellingSurvey.getCreatorID(),
+							null));
 					temp.add(facade.getStaff(district.getOfficerID(), null));
 
 					if (district.getAsstOfficerID() != null)
-						temp.add(facade.getStaff(district.getAsstOfficerID(), null));
+						temp.add(facade.getStaff(district.getAsstOfficerID(),
+								null));
 
 					if (district.getClerk1ID() != null)
 						temp.add(facade.getStaff(district.getClerk1ID(), null));
@@ -1033,15 +1166,19 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 						temp.add(facade.getStaff(district.getClerk3ID(), null));
 
 					for (Range range : ranges)
-						temp.add(facade.getStaff(range.getAsstOfficerID(), null));
+						temp.add(facade.getStaff(range.getAsstOfficerID(),
+								null));
 
 					if (preFellingSurvey.getTeamLeaderID() != null)
-						temp.add(facade.getStaff(preFellingSurvey.getTeamLeaderID(), null));
+						temp.add(facade.getStaff(
+								preFellingSurvey.getTeamLeaderID(), null));
 
 					if (preFellingSurvey.getTenderNo() != null)
 					{
-						tender = facade.getTender(preFellingSurvey.getTenderNo());
-						contractor = facade.getContractor(tender.getContractorID());
+						tender = facade
+								.getTender(preFellingSurvey.getTenderNo());
+						contractor = facade
+								.getContractor(tender.getContractorID());
 					}
 
 					staffs = temp.toArray(new Staff[0]);
@@ -1054,7 +1191,9 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				oos.writeObject(district);
 				oos.writeObject(preFellingSurvey);
 
-				String path = external.getRealPath("/") + "files/pre-f/", image = "_" + preFellingSurvey.getPreFellingSurveyID() + ".png";
+				String path = external.getRealPath("/") + "files/pre-f/",
+						image = "_" + preFellingSurvey.getPreFellingSurveyID()
+								+ ".png";
 				File plan = new File(path + "pelan" + image);
 				File stock = new File(path + "stok" + image);
 
@@ -1081,7 +1220,22 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				oos.close();
 			}
 
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1098,7 +1252,10 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					MaintenanceFacade mFacade = new MaintenanceFacade();
+					PreFellingFacade pFacade = new PreFellingFacade();)
 			{
 				AbstractFacade.group(mFacade, pFacade);
 
@@ -1112,20 +1269,25 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				District district = (District) ois.readObject();
 				String staffID = user.getStaffID();
 
-				if (contractor != null && mFacade.addContractor(contractor) != 0)
-					log(mFacade, "Tambah kontraktor, ID " + contractor.getContractorID());
+				if (contractor != null
+						&& mFacade.addContractor(contractor) != 0)
+					log(mFacade, "Tambah kontraktor, ID "
+							+ contractor.getContractorID());
 
 				if (tender != null && mFacade.addTender(tender) != 0)
-					log(mFacade, "Tambah sebut harga, ID " + tender.getTenderNo());
+					log(mFacade,
+							"Tambah sebut harga, ID " + tender.getTenderNo());
 
 				for (Staff staff : staffs)
 				{
 					if (staff != null)
 					{
 						if (mFacade.addStaff(staff) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ staff.getStaffID());
 						else if (mFacade.updateStaff(staff, false) != 0)
-							log(mFacade, "Kemaskini pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Kemaskini pekerja dan akses, ID "
+									+ staff.getStaffID());
 					}
 				}
 
@@ -1174,63 +1336,87 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 					}
 				}
 
-				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois.readObject();
+				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois
+						.readObject();
 				ArrayList<Staff> recorders = preFellingSurvey.getRecorders();
 
 				if (recorders != null)
 					for (Staff recorder : recorders)
 						if (mFacade.addStaff(recorder) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + recorder.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ recorder.getStaffID());
 
-				int status = pFacade.addPreFellingSurvey(preFellingSurvey, false);
+				int status = pFacade.addPreFellingSurvey(preFellingSurvey,
+						false);
 
 				if (status != 0)
 				{
-					log(pFacade, "Tambah bancian, ID " + preFellingSurvey.getPreFellingSurveyID());
+					log(pFacade, "Tambah bancian, ID "
+							+ preFellingSurvey.getPreFellingSurveyID());
 					boolean add = updateYear(preFellingSurvey);
 
 					if (models.contains(preFellingSurvey))
 					{
-						addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya dikemaskini.");
-						models.set(models.indexOf(preFellingSurvey), preFellingSurvey);
+						addMessage(FacesMessage.SEVERITY_INFO, null,
+								preFellingSurvey + " berjaya dikemaskini.");
+						models.set(models.indexOf(preFellingSurvey),
+								preFellingSurvey);
 					}
 					else
 					{
 						if (accessLevel == 2 || accessLevel == 3)
 						{
-							if (district.getDistrictID() == preFellingSurvey.getDistrictID())
+							if (district.getDistrictID() == preFellingSurvey
+									.getDistrictID())
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan.");
+
 								if (add)
 									models.add(preFellingSurvey);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 4)
 						{
-							if (range.getRangeID() == preFellingSurvey.getRangeID() && preFellingSurvey.getTenderNo() == null)
+							if (range.getRangeID() == preFellingSurvey
+									.getRangeID()
+									&& preFellingSurvey.getTenderNo() == null)
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan.");
+
 								if (add)
 									models.add(preFellingSurvey);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 5)
 						{
-							if (staffID.equals(preFellingSurvey.getTeamLeaderID()) || recorders != null && recorders.contains(user))
+							if (staffID
+									.equals(preFellingSurvey.getTeamLeaderID())
+									|| recorders != null
+											&& recorders.contains(user))
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan.");
+
 								if (add)
 									models.add(preFellingSurvey);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 6)
 						{
@@ -1247,30 +1433,40 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 							if (valid)
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan.");
+
 								if (add)
 									models.add(preFellingSurvey);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, preFellingSurvey + " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										preFellingSurvey
+												+ " berjaya ditambahkan, namun sesi bancian ini tidak termasuk dalam tanggung jawab anda.");
 						}
 					}
 				}
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, null, preFellingSurvey + " tidak dapat ditambahkan.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							preFellingSurvey + " tidak dapat ditambahkan.");
 
 				byte[] bytes1 = (byte[]) ois.readObject();
 				byte[] bytes2 = (byte[]) ois.readObject();
 
 				if (bytes1 != null || bytes2 != null)
 				{
-					ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-					String path = external.getRealPath("/") + "files/pre-f/", name = "_" + preFellingSurvey.getPreFellingSurveyID() + ".png";
+					ExternalContext external = FacesContext.getCurrentInstance()
+							.getExternalContext();
+					String path = external.getRealPath("/") + "files/pre-f/",
+							name = "_"
+									+ preFellingSurvey.getPreFellingSurveyID()
+									+ ".png";
 
 					if (bytes1 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes1));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes1));
 						File plan = new File(path + "pelan" + name);
 
 						plan.getParentFile().mkdirs();
@@ -1280,7 +1476,8 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 					if (bytes2 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes2));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes2));
 						File stock = new File(path + "stok" + name);
 
 						stock.getParentFile().mkdirs();
@@ -1305,14 +1502,18 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/pre-f/pelan_" + model.getPreFellingSurveyID() + ".png");
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(
+						external.getRealPath("/") + "files/pre-f/pelan_"
+								+ model.getPreFellingSurveyID() + ".png");
 
 				file.getParentFile().mkdirs();
 				ImageIO.write(bi, "png", file);
 				model.setPlanUploaded(true);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar pelan kerja berjaya dimuat naik.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar pelan kerja berjaya dimuat naik.");
 			}
 			catch (Exception e)
 			{
@@ -1330,14 +1531,18 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/pre-f/stok_" + model.getPreFellingSurveyID() + ".png");
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(
+						external.getRealPath("/") + "files/pre-f/stok_"
+								+ model.getPreFellingSurveyID() + ".png");
 
 				file.getParentFile().mkdirs();
 				ImageIO.write(bi, "png", file);
 				model.setStockUploaded(true);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar peta stok berjaya dimuat naik.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar peta stok berjaya dimuat naik.");
 			}
 			catch (Exception e)
 			{
@@ -1366,7 +1571,7 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 
 		if (models == null)
 			models = new ArrayList<>();
-		
+
 		if (update)
 		{
 			yearList = new ArrayList<>();
@@ -1382,13 +1587,14 @@ public class PreFellingSurveyManagedBean extends AbstractManagedBean<PreFellingS
 				if (i == yearRange[0])
 					yearList.add(new SelectItem(i, String.valueOf(i)));
 				else
-					yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+					yearList.add(new SelectItem(i,
+							Math.max(i - 4, yearRange[0]) + " - " + i));
 			}
 		}
-		
+
 		if (year > selectedYearRange || year < selectedYearRange - 4)
 			add = false;
-		
+
 		return add;
 	}
 }

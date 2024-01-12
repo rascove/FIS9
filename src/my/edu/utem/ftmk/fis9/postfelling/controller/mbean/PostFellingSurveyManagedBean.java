@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,7 +28,7 @@ import javax.imageio.ImageIO;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -55,17 +56,15 @@ import my.edu.utem.ftmk.fis9.postfelling.util.PostFellingSurveyLetterGenerator;
 import my.edu.utem.ftmk.fis9.prefelling.controller.manager.PreFellingFacade;
 import my.edu.utem.ftmk.fis9.prefelling.model.PreFellingSurvey;
 
-
-
 /**
  * @author Satrya Fajri Pratama, Zurina
  */
 @ViewScoped
 @ManagedBean(name = "postFellingSurveyMBean")
-public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellingSurvey>
+public class PostFellingSurveyManagedBean
+		extends AbstractManagedBean<PostFellingSurvey>
 {
 	private static final long serialVersionUID = VERSION;
-
 
 	private District district;
 	private Range range;
@@ -89,13 +88,16 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 	public PostFellingSurveyManagedBean()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade prefFacade = new PreFellingFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade prefFacade = new PreFellingFacade();
+				PostFellingFacade pFacade = new PostFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, prefFacade, pFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID();
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID();
 			forestList = new ArrayList<>();
 
 			yearList = new ArrayList<>();
@@ -109,7 +111,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					if (i == yearRange[0])
 						yearList.add(new SelectItem(i, String.valueOf(i)));
 					else
-						yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+						yearList.add(new SelectItem(i,
+								Math.max(i - 4, yearRange[0]) + " - " + i));
 				}
 			}
 
@@ -128,16 +131,20 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 					for (District district : districts)
 					{
-						SelectItemGroup group = new SelectItemGroup(district.getName() + ", " + state.getName());
+						SelectItemGroup group = new SelectItemGroup(
+								district.getName() + ", " + state.getName());
 						ArrayList<SelectItem> items = new ArrayList<>();
 
 						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
+							if (forest.getDistrictID() == district
+									.getDistrictID())
+								items.add(new SelectItem(forest.getForestID(),
+										forest.toString()));
 
 						if (!items.isEmpty())
 						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							forestList.add(group);
 						}
 					}
@@ -147,25 +154,25 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 				if (designationID == 0)
 				{
-					//models = pFacade.getPostFellingSurveys();
+					// models = pFacade.getPostFellingSurveys();
 					tenders = mFacade.getTenders("A");
 					preFellingSurveys = prefFacade.getPreFellingSurveys(false);
 					downtype = "pfso";
 
 					for (PreFellingSurvey preFellingSurvey : preFellingSurveys)
-						if (!preFellingSurvey.isOpen() && !preFellingSurvey.isPostFellingCreated())
+						if (!preFellingSurvey.isOpen()
+								&& !preFellingSurvey.isPostFellingCreated())
 							tempPreFellingSurveys.add(preFellingSurvey);
 
 					preFellingSurveys = tempPreFellingSurveys;
 				}
 				else
 				{
-					//models = pFacade.getPostFellingSurveys();
+					// models = pFacade.getPostFellingSurveys();
 					tenders = mFacade.getTenders("A", user);
 					accessLevel = 6;
 					uptype = "pfso";
 				}
-
 
 			}
 			else
@@ -175,29 +182,41 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				districts = mFacade.getDistricts(state);
 				district = mFacade.getDistrict(user);
 
-				if (staffID.equals(state.getDirectorID()) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()) || designationID == 11 || designationID == 5 || (district != null && district.getOfficerID().equals(staffID)))				
+				if (staffID.equals(state.getDirectorID())
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID())
+						|| designationID == 11 || designationID == 5
+						|| (district != null
+								&& district.getOfficerID().equals(staffID)))
 				{
-					if (district != null) {
-						//models = pFacade.getPostFellingSurveys(district);
-						preFellingSurveys = prefFacade.getPreFellingSurveys(district, 0, new GregorianCalendar().get(GregorianCalendar.YEAR));
+					if (district != null)
+					{
+						// models = pFacade.getPostFellingSurveys(district);
+						preFellingSurveys = prefFacade.getPreFellingSurveys(
+								district, 0, new GregorianCalendar()
+										.get(GregorianCalendar.YEAR));
 						ranges = district.getRanges();
 						staffs = mFacade.getStaffs(state);
 					}
 					else
 					{
 
-						//models = pFacade.getPostFellingSurveys(state);
-						preFellingSurveys = prefFacade.getPreFellingSurveys(state,false);
+						// models = pFacade.getPostFellingSurveys(state);
+						preFellingSurveys = prefFacade
+								.getPreFellingSurveys(state, false);
 					}
 					downtype = "pfso";
 					uptype = "pfco";
 					accessLevel = staffID.equals(state.getDirectorID()) ? 1 : 2;
 					tenders = mFacade.getTenders("A", state);
 
-					//districts = mFacade.getDistricts(state);
+					// districts = mFacade.getDistricts(state);
 
 					ArrayList<PreFellingSurvey> tempSurveys = new ArrayList<>();
-					staffs = mFacade.getStaffs(state);//, "DesignationID", designationSivil);
+					staffs = mFacade.getStaffs(state);// , "DesignationID",
+														// designationSivil);
 					staffList = new ArrayList<>();
 
 					for (PreFellingSurvey survey : preFellingSurveys)
@@ -209,25 +228,17 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 					preFellingSurveys = tempSurveys;
 
-					/*for (District district : districts)
-					{
-						SelectItemGroup group = new SelectItemGroup(district.getName());
-						ArrayList<SelectItem> items = new ArrayList<>();
-
-						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
-
-						if (!items.isEmpty())
-						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
-							forestList.add(group);
-						}
-					}*/
-
-
-
-
+					/*
+					 * for (District district : districts) { SelectItemGroup
+					 * group = new SelectItemGroup(district.getName());
+					 * ArrayList<SelectItem> items = new ArrayList<>(); for
+					 * (Forest forest : forests) if (forest.getDistrictID() ==
+					 * district.getDistrictID()) items.add(new
+					 * SelectItem(forest.getForestID(), forest.toString())); if
+					 * (!items.isEmpty()) {
+					 * group.setSelectItems(ArrayListConverter.asSelectItem(
+					 * items)); forestList.add(group); } }
+					 */
 
 					for (Designation designation : designations)
 					{
@@ -239,13 +250,16 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 							for (Staff staff : staffs)
 								if (staff.getDesignationID() == designationID)
-									items.add(new SelectItem(staff.getStaffID(), staff.toString()));
+									items.add(new SelectItem(staff.getStaffID(),
+											staff.toString()));
 
 							if (!items.isEmpty())
 							{
-								SelectItemGroup group = new SelectItemGroup(designation.getName());
+								SelectItemGroup group = new SelectItemGroup(
+										designation.getName());
 
-								group.setSelectItems(ArrayListConverter.asSelectItem(items));
+								group.setSelectItems(
+										ArrayListConverter.asSelectItem(items));
 								staffList.add(group);
 							}
 						}
@@ -257,25 +271,26 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 					if (user.getContractorID() == null)
 					{
-						staffs = mFacade.getStaffs(state);//, "DesignationID", designationSivil);
+						staffs = mFacade.getStaffs(state);// , "DesignationID",
+															// designationSivil);
 						accessLevel = 3;
 					}
 					else
 					{
-						staffs = mFacade.getStaffs(state, "ContractorID", user.getContractorID());
+						staffs = mFacade.getStaffs(state, "ContractorID",
+								user.getContractorID());
 						accessLevel = 4;
 					}
 
-					//models = pFacade.getPostFellingSurveys(user);
+					// models = pFacade.getPostFellingSurveys(user);
 					staffs.remove(user);
 
-
 					staffList = new ArrayList<>();
-					//ArrayList<Designation> designations = mFacade.getDesignations();
+					// ArrayList<Designation> designations =
+					// mFacade.getDesignations();
 
 					uptype = "pfso";
 					downtype = "pfco";
-
 
 					for (Designation designation : designations)
 					{
@@ -287,13 +302,16 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 							for (Staff staff : staffs)
 								if (staff.getDesignationID() == designationID)
-									items.add(new SelectItem(staff.getStaffID(), staff.toString()));
+									items.add(new SelectItem(staff.getStaffID(),
+											staff.toString()));
 
 							if (!items.isEmpty())
 							{
-								SelectItemGroup group = new SelectItemGroup(designation.getName());
+								SelectItemGroup group = new SelectItemGroup(
+										designation.getName());
 
-								group.setSelectItems(ArrayListConverter.asSelectItem(items));
+								group.setSelectItems(
+										ArrayListConverter.asSelectItem(items));
 								staffList.add(group);
 							}
 						}
@@ -305,9 +323,12 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 						{
 							for (PostFellingSurvey postFellingSurvey : models)
 							{
-								if (forest.getForestID() == postFellingSurvey.getForestID())
+								if (forest.getForestID() == postFellingSurvey
+										.getForestID())
 								{
-									SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+									SelectItem item = new SelectItem(
+											forest.getForestID(),
+											forest.toString());
 
 									if (!forestList.contains(item))
 										forestList.add(item);
@@ -323,33 +344,24 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			{
 				ArrayList<Tender> temp = new ArrayList<>();
 				for (Tender tender : tenders)
-					if (tender.getWorkType().equals("P") && tender.getStateID() == stateID)
+					if (tender.getWorkType().equals("P")
+							&& tender.getStateID() == stateID)
 						temp.add(tender);
 
 				tenders = temp;
 			}
 
-
-
-			/*if (models != null)
-			{
-				sort(models);
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-
-
-				for (PostFellingSurvey postFellingSurvey : models)
-				{
-
-					File file = new File(external.getRealPath("/") + "files/post-f/" + postFellingSurvey.getPostFellingSurveyID() + ".png");
-					postFellingSurvey.setRecorders(mFacade.getStaffs(postFellingSurvey,true));
-					postFellingSurvey.setPlanUploaded(file.exists());
-				}
-			}
-			else
-				models = new ArrayList<>();*/
-
-
-
+			/*
+			 * if (models != null) { sort(models); ExternalContext external =
+			 * FacesContext.getCurrentInstance().getExternalContext(); for
+			 * (PostFellingSurvey postFellingSurvey : models) { File file = new
+			 * File(external.getRealPath("/") + "files/post-f/" +
+			 * postFellingSurvey.getPostFellingSurveyID() + ".png");
+			 * postFellingSurvey.setRecorders(mFacade.getStaffs(
+			 * postFellingSurvey,true));
+			 * postFellingSurvey.setPlanUploaded(file.exists()); } } else models
+			 * = new ArrayList<>();
+			 */
 
 		}
 		catch (SQLException e)
@@ -367,7 +379,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			State state = new State();
 
 			for (PreFellingSurvey survey : preFellingSurveys)
-				if (survey.getPreFellingSurveyID() == model.getPreFellingSurveyID())
+				if (survey.getPreFellingSurveyID() == model
+						.getPreFellingSurveyID())
 					state.setStateID(survey.getStateID());
 
 			ArrayList<Tender> temp = new ArrayList<>();
@@ -401,7 +414,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		return models;
 	}
 
-	public void setPostFellingSurvey(ArrayList<PostFellingSurvey> postFellingSurveys)
+	public void setPostFellingSurvey(
+			ArrayList<PostFellingSurvey> postFellingSurveys)
 	{
 		this.models = postFellingSurveys;
 	}
@@ -411,7 +425,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		return preFellingSurveys;
 	}
 
-	public void setPreFellingSurveys(ArrayList<PreFellingSurvey> preFellingSurveys)
+	public void setPreFellingSurveys(
+			ArrayList<PreFellingSurvey> preFellingSurveys)
 	{
 		this.preFellingSurveys = preFellingSurveys;
 	}
@@ -522,7 +537,7 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 	}
 
 	@Override
-	public void handleOpen() 
+	public void handleOpen()
 	{
 		if (addOperation)
 		{
@@ -540,11 +555,11 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		{
 			model = (PostFellingSurvey) copy(models, model);
 
-			if (!model.isOpen()) {
+			if (!model.isOpen())
+			{
 				if (accessLevel < 2)
-					prepareClose();	
+					prepareClose();
 			}
-
 
 		}
 	}
@@ -552,12 +567,15 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 	public void handleCloseInspection()
 	{
 
-		try 
+		try
 		{
 			PostFellingFacade pFacade = new PostFellingFacade();
-			//model.setOpen(false);
+			// model.setOpen(false);
 			model.setInspectionOpen(2);
-			finalizeModelEntry(pFacade.updatePostFellingSurvey(model), addOperation, pFacade, "bancian, ID " + model.getPostFellingSurveyID(), null, models, model);
+			finalizeModelEntry(pFacade.updatePostFellingSurvey(model),
+					addOperation, pFacade,
+					"bancian, ID " + model.getPostFellingSurveyID(), null,
+					models, model);
 
 		}
 		catch (Exception e)
@@ -569,13 +587,16 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 	public void handleOpenInspection()
 	{
-		try 
+		try
 		{
 			PostFellingFacade pFacade = new PostFellingFacade();
 			model = (PostFellingSurvey) copy(models, model);
-			//model.setOpen(false);
+			// model.setOpen(false);
 			model.setInspectionOpen(0);
-			finalizeModelEntry(pFacade.updatePostFellingSurvey(model), addOperation, pFacade, "bancian, ID " + model.getPostFellingSurveyID(), null, models, model);
+			finalizeModelEntry(pFacade.updatePostFellingSurvey(model),
+					addOperation, pFacade,
+					"bancian, ID " + model.getPostFellingSurveyID(), null,
+					models, model);
 
 		}
 		catch (Exception e)
@@ -590,29 +611,52 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 	{
 		String message = null;
 
-		try 
+		try
 		{
 			PostFellingFacade pFacade = new PostFellingFacade();
 			model = (PostFellingSurvey) copy(models, model);
-			ArrayList<PostFellingSurveyCard> cards = pFacade.getPostFellingSurveyCards(model);
+			ArrayList<PostFellingSurveyCard> cards = pFacade
+					.getPostFellingSurveyCards(model);
 			String cardMsg = "";
 			boolean error = false;
-			for (PostFellingSurveyCard card: cards)
+			for (PostFellingSurveyCard card : cards)
 			{
-				if (card.getAspectID() == 0 || card.getBananaID() == 0 || card.getForestTypeID() == 0 || card.getGingerID() == 0 || card.getElevationID() == 0 || card.getResamID() == 0 || card.getSlopeLocationID() == 0  || card.getSoilStatusID() == 0) {
-					cardMsg += "" + card.getLineNo() + " " + card.getPlotNo() + ", ";
+				if (card.getAspectID() == 0 || card.getBananaID() == 0
+						|| card.getForestTypeID() == 0
+						|| card.getGingerID() == 0 || card.getElevationID() == 0
+						|| card.getResamID() == 0
+						|| card.getSlopeLocationID() == 0
+						|| card.getSoilStatusID() == 0)
+				{
+					cardMsg += "" + card.getLineNo() + " " + card.getPlotNo()
+							+ ", ";
 					error = true;
 				}
 			}
 
-			if (error) {
-				addMessage(FacesMessage.SEVERITY_ERROR, null, "Proses TUTUP bancian TIDAK BERJAYA. Sila lengkapkan maklumat hutan pada kad bancian " + cardMsg);
-			}else
+			if (error)
+			{
+				addMessage(FacesMessage.SEVERITY_ERROR, null,
+						"Proses TUTUP bancian TIDAK BERJAYA. Sila lengkapkan maklumat hutan pada kad bancian "
+								+ cardMsg);
+			}
+			else
 			{
 				model.setOpen(false);
-				finalizeModelEntry(pFacade.updatePostFellingSurvey(model), addOperation, pFacade, "bancian, ID " + model.getPostFellingSurveyID(), null, models, model);
-				message = "Sesi Inventori Hutan Selepas Tebangan (Post-Felling) telah diselesaikan oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr><tr><td>- Keluasan</td><td>:</td><td>" + model.getArea() + " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
-			}	
+				finalizeModelEntry(pFacade.updatePostFellingSurvey(model),
+						addOperation, pFacade,
+						"bancian, ID " + model.getPostFellingSurveyID(), null,
+						models, model);
+				message = "Sesi Inventori Hutan Selepas Tebangan (Post-Felling) telah diselesaikan oleh "
+						+ model.getCreatorName()
+						+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+						+ model.getForestName()
+						+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+						+ model.getComptBlockNo()
+						+ "</td></tr><tr><td>- Keluasan</td><td>:</td><td>"
+						+ model.getArea()
+						+ " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
+			}
 		}
 		catch (Exception e)
 		{
@@ -620,12 +664,15 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			addMessage(e);
 		}
 
-
 		try
 		{
 
 			if (message != null)
-				new EmailSender().send(true, "Inventori Hutan Selepas Tebangan - " + model.getForestName() + " " + model.getComptBlockNo(), message, model.getCreatorID());
+				new EmailSender().send(true,
+						"Inventori Hutan Selepas Tebangan - "
+								+ model.getForestName() + " "
+								+ model.getComptBlockNo(),
+						message, model.getCreatorID());
 		}
 		catch (Exception e)
 		{
@@ -675,11 +722,10 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		}
 	}
 
-
-
 	public void postFellingSurveyEntry()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade())
 		{
 			AbstractFacade.group(mFacade, pFacade);
 			String message = null;
@@ -688,7 +734,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			{
 				for (PreFellingSurvey s : preFellingSurveys)
 				{
-					if (model.getPreFellingSurveyID() == s.getPreFellingSurveyID())
+					if (model.getPreFellingSurveyID() == s
+							.getPreFellingSurveyID())
 					{
 
 						model.setForestID(s.getForestID());
@@ -708,14 +755,12 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				}
 			}
 
-
-
-			if (staffs != null) 
+			if (staffs != null)
 			{
 				if (model.getTeamLeaderID().isEmpty())
 					model.setTeamLeaderID(null);
 				else
-				{	
+				{
 					for (Staff staff : staffs)
 						if (staff.getStaffID().equals(model.getTeamLeaderID()))
 							model.setTeamLeaderName(staff.getName());
@@ -735,7 +780,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					{
 						for (Tender tender : tenders)
 						{
-							if (tender.getTenderNo().equals(model.getTenderNo()))
+							if (tender.getTenderNo()
+									.equals(model.getTenderNo()))
 							{
 								model.setStartDate(tender.getStartDate());
 								model.setEndDate(tender.getEndDate());
@@ -751,27 +797,36 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				model.setEndDate(null);
 			}
 
-			if(model.getStartDate() == null || model.getEndDate() == null)
+			if (model.getStartDate() == null || model.getEndDate() == null)
 			{
 				model.setStartDate(null);
 				model.setEndDate(null);
 			}
 
 			if (model.getTenderNo() != null)
-				model.setTeamLeaderID(null);			
+				model.setTeamLeaderID(null);
 
 			if (model.getTeamLeaderID() != null)
-				model.setTenderNo(null);		
-
+				model.setTenderNo(null);
 
 			if (addOperation)
 			{
-				finalizeModelEntry(pFacade.addPostFellingSurvey(model, true), addOperation, pFacade, "bancian, ID " + model.getPostFellingSurveyID(), null, models, model);
-				message = "Sesi Inventori Hutan Selepas Tebangan (Post-Felling) baru telah dibuka oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr><tr><td>- Keluasan</td><td>:</td><td>" + model.getArea() + " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
+				finalizeModelEntry(pFacade.addPostFellingSurvey(model, true),
+						addOperation, pFacade,
+						"bancian, ID " + model.getPostFellingSurveyID(), null,
+						models, model);
+				message = "Sesi Inventori Hutan Selepas Tebangan (Post-Felling) baru telah dibuka oleh "
+						+ model.getCreatorName()
+						+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+						+ model.getForestName()
+						+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+						+ model.getComptBlockNo()
+						+ "</td></tr><tr><td>- Keluasan</td><td>:</td><td>"
+						+ model.getArea()
+						+ " hektar</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
 			}
 			else
 			{
-
 
 				if (selectedStaffs != null)
 				{
@@ -785,24 +840,41 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					model.setRecorders(recorders);
 				}
 				String cardMsg = "";
-				if (!model.isOpen()) {
-					ArrayList<PostFellingSurveyCard> cards; cards = pFacade.getPostFellingSurveyCards(model);
+				if (!model.isOpen())
+				{
+					ArrayList<PostFellingSurveyCard> cards;
+					cards = pFacade.getPostFellingSurveyCards(model);
 					boolean error = false;
-					for (PostFellingSurveyCard card: cards)
+					for (PostFellingSurveyCard card : cards)
 					{
-						if (card.getAspectID() == 0 || card.getBananaID() == 0 || card.getForestTypeID() == 0 || card.getGingerID() == 0 || card.getElevationID() == 0 || card.getResamID() == 0 || card.getSlopeLocationID() == 0  || card.getSoilStatusID() == 0) {
-							cardMsg += "" + card.getLineNo() + " " + card.getPlotNo() + ", ";
+						if (card.getAspectID() == 0 || card.getBananaID() == 0
+								|| card.getForestTypeID() == 0
+								|| card.getGingerID() == 0
+								|| card.getElevationID() == 0
+								|| card.getResamID() == 0
+								|| card.getSlopeLocationID() == 0
+								|| card.getSoilStatusID() == 0)
+						{
+							cardMsg += "" + card.getLineNo() + " "
+									+ card.getPlotNo() + ", ";
 							error = true;
 						}
 					}
 
-					if (error) {
-						addMessage(FacesMessage.SEVERITY_ERROR, null, "Proses TUTUP bancian TIDAK BERJAYA. Sila lengkapkan maklumat hutan pada kad bancian " + cardMsg);
-						model.setOpen(true);;
+					if (error)
+					{
+						addMessage(FacesMessage.SEVERITY_ERROR, null,
+								"Proses TUTUP bancian TIDAK BERJAYA. Sila lengkapkan maklumat hutan pada kad bancian "
+										+ cardMsg);
+						model.setOpen(true);
+						;
 					}
 				}
 
-				finalizeModelEntry(pFacade.updatePostFellingSurvey(model), addOperation, pFacade, "bancian, ID " + model.getPostFellingSurveyID(), null, models, model);
+				finalizeModelEntry(pFacade.updatePostFellingSurvey(model),
+						addOperation, pFacade,
+						"bancian, ID " + model.getPostFellingSurveyID(), null,
+						models, model);
 			}
 
 			if (updateYear(model))
@@ -817,21 +889,24 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			{
 				FacesContext context = FacesContext.getCurrentInstance();
 				ExternalContext external = context.getExternalContext();
-				String name = "Bancian_" + model.getForestName().replaceAll(" ", "") + "_" + model.getComptBlockNo() + "_" + model.getYear() + ".pdf";
+				String name = "Bancian_"
+						+ model.getForestName().replaceAll(" ", "") + "_"
+						+ model.getComptBlockNo() + "_" + model.getYear()
+						+ ".pdf";
 				int level = 0;
 
 				for (District d : districts)
 					if (d.getDistrictID() == model.getDistrictID())
 						district = d;
 
-				//for (Range r : ranges)
-				//	if (r.getRangeID() == model.getRangeID())
-				//		range = r;
+				// for (Range r : ranges)
+				// if (r.getRangeID() == model.getRangeID())
+				// range = r;
 
 				if (accessLevel == 0 || accessLevel == 1 || accessLevel == 2)
 				{
 					level = 1;
-					name = (model.isOpen() ? "Buka" : "Tutup") + name;	
+					name = (model.isOpen() ? "Buka" : "Tutup") + name;
 				}
 				else if (accessLevel == 3 || accessLevel == 4)
 				{
@@ -850,18 +925,27 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					}
 				}
 
-				File file = new File(external.getRealPath("/") + "files/post-f/" + name);
+				File file = new File(
+						external.getRealPath("/") + "files/post-f/" + name);
 
 				file.getParentFile().mkdirs();
 				if (level != 0)
-					PostFellingSurveyLetterGenerator.generate(file, model, district, range, level);
+					PostFellingSurveyLetterGenerator.generate(file, model,
+							district, range, level);
 
-
-				if (message != null &&  model.getTeamLeaderID()!= null)
-					new EmailSender().send(true, "Inventori Hutan Selepas Tebangan - " + model.getForestName() + " " + model.getComptBlockNo(), message, model.getTeamLeaderID());
-				if (message != null && model.getTenderNo()!= null)
-					new EmailSender().send(true, "Inventori Hutan Selepas Tebangan - " + model.getForestName() + " " + model.getComptBlockNo(), message,  mFacade.getTender(model.getTenderNo()).getContractorID());
-
+				if (message != null && model.getTeamLeaderID() != null)
+					new EmailSender().send(true,
+							"Inventori Hutan Selepas Tebangan - "
+									+ model.getForestName() + " "
+									+ model.getComptBlockNo(),
+							message, model.getTeamLeaderID());
+				if (message != null && model.getTenderNo() != null)
+					new EmailSender().send(true,
+							"Inventori Hutan Selepas Tebangan - "
+									+ model.getForestName() + " "
+									+ model.getComptBlockNo(),
+							message, mFacade.getTender(model.getTenderNo())
+									.getContractorID());
 
 			}
 			catch (Exception e)
@@ -884,21 +968,25 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 	{
 		if (!model.isOpen())
 		{
-			try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+			try (MaintenanceFacade mFacade = new MaintenanceFacade();
+					PostFellingFacade pFacade = new PostFellingFacade();)
 			{
 				AbstractFacade.group(mFacade, pFacade);
 
 				State state = new State();
 
 				state.setStateID(model.getStateID());
-				
-				ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade.getRegenerationSpeciesList(state);
+
+				ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade
+						.getRegenerationSpeciesList(state);
 				speciesList = mFacade.getSpeciesList(state);
 
 				if (model.getPostFellingReport() == null)
 				{
-					model.setPostFellingSurveyCards(pFacade.getPostFellingSurveyCards(model));
-					model.setPostFellingReport(new PostFellingReport(model,regenerationSpeciesList));
+					model.setPostFellingSurveyCards(
+							pFacade.getPostFellingSurveyCards(model));
+					model.setPostFellingReport(new PostFellingReport(model,
+							regenerationSpeciesList));
 				}
 			}
 			catch (SQLException e)
@@ -909,15 +997,22 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		}
 	}
 
-	public StreamedContent download(PostFellingSurvey postFellingSurvey, int level)
+	public StreamedContent download(PostFellingSurvey postFellingSurvey,
+			int level)
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "BancianPostF_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + "." + (level != 0 ? "pdf" : downtype), type = null;
+		String name = "BancianPostF_"
+				+ postFellingSurvey.getForestName().replaceAll(" ", "") + "_"
+				+ postFellingSurvey.getComptBlockNo() + "_"
+				+ postFellingSurvey.getYear() + "."
+				+ (level != 0 ? "pdf" : downtype), type = null;
 		try (PostFellingFacade pFacade = new PostFellingFacade();)
 		{
-			postFellingSurvey.setPostFellingSurveyCards(pFacade.getPostFellingSurveyCards(postFellingSurvey));
-			postFellingSurvey.setPostFellingInspectionLines(pFacade.getPostFellingInspectionLines(postFellingSurvey));
+			postFellingSurvey.setPostFellingSurveyCards(
+					pFacade.getPostFellingSurveyCards(postFellingSurvey));
+			postFellingSurvey.setPostFellingInspectionLines(
+					pFacade.getPostFellingInspectionLines(postFellingSurvey));
 
 		}
 		catch (Exception e)
@@ -928,14 +1023,15 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 		if (level != 0)
 		{
-			if (level == 1 || level == 2 )
+			if (level == 1 || level == 2)
 				name = (postFellingSurvey.isOpen() ? "Buka" : "Tutup") + name;
 
 			else if (level == 3)
 				name = "Lantikan" + name;
 		}
 
-		File file = new File(external.getRealPath("/") + "files/post-f/" + name);
+		File file = new File(
+				external.getRealPath("/") + "files/post-f/" + name);
 		StreamedContent content = null;
 		file.getParentFile().mkdirs();
 
@@ -947,10 +1043,12 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				{
 
 					for (District d : districts)
-						if (d.getDistrictID() == postFellingSurvey.getDistrictID())
+						if (d.getDistrictID() == postFellingSurvey
+								.getDistrictID())
 							district = d;
 
-					PostFellingSurveyLetterGenerator.generate(file, postFellingSurvey, district, range, level);
+					PostFellingSurveyLetterGenerator.generate(file,
+							postFellingSurvey, district, range, level);
 				}
 
 				type = "application/pdf";
@@ -966,50 +1064,65 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				Tender tenderPostF = null;
 				PreFellingSurvey preFellingSurvey = null;
 
-				ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+				ObjectOutputStream oos = new ObjectOutputStream(
+						new GZIPOutputStream(new FileOutputStream(file)));
 
-				try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+				try (MaintenanceFacade mFacade = new MaintenanceFacade();
+						PreFellingFacade pFacade = new PreFellingFacade();)
 				{
 					AbstractFacade.group(mFacade, pFacade);
 
-					district = mFacade.getDistrict(postFellingSurvey.getDistrictID());
+					district = mFacade
+							.getDistrict(postFellingSurvey.getDistrictID());
 					ArrayList<Range> ranges = district.getRanges();
 					ArrayList<Staff> temp = new ArrayList<>();
 
-					temp.add(mFacade.getStaff(postFellingSurvey.getCreatorID(), null));
+					temp.add(mFacade.getStaff(postFellingSurvey.getCreatorID(),
+							null));
 					temp.add(mFacade.getStaff(district.getOfficerID(), null));
 
 					if (district.getAsstOfficerID() != null)
-						temp.add(mFacade.getStaff(district.getAsstOfficerID(), null));
+						temp.add(mFacade.getStaff(district.getAsstOfficerID(),
+								null));
 
 					if (district.getClerk1ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk1ID(), null));
+						temp.add(
+								mFacade.getStaff(district.getClerk1ID(), null));
 
 					if (district.getClerk2ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk2ID(), null));
+						temp.add(
+								mFacade.getStaff(district.getClerk2ID(), null));
 
 					if (district.getClerk3ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk3ID(), null));
+						temp.add(
+								mFacade.getStaff(district.getClerk3ID(), null));
 
 					for (Range range : ranges)
-						temp.add(mFacade.getStaff(range.getAsstOfficerID(), null));
+						temp.add(mFacade.getStaff(range.getAsstOfficerID(),
+								null));
 
 					if (postFellingSurvey.getTeamLeaderID() != null)
-						temp.add(mFacade.getStaff(postFellingSurvey.getTeamLeaderID(), null));
+						temp.add(mFacade.getStaff(
+								postFellingSurvey.getTeamLeaderID(), null));
 
 					if (postFellingSurvey.getTenderNo() != null)
 					{
-						tenderPostF = mFacade.getTender(postFellingSurvey.getTenderNo());
-						contractorPostF = mFacade.getContractor(tenderPostF.getContractorID());
+						tenderPostF = mFacade
+								.getTender(postFellingSurvey.getTenderNo());
+						contractorPostF = mFacade
+								.getContractor(tenderPostF.getContractorID());
 					}
 
 					staffs = temp.toArray(new Staff[0]);
-					preFellingSurvey = pFacade.getPreFellingSurvey(postFellingSurvey.getPreFellingSurveyID());
+					preFellingSurvey = pFacade.getPreFellingSurvey(
+							postFellingSurvey.getPreFellingSurveyID());
 
 					if (preFellingSurvey.getTenderNo() != null)
 					{
-						tenderPreF = mFacade.getTender(preFellingSurvey.getTenderNo());
-						contractorPreF = mFacade.getContractor(tenderPreF.getContractorID());
+						tenderPreF = mFacade
+								.getTender(preFellingSurvey.getTenderNo());
+						contractorPreF = mFacade
+								.getContractor(tenderPreF.getContractorID());
 					}
 				}
 
@@ -1023,7 +1136,9 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				oos.writeObject(preFellingSurvey);
 				oos.writeObject(postFellingSurvey);
 
-				String path = external.getRealPath("/") + "files/post-f/", image = "_" + postFellingSurvey.getPostFellingSurveyID() + ".png";
+				String path = external.getRealPath("/") + "files/post-f/",
+						image = "_" + postFellingSurvey.getPostFellingSurveyID()
+								+ ".png";
 				File plan = new File(path + "pelan" + image);
 				File stock = new File(path + "stok" + image);
 
@@ -1049,7 +1164,22 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 				oos.close();
 			}
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1060,7 +1190,10 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		return content;
 	}
 
-	private void save(PostFellingFacade facade, ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards, ArrayList<PostFellingSurveyCard> postFellingSurveyCards, boolean strict) throws SQLException
+	private void save(PostFellingFacade facade,
+			ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards,
+			ArrayList<PostFellingSurveyCard> postFellingSurveyCards,
+			boolean strict) throws SQLException
 	{
 		int totalPostFellingSurveyCard = 0, totalRecord = 0;
 
@@ -1071,71 +1204,96 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					continue;
 
 			ArrayList<PostFellingSurveyRecord> currentPostFellingSurveyRecords = null;
-			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = postFellingSurveyCard.getPostFellingSurveyRecords();
+			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = postFellingSurveyCard
+					.getPostFellingSurveyRecords();
 			int type = 1;
 
-			if (facade.addPostFellingSurveyCard(postFellingSurveyCard, false) != 0)
+			if (facade.addPostFellingSurveyCard(postFellingSurveyCard,
+					false) != 0)
 			{
 				totalPostFellingSurveyCard++;
 
-				if (!currentPostFellingSurveyCards.contains(postFellingSurveyCard))
+				if (!currentPostFellingSurveyCards
+						.contains(postFellingSurveyCard))
 				{
 					PostFellingSurveyCard temp = null;
 
 					for (PostFellingSurveyCard c : currentPostFellingSurveyCards)
-						if (postFellingSurveyCard.toString().equals(c.toString()))
+						if (postFellingSurveyCard.toString()
+								.equals(c.toString()))
 							temp = c;
 
 					if (temp != null)
 					{
 						type = -1;
-						currentPostFellingSurveyRecords = temp.getPostFellingSurveyRecords();
+						currentPostFellingSurveyRecords = temp
+								.getPostFellingSurveyRecords();
 
-						log(facade, "Kemaskini kad bancian, ID " + temp.getPostFellingSurveyCardID());
-						postFellingSurveyCard.setPostFellingSurveyCardID(temp.getPostFellingSurveyCardID());
+						log(facade, "Kemaskini kad bancian, ID "
+								+ temp.getPostFellingSurveyCardID());
+						postFellingSurveyCard.setPostFellingSurveyCardID(
+								temp.getPostFellingSurveyCardID());
 					}
 					else
 					{
-						currentPostFellingSurveyCards.add(postFellingSurveyCard);
-						log(facade, "Tambah kad bancian, ID " + postFellingSurveyCard.getPostFellingSurveyCardID());
+						currentPostFellingSurveyCards
+								.add(postFellingSurveyCard);
+						log(facade,
+								"Tambah kad bancian, ID "
+										+ postFellingSurveyCard
+												.getPostFellingSurveyCardID());
 					}
 				}
 				else
 				{
 					type = 0;
-					currentPostFellingSurveyRecords = currentPostFellingSurveyCards.get(currentPostFellingSurveyCards.indexOf(postFellingSurveyCard)).getPostFellingSurveyRecords();
+					currentPostFellingSurveyRecords = currentPostFellingSurveyCards
+							.get(currentPostFellingSurveyCards
+									.indexOf(postFellingSurveyCard))
+							.getPostFellingSurveyRecords();
 
-					log(facade, "Kemaskini kad bancian, ID " + postFellingSurveyCard.getPostFellingSurveyCardID());
+					log(facade,
+							"Kemaskini kad bancian, ID " + postFellingSurveyCard
+									.getPostFellingSurveyCardID());
 				}
 
 				sort(currentPostFellingSurveyCards);
 			}
 
 			if (type != 1)
-				currentPostFellingSurveyCards.set(currentPostFellingSurveyCards.indexOf(postFellingSurveyCard), postFellingSurveyCard);
+				currentPostFellingSurveyCards.set(currentPostFellingSurveyCards
+						.indexOf(postFellingSurveyCard), postFellingSurveyCard);
 
 			for (PostFellingSurveyRecord postFellingSurveyRecord : postFellingSurveyRecords)
 			{
 				if (type == -1)
-					postFellingSurveyRecord.setPostFellingSurveyCardID(postFellingSurveyCard.getPostFellingSurveyCardID());
+					postFellingSurveyRecord.setPostFellingSurveyCardID(
+							postFellingSurveyCard.getPostFellingSurveyCardID());
 
-				if (facade.addPostFellingSurveyRecord(postFellingSurveyRecord, false) != 0)
+				if (facade.addPostFellingSurveyRecord(postFellingSurveyRecord,
+						false) != 0)
 				{
 					totalRecord++;
-					log(facade, "Tambah rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID());
+					log(facade,
+							"Tambah rekod bancian, ID "
+									+ postFellingSurveyRecord
+											.getPostFellingSurveyRecordID());
 				}
 			}
 
 			if (currentPostFellingSurveyRecords != null)
 			{
-				postFellingSurveyRecords.addAll(currentPostFellingSurveyRecords);
+				postFellingSurveyRecords
+						.addAll(currentPostFellingSurveyRecords);
 				sort(postFellingSurveyRecords);
 			}
 		}
 
 		if (totalPostFellingSurveyCard != 0 || totalRecord != 0)
 			addMessage(FacesMessage.SEVERITY_INFO, null,
-					totalPostFellingSurveyCard + " kad bancian dan " + totalRecord + " rekod bancian berjaya ditambahkan.");
+					totalPostFellingSurveyCard + " kad bancian dan "
+							+ totalRecord
+							+ " rekod bancian berjaya ditambahkan.");
 		else
 			addMessage(FacesMessage.SEVERITY_INFO, null,
 					"Tiada kad bancian dan rekod bancian berjaya ditambahkan.");
@@ -1143,33 +1301,47 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 	public void handleYearChange()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID(), endYear = selectedYearRange, startYear = selectedYearRange - 4;
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID(),
+					endYear = selectedYearRange,
+					startYear = selectedYearRange - 4;
 
 			if (stateID == 0)
 			{
 				if (designationID == 0)
 					models = pFacade.getPostFellingSurveys(startYear, endYear);
 				else
-					models = pFacade.getPostFellingSurveys(user, startYear, endYear);
+					models = pFacade.getPostFellingSurveys(user, startYear,
+							endYear);
 			}
 			else
 			{
 				State state = mFacade.getState(stateID);
 
-				if (staffID.equals(state.getDirectorID()) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()) || designationID == 11 || designationID == 5 || (district != null && district.getOfficerID().equals(staffID)))									
+				if (staffID.equals(state.getDirectorID())
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID())
+						|| designationID == 11 || designationID == 5
+						|| (district != null
+								&& district.getOfficerID().equals(staffID)))
 				{
-					models = pFacade.getPostFellingSurveys(state, startYear, endYear);
+					models = pFacade.getPostFellingSurveys(state, startYear,
+							endYear);
 				}
 				else
 				{
 
-					models = pFacade.getPostFellingSurveys(user, startYear, endYear);
+					models = pFacade.getPostFellingSurveys(user, startYear,
+							endYear);
 					district = mFacade.getDistrict(user);
 					range = mFacade.getRange(user);
 					if (models != null)
@@ -1178,9 +1350,12 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 						{
 							for (PostFellingSurvey postFellingSurvey : models)
 							{
-								if (forest.getForestID() == postFellingSurvey.getForestID())
+								if (forest.getForestID() == postFellingSurvey
+										.getForestID())
 								{
-									SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+									SelectItem item = new SelectItem(
+											forest.getForestID(),
+											forest.toString());
 
 									if (!forestList.contains(item))
 										forestList.add(item);
@@ -1194,16 +1369,23 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			if (models != null)
 			{
 				sort(models);
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
 
 				for (PostFellingSurvey postFellingSurvey : models)
 				{
-					//String path = external.getRealPath("/") + "files/post-f/", name = "_" + postFellingSurvey.getPostFellingSurveyID() + ".png";
-					File file = new File(external.getRealPath("/") + "files/post-f/" + postFellingSurvey.getPostFellingSurveyID() + ".png");
+					// String path = external.getRealPath("/") +
+					// "files/post-f/", name = "_" +
+					// postFellingSurvey.getPostFellingSurveyID() + ".png";
+					File file = new File(
+							external.getRealPath("/") + "files/post-f/"
+									+ postFellingSurvey.getPostFellingSurveyID()
+									+ ".png");
 
-					//File file = new File(path + "pelan" + name);
+					// File file = new File(path + "pelan" + name);
 
-					postFellingSurvey.setRecorders(mFacade.getStaffs(postFellingSurvey,true));
+					postFellingSurvey.setRecorders(
+							mFacade.getStaffs(postFellingSurvey, true));
 					postFellingSurvey.setPlanUploaded(file.exists());
 
 				}
@@ -1224,7 +1406,11 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade peFacade = new PreFellingFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					MaintenanceFacade mFacade = new MaintenanceFacade();
+					PreFellingFacade peFacade = new PreFellingFacade();
+					PostFellingFacade pFacade = new PostFellingFacade();)
 			{
 				AbstractFacade.group(mFacade, pFacade);
 
@@ -1238,26 +1424,34 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				Staff[] staffs = (Staff[]) ois.readObject();
 				District district = (District) ois.readObject();
 
-				if (contractorPreF != null && mFacade.addContractor(contractorPreF) != 0)
-					log(mFacade, "Tambah kontraktor, ID " + contractorPreF.getContractorID());
+				if (contractorPreF != null
+						&& mFacade.addContractor(contractorPreF) != 0)
+					log(mFacade, "Tambah kontraktor, ID "
+							+ contractorPreF.getContractorID());
 
-				if (contractorPostF != null && mFacade.addContractor(contractorPostF) != 0)
-					log(mFacade, "Tambah kontraktor, ID " + contractorPostF.getContractorID());
+				if (contractorPostF != null
+						&& mFacade.addContractor(contractorPostF) != 0)
+					log(mFacade, "Tambah kontraktor, ID "
+							+ contractorPostF.getContractorID());
 
 				if (tenderPreF != null && mFacade.addTender(tenderPreF) != 0)
-					log(mFacade, "Tambah sebut harga, ID " + tenderPreF.getTenderNo());
+					log(mFacade, "Tambah sebut harga, ID "
+							+ tenderPreF.getTenderNo());
 
 				if (tenderPostF != null && mFacade.addTender(tenderPostF) != 0)
-					log(mFacade, "Tambah sebut harga, ID " + tenderPostF.getTenderNo());
+					log(mFacade, "Tambah sebut harga, ID "
+							+ tenderPostF.getTenderNo());
 
 				for (Staff staff : staffs)
 				{
 					if (staff != null)
 					{
 						if (mFacade.addStaff(staff) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ staff.getStaffID());
 						else if (mFacade.updateStaff(staff, false) != 0)
-							log(mFacade, "Kemaskini pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Kemaskini pekerja dan akses, ID "
+									+ staff.getStaffID());
 					}
 				}
 
@@ -1306,61 +1500,78 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 					}
 				}
 
-				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois.readObject();
-				PostFellingSurvey postFellingSurvey = (PostFellingSurvey) ois.readObject();
-				ArrayList<PostFellingSurveyCard> postFellingSurveyCards = postFellingSurvey.getPostFellingSurveyCards();
+				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois
+						.readObject();
+				PostFellingSurvey postFellingSurvey = (PostFellingSurvey) ois
+						.readObject();
+				ArrayList<PostFellingSurveyCard> postFellingSurveyCards = postFellingSurvey
+						.getPostFellingSurveyCards();
 				ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards = new ArrayList<PostFellingSurveyCard>();
 				ArrayList<Staff> recorders = postFellingSurvey.getRecorders();
 
 				if (recorders != null)
 					for (Staff recorder : recorders)
 						if (mFacade.addStaff(recorder) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + recorder.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ recorder.getStaffID());
 
 				peFacade.addPreFellingSurvey(preFellingSurvey, false);
 
 				if (pFacade.addPostFellingSurvey(postFellingSurvey, false) != 0)
 				{
-					log(pFacade, "Tambah bancian, ID " + postFellingSurvey.getPostFellingSurveyID());
+					log(pFacade, "Tambah bancian, ID "
+							+ postFellingSurvey.getPostFellingSurveyID());
 					boolean add = updateYear(postFellingSurvey);
-					
-					if (postFellingSurvey.getPostFellingSurveyCards().size() > 0)
-						save(pFacade, currentPostFellingSurveyCards, postFellingSurveyCards, false);
 
-					ArrayList<PostFellingInspectionLine> postFellingInspectionLines = postFellingSurvey.getPostFellingInspectionLines();
-					
-					if (postFellingInspectionLines!=null)
+					if (postFellingSurvey.getPostFellingSurveyCards()
+							.size() > 0)
+						save(pFacade, currentPostFellingSurveyCards,
+								postFellingSurveyCards, false);
+
+					ArrayList<PostFellingInspectionLine> postFellingInspectionLines = postFellingSurvey
+							.getPostFellingInspectionLines();
+
+					if (postFellingInspectionLines != null)
 						for (PostFellingInspectionLine line : postFellingInspectionLines)
 							pFacade.addPostFellingInspectionLine(line, true);
-					
+
 					if (models.contains(postFellingSurvey))
 					{
-						addMessage(FacesMessage.SEVERITY_INFO, null, postFellingSurvey + " berjaya dikemaskini.");
-						models.set(models.indexOf(postFellingSurvey), postFellingSurvey);
+						addMessage(FacesMessage.SEVERITY_INFO, null,
+								postFellingSurvey + " berjaya dikemaskini.");
+						models.set(models.indexOf(postFellingSurvey),
+								postFellingSurvey);
 					}
 					else
 					{
-						addMessage(FacesMessage.SEVERITY_INFO, null, postFellingSurvey + " berjaya ditambahkan.");
-						
+						addMessage(FacesMessage.SEVERITY_INFO, null,
+								postFellingSurvey + " berjaya ditambahkan.");
+
 						if (add)
 							models.add(postFellingSurvey);
 					}
 
 				}
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, null, postFellingSurvey + " tidak dapat ditambahkan.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							postFellingSurvey + " tidak dapat ditambahkan.");
 
 				byte[] bytes1 = (byte[]) ois.readObject();
 				byte[] bytes2 = (byte[]) ois.readObject();
 
 				if (bytes1 != null || bytes2 != null)
 				{
-					ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-					String path = external.getRealPath("/") + "files/post-f/", name = "_" + postFellingSurvey.getPostFellingSurveyID() + ".png";
+					ExternalContext external = FacesContext.getCurrentInstance()
+							.getExternalContext();
+					String path = external.getRealPath("/") + "files/post-f/",
+							name = "_"
+									+ postFellingSurvey.getPostFellingSurveyID()
+									+ ".png";
 
 					if (bytes1 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes1));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes1));
 						File plan = new File(path + "pelan" + name);
 
 						plan.getParentFile().mkdirs();
@@ -1370,7 +1581,8 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 					if (bytes2 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes2));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes2));
 						File stock = new File(path + "stok" + name);
 
 						stock.getParentFile().mkdirs();
@@ -1386,6 +1598,7 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 			}
 		}
 	}
+
 	public void uploadPlan(FileUploadEvent event)
 	{
 		UploadedFile uf = event.getFile();
@@ -1394,14 +1607,17 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/post-f/" + model.getPostFellingSurveyID() + ".png");
-				System.out.println("uploadPlan-FILE:"+file.getPath());
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(external.getRealPath("/") + "files/post-f/"
+						+ model.getPostFellingSurveyID() + ".png");
+				System.out.println("uploadPlan-FILE:" + file.getPath());
 				file.getParentFile().mkdirs();
 				ImageIO.write(bi, "png", file);
 				model.setPlanUploaded(true);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar pelan kerja berjaya dimuat naik.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar pelan kerja berjaya dimuat naik.");
 			}
 			catch (Exception e)
 			{
@@ -1415,6 +1631,7 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 	{
 		return yearList;
 	}
+
 	public int getSelectedYearRange()
 	{
 		return selectedYearRange;
@@ -1444,7 +1661,7 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 
 		if (models == null)
 			models = new ArrayList<>();
-		
+
 		if (update)
 		{
 			yearList = new ArrayList<>();
@@ -1460,13 +1677,14 @@ public class PostFellingSurveyManagedBean extends AbstractManagedBean<PostFellin
 				if (i == yearRange[0])
 					yearList.add(new SelectItem(i, String.valueOf(i)));
 				else
-					yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+					yearList.add(new SelectItem(i,
+							Math.max(i - 4, yearRange[0]) + " - " + i));
 			}
 		}
-		
+
 		if (year > selectedYearRange || year < selectedYearRange - 4)
 			add = false;
-		
+
 		return add;
 	}
 }

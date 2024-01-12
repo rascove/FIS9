@@ -31,7 +31,7 @@ import javax.mail.MessagingException;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -101,13 +101,16 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 	public TaggingFormManagedBean()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); TaggingFacade tFacade = new TaggingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				TaggingFacade tFacade = new TaggingFacade();)
 		{
 			AbstractFacade.group(mFacade, tFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID(), endYear = tFacade.getTaggingYearRange()[1];
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID(),
+					endYear = tFacade.getTaggingYearRange()[1];
 
 			taggingTypes = mFacade.getTaggingTypes();
 			speciesList = mFacade.getSpeciesList();
@@ -151,8 +154,11 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 					if (district != null)
 					{
-						taggings = tFacade.getTaggings(district, false, 0, endYear);
-						accessLevel = district.getOfficerID().equals(staffID) ? 2 : 3;
+						taggings = tFacade.getTaggings(district, false, 0,
+								endYear);
+						accessLevel = district.getOfficerID().equals(staffID)
+								? 2
+								: 3;
 						uptype = "cfor";
 						downtype = "cfoo";
 					}
@@ -185,7 +191,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				{
 					tagging.setRecorders(mFacade.getStaffs(tagging));
 					tagging.setHammers(mFacade.getHammers(tagging));
-					tagging.setTaggingLimitExceptions(tFacade.getTaggingLimitExceptions(tagging));
+					tagging.setTaggingLimitExceptions(
+							tFacade.getTaggingLimitExceptions(tagging));
 				}
 			}
 			else
@@ -283,7 +290,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		return protectedSpeciesList;
 	}
 
-	public void setProtectedSpeciesList(ArrayList<ProtectedSpecies> protectedSpeciesList)
+	public void setProtectedSpeciesList(
+			ArrayList<ProtectedSpecies> protectedSpeciesList)
 	{
 		this.protectedSpeciesList = protectedSpeciesList;
 	}
@@ -475,14 +483,17 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 	public String getComponent()
 	{
-		return ":frmManager:table" + (model == null ? "" : ":" + models.indexOf(model) + ":subtable");
+		return ":frmManager:table" + (model == null ? ""
+				: ":" + models.indexOf(model) + ":subtable");
 	}
 
 	public void handleTaggingIDChange()
 	{
 		clearFilter();
 
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade(); TaggingFacade tFacade = new TaggingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade();
+				TaggingFacade tFacade = new TaggingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade, tFacade);
 
@@ -527,11 +538,13 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 					uptype = "cfoc";
 			}
 
-			SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("ms"));
+			SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy",
+					new Locale("ms"));
 			int totalValidated = 0, totalDownloaded = 0, count = models.size();
 
 			currentVolume = 0;
-			grossVolumeLimit = tagging.getGrossVolumeLimit() * tagging.getArea();
+			grossVolumeLimit = tagging.getGrossVolumeLimit()
+					* tagging.getArea();
 			netVolumeLimit = tagging.getNetVolumeLimit() * tagging.getArea();
 
 			sort(models);
@@ -540,7 +553,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 			for (TaggingForm taggingForm : models)
 			{
-				ArrayList<TaggingRecord> taggingRecords = taggingForm.getTaggingRecords();
+				ArrayList<TaggingRecord> taggingRecords = taggingForm
+						.getTaggingRecords();
 				sort(taggingRecords);
 
 				if (taggingForm.getInspectorID() != null)
@@ -551,7 +565,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 				for (TaggingRecord taggingRecord : taggingRecords)
 				{
-					int diameter = (int) Math.round(taggingRecord.getDiameter());
+					int diameter = (int) Math
+							.round(taggingRecord.getDiameter());
 					String speciesID = taggingRecord.getSpeciesID() + "-";
 					Double volume = null;
 
@@ -571,7 +586,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			}
 
 			if (tagging.getStartDate() != null && tagging.getEndDate() != null)
-				workingDates = sdf.format(tagging.getStartDate()) + " sehingga " + sdf.format(tagging.getEndDate());
+				workingDates = sdf.format(tagging.getStartDate()) + " sehingga "
+						+ sdf.format(tagging.getEndDate());
 			else
 				workingDates = "Belum ditentukan";
 
@@ -579,7 +595,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 			if (totalDownloaded == count)
 			{
-				District district = mFacade.getDistrict(tagging.getDistrictID());
+				District district = mFacade
+						.getDistrict(tagging.getDistrictID());
 				downloaded = user.getStaffID().equals(district.getOfficerID());
 			}
 		}
@@ -681,13 +698,15 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			boolean contains = false;
 
 			for (ProtectedSpecies protectedSpecies : protectedSpeciesList)
-				if (protectedSpecies.getSpeciesID() == taggingRecord.getSpeciesID())
+				if (protectedSpecies.getSpeciesID() == taggingRecord
+						.getSpeciesID())
 					contains = true;
 
 			allowedLog = !contains;
 			allowedClass = !contains;
 
-			if (allowedLog && model.getTaggingTypeID() == 1 && taggingRecord.getTreeTypeID() != 1)
+			if (allowedLog && model.getTaggingTypeID() == 1
+					&& taggingRecord.getTreeTypeID() != 1)
 				allowedLog = false;
 		}
 	}
@@ -700,7 +719,16 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				if (model.getTaggingTypeID() == taggingType.getTaggingTypeID())
 					model.setTaggingTypeName(taggingType.getName());
 
-			finalizeModelEntry(addOperation ? facade.addTaggingForm(model, true) : facade.updateTaggingForm(model), addOperation, facade, "borang penandaan, ID " + model.getTaggingFormID(), ", kerana no. " + (model.getTaggingTypeID() == 1 ? "blok penandaan" : model.getTaggingTypeName().toLowerCase()) + " telah direkodkan sebelumnya.", models, model);
+			finalizeModelEntry(
+					addOperation ? facade.addTaggingForm(model, true)
+							: facade.updateTaggingForm(model),
+					addOperation, facade,
+					"borang penandaan, ID " + model.getTaggingFormID(),
+					", kerana no. "
+							+ (model.getTaggingTypeID() == 1 ? "blok penandaan"
+									: model.getTaggingTypeName().toLowerCase())
+							+ " telah direkodkan sebelumnya.",
+					models, model);
 			model = null;
 		}
 		catch (SQLException e)
@@ -719,7 +747,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		try (TaggingFacade facade = new TaggingFacade())
 		{
 			currentVolume = 0;
-			int diameter = (int) Math.round(taggingRecord.getDiameter()), limit = 0;
+			int diameter = (int) Math.round(taggingRecord.getDiameter()),
+					limit = 0;
 			String speciesID = taggingRecord.getSpeciesID() + "-";
 			Double volume = null;
 
@@ -735,10 +764,12 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			{
 				if (taggingForm.getTaggingTypeID() == 1)
 				{
-					ArrayList<TaggingRecord> taggingRecords = taggingForm.getTaggingRecords();
+					ArrayList<TaggingRecord> taggingRecords = taggingForm
+							.getTaggingRecords();
 
 					for (TaggingRecord taggingRecord : taggingRecords)
-						if (taggingRecord.getTreeTypeID() == 1 && !taggingRecord.equals(this.taggingRecord))
+						if (taggingRecord.getTreeTypeID() == 1
+								&& !taggingRecord.equals(this.taggingRecord))
 							currentVolume += taggingRecord.getVolume();
 				}
 			}
@@ -759,35 +790,53 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 			for (LogQuality logQuality : logQualities)
 			{
-				if (logQuality.getLogQualityID() == taggingRecord.getLogQualityID())
+				if (logQuality.getLogQualityID() == taggingRecord
+						.getLogQualityID())
 				{
 					taggingRecord.setLogQuality(logQuality.getCode());
 					taggingRecord.setLogQualityName(logQuality.getName());
 				}
 			}
 
-			if (model.getTaggingTypeID() == 1 && taggingRecord.getTreeTypeID() == 1)
+			if (model.getTaggingTypeID() == 1
+					&& taggingRecord.getTreeTypeID() == 1)
 			{
 				int size = 0;
-				ArrayList<TaggingRecord> taggingRecords = model.getTaggingRecords();
-				ArrayList<TaggingLimitException> taggingLimitExceptions = tagging.getTaggingLimitExceptions();
+				ArrayList<TaggingRecord> taggingRecords = model
+						.getTaggingRecords();
+				ArrayList<TaggingLimitException> taggingLimitExceptions = tagging
+						.getTaggingLimitExceptions();
 				limit = treeLimit.getMaximumPerPlot();
 
 				for (TaggingLimitException taggingLimitException : taggingLimitExceptions)
-					if (taggingLimitException.getBlockNo().equals(model.getFormNo()) && taggingLimitException.getPlotNo().equals(taggingRecord.getPlotNo()))
+					if (taggingLimitException.getBlockNo()
+							.equals(model.getFormNo())
+							&& taggingLimitException.getPlotNo()
+									.equals(taggingRecord.getPlotNo()))
 						limit = taggingLimitException.getQuantity();
 
 				for (TaggingRecord taggingRecord : taggingRecords)
-					if (taggingRecord.getTreeTypeID() == 1 && this.taggingRecord.getPlotNo().equals(taggingRecord.getPlotNo()) && !taggingRecord.equals(this.taggingRecord))
+					if (taggingRecord.getTreeTypeID() == 1
+							&& this.taggingRecord.getPlotNo()
+									.equals(taggingRecord.getPlotNo())
+							&& !taggingRecord.equals(this.taggingRecord))
 						size++;
 
-				if (size + 1 > limit && limit != 0 || currentVolume + taggingRecord.getVolume() > grossVolumeLimit)
+				if (size + 1 > limit && limit != 0 || currentVolume
+						+ taggingRecord.getVolume() > grossVolumeLimit)
 					valid = false;
 			}
 
 			if (valid)
 			{
-				String value = finalizeModelEntry(addTaggingRecordOperation ? facade.addTaggingRecord(taggingRecord, true) : facade.updateTaggingRecord(taggingRecord), addTaggingRecordOperation, facade, "rekod penandaan, ID " + taggingRecord.getTaggingRecordID(), model.getTaggingRecords(), taggingRecord);
+				String value = finalizeModelEntry(
+						addTaggingRecordOperation
+								? facade.addTaggingRecord(taggingRecord, true)
+								: facade.updateTaggingRecord(taggingRecord),
+						addTaggingRecordOperation, facade,
+						"rekod penandaan, ID "
+								+ taggingRecord.getTaggingRecordID(),
+						model.getTaggingRecords(), taggingRecord);
 
 				if (value != null)
 				{
@@ -797,25 +846,42 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				else
 				{
 					String message = null;
-					TaggingRecord suspect = facade.getTaggingRecord(taggingRecord.getSerialNo());
-					
+					TaggingRecord suspect = facade
+							.getTaggingRecord(taggingRecord.getSerialNo());
+
 					if (suspect != null)
 					{
-						TaggingForm tf = facade.getTaggingForm(suspect.getTaggingFormID());
+						TaggingForm tf = facade
+								.getTaggingForm(suspect.getTaggingFormID());
 						Tagging t = facade.getTagging(tf.getTaggingID());
-						message = ", kerana rekod penandaan telah direkodkan sebelumnya di sesi penandaan " + t.toString() + " " + tf.toString().toLowerCase() + " no. petak " + suspect.getPlotNo();
+						message = ", kerana rekod penandaan telah direkodkan sebelumnya di sesi penandaan "
+								+ t.toString() + " "
+								+ tf.toString().toLowerCase() + " no. petak "
+								+ suspect.getPlotNo();
 					}
-					
-					addMessage(FacesMessage.SEVERITY_WARN, null, taggingRecord + " tidak dapat " + (addTaggingRecordOperation ? "ditambahkan" : "dikemaskini") + (message == null ? "" : message) + ".");
+
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							taggingRecord + " tidak dapat "
+									+ (addTaggingRecordOperation ? "ditambahkan"
+											: "dikemaskini")
+									+ (message == null ? "" : message) + ".");
 				}
-				
+
 				if (addTaggingRecordOperation)
 					handleOpenTaggingRecord();
 				else
 					taggingRecord = null;
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, null, taggingRecord + " tidak dapat direkodkan kerana " + (limit == 0 ? "" : "jumlah pokok tebangan di petak " + taggingRecord.getPlotNo() + " telah melebihi had " + limit + " pokok/petak atau ") + "jumlah isipadu telah melebihi had " + grossVolumeLimit + " m\u00B3.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						taggingRecord + " tidak dapat direkodkan kerana "
+								+ (limit == 0 ? ""
+										: "jumlah pokok tebangan di petak "
+												+ taggingRecord.getPlotNo()
+												+ " telah melebihi had " + limit
+												+ " pokok/petak atau ")
+								+ "jumlah isipadu telah melebihi had "
+								+ grossVolumeLimit + " m\u00B3.");
 		}
 		catch (SQLException e)
 		{
@@ -833,9 +899,11 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		{
 			if (facade.deleteTaggingRecord(taggingRecord) != 0)
 			{
-				addMessage(FacesMessage.SEVERITY_INFO, null, taggingRecord + " berjaya dipadamkan.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						taggingRecord + " berjaya dipadamkan.");
 				model.getTaggingRecords().remove(taggingRecord);
-				log(facade, "Padam rekod penandaan, ID " + taggingRecord.getTaggingRecordID());
+				log(facade, "Padam rekod penandaan, ID "
+						+ taggingRecord.getTaggingRecordID());
 
 				currentVolume = 0;
 
@@ -843,7 +911,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				{
 					if (taggingForm.getTaggingTypeID() == 1)
 					{
-						ArrayList<TaggingRecord> taggingRecords = taggingForm.getTaggingRecords();
+						ArrayList<TaggingRecord> taggingRecords = taggingForm
+								.getTaggingRecords();
 
 						for (TaggingRecord taggingRecord : taggingRecords)
 							if (taggingRecord.getTreeTypeID() == 1)
@@ -852,7 +921,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				}
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, null, taggingRecord + " tidak dapat dipadamkan.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						taggingRecord + " tidak dapat dipadamkan.");
 
 			taggingRecord = null;
 		}
@@ -865,7 +935,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 	public void validate()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); TaggingFacade tFacade = new TaggingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				TaggingFacade tFacade = new TaggingFacade();)
 		{
 			AbstractFacade.group(mFacade, tFacade);
 
@@ -874,7 +945,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 			for (TaggingForm taggingForm : models)
 			{
-				if (taggingForm.getInspectorID() == null && taggingForm.getInspectionDate() != null)
+				if (taggingForm.getInspectorID() == null
+						&& taggingForm.getInspectionDate() != null)
 				{
 					count++;
 
@@ -893,10 +965,21 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			blockList = null;
 			map = null;
 
-			addMessage(FacesMessage.SEVERITY_INFO, null, (total == 0 ? "Tiada" : total) + " borang penandaan berjaya disahkan.");
+			addMessage(FacesMessage.SEVERITY_INFO, null,
+					(total == 0 ? "Tiada" : total)
+							+ " borang penandaan berjaya disahkan.");
 
 			if (total != 0)
-				new EmailSender().send(true, "Borang Penandaan - " + tagging.getForestName() + " " + tagging.getComptBlockNo(), "Borang penandaan telah disahkan oleh " + user.getName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + tagging.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + tagging.getComptBlockNo() + "</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.", mFacade.getState(user.getStateID()).getDirectorID());
+				new EmailSender().send(true,
+						"Borang Penandaan - " + tagging.getForestName() + " "
+								+ tagging.getComptBlockNo(),
+						"Borang penandaan telah disahkan oleh " + user.getName()
+								+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+								+ tagging.getForestName()
+								+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+								+ tagging.getComptBlockNo()
+								+ "</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.",
+						mFacade.getState(user.getStateID()).getDirectorID());
 		}
 		catch (SQLException e)
 		{
@@ -906,7 +989,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		catch (IOException | MessagingException e)
 		{
 			e.printStackTrace();
-			addMessage(FacesMessage.SEVERITY_WARN, null, "Sistem tidak berjaya menghantar emel notifikasi.");
+			addMessage(FacesMessage.SEVERITY_WARN, null,
+					"Sistem tidak berjaya menghantar emel notifikasi.");
 		}
 	}
 
@@ -917,7 +1001,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 		for (TaggingForm taggingForm : models)
 		{
-			if (taggingForm.getInspectorID() == null && taggingForm.getTaggingTypeID() == 1)
+			if (taggingForm.getInspectorID() == null
+					&& taggingForm.getTaggingTypeID() == 1)
 			{
 				String blockNo = taggingForm.getFormNo();
 				ArrayList<TaggingForm> blockForm = map.get(blockNo);
@@ -934,23 +1019,32 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 		ArrayList<String> lines = new ArrayList<>(map.keySet());
 		int size = lines.size(), min = (int) Math.ceil(size * 0.025);
-		recommendation = "Terdapat " + size + " no. blok yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya " + min + " no. blok untuk disemak.";
+		recommendation = "Terdapat " + size
+				+ " no. blok yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya "
+				+ min + " no. blok untuk disemak.";
 
 		selectBlock(null);
 		Collections.sort(lines);
 
 		for (String line : lines)
-			blockList.add(new SelectItem(line, "No. blok " + line + " (mengandungi " + map.get(line).size() + " no. petak yang belum disemak)"));
+			blockList.add(new SelectItem(line,
+					"No. blok " + line + " (mengandungi " + map.get(line).size()
+							+ " no. petak yang belum disemak)"));
 	}
 
 	public void prepareUpload()
 	{
-		totalFiles = new Integer(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("totalFiles"));
+		totalFiles = new Integer(
+				FacesContext.getCurrentInstance().getExternalContext()
+						.getRequestParameterMap().get("totalFiles"));
 	}
 
 	public void selectBlock(AjaxBehaviorEvent event)
 	{
-		percentage = "Jumlah borang dipilih: " + (selectedBlocks == null || selectedBlocks.length == 0 ? 100 : Math.round(selectedBlocks.length * 100d / map.size())) + "%";
+		percentage = "Jumlah borang dipilih: "
+				+ (selectedBlocks == null || selectedBlocks.length == 0 ? 100
+						: Math.round(selectedBlocks.length * 100d / map.size()))
+				+ "%";
 	}
 
 	public StreamedContent download(boolean pdf)
@@ -969,8 +1063,12 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			host = user.getStaffID();
 		}
 
-		String name = "BorangPenandaan_" + tagging.getForestName().replaceAll(" ", "") + "_" + tagging.getComptBlockNo() + "_" + tagging.getYear() + "_" + host + "." + (pdf ? "pdf" : downtype), type = null;
-		File file = new File(external.getRealPath("/") + "files/tagging/" + name);
+		String name = "BorangPenandaan_"
+				+ tagging.getForestName().replaceAll(" ", "") + "_"
+				+ tagging.getComptBlockNo() + "_" + tagging.getYear() + "_"
+				+ host + "." + (pdf ? "pdf" : downtype), type = null;
+		File file = new File(
+				external.getRealPath("/") + "files/tagging/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
@@ -979,7 +1077,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		{
 			if (pdf)
 			{
-				try (MaintenanceFacade mFacade = new MaintenanceFacade(); TaggingFacade tFacade = new TaggingFacade();)
+				try (MaintenanceFacade mFacade = new MaintenanceFacade();
+						TaggingFacade tFacade = new TaggingFacade();)
 				{
 					State state = new State();
 					ArrayList<TaggingForm> temp = null;
@@ -992,21 +1091,24 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 						temp = tagging.getTaggingForms();
 						ArrayList<TaggingForm> selected = new ArrayList<>();
 
-						if (selectedBlocks != null && selectedBlocks.length != 0)
+						if (selectedBlocks != null
+								&& selectedBlocks.length != 0)
 						{
 							for (String selectedLine : selectedBlocks)
 								selected.addAll(this.map.get(selectedLine));
 						}
 						else
 						{
-							ArrayList<String> lines = new ArrayList<>(this.map.keySet());
+							ArrayList<String> lines = new ArrayList<>(
+									this.map.keySet());
 
 							for (String line : lines)
 								selected.addAll(this.map.get(line));
 						}
 
 						for (TaggingForm taggingForm : temp)
-							if (taggingForm.getTaggingTypeID() != 1 && taggingForm.getInspectorID() == null)
+							if (taggingForm.getTaggingTypeID() != 1
+									&& taggingForm.getInspectorID() == null)
 								selected.add(taggingForm);
 
 						tagging.setTaggingForms(selected);
@@ -1019,8 +1121,10 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 						tagging.setTaggingForms(temp);
 
 						Date now = new Date();
-						District district = mFacade.getDistrict(tagging.getDistrictID());
-						downloaded = user.getStaffID().equals(district.getOfficerID());
+						District district = mFacade
+								.getDistrict(tagging.getDistrictID());
+						downloaded = user.getStaffID()
+								.equals(district.getOfficerID());
 
 						for (TaggingForm taggingForm : temp)
 						{
@@ -1035,7 +1139,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			else
 			{
 				type = "application/octet-stream";
-				ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+				ObjectOutputStream oos = new ObjectOutputStream(
+						new GZIPOutputStream(new FileOutputStream(file)));
 
 				oos.writeInt(32);
 				oos.writeObject(tagging);
@@ -1059,7 +1164,22 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				oos.close();
 			}
 
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1074,8 +1194,11 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "LaporanPenandaan_" + tagging.getForestName().replaceAll(" ", "") + "_" + tagging.getComptBlockNo() + "_" + tagging.getYear() + ".pdf";
-		File file = new File(external.getRealPath("/") + "files/tagging/" + name);
+		String name = "LaporanPenandaan_"
+				+ tagging.getForestName().replaceAll(" ", "") + "_"
+				+ tagging.getComptBlockNo() + "_" + tagging.getYear() + ".pdf";
+		File file = new File(
+				external.getRealPath("/") + "files/tagging/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
@@ -1085,9 +1208,25 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 			State state = new State();
 
 			state.setStateID(tagging.getStateID());
-			TaggingReportGenerator.generate(file, tagging, treeLimit, facade.getMainRevenueRoyaltyRates(state, "A"));
+			TaggingReportGenerator.generate(file, tagging, treeLimit,
+					facade.getMainRevenueRoyaltyRates(state, "A"));
 
-			content = new DefaultStreamedContent(new FileInputStream(file), "application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1104,7 +1243,9 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); TaggingFacade facade = new TaggingFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					TaggingFacade facade = new TaggingFacade();)
 			{
 				if (ois.readInt() != 32)
 					throw new InvalidClassException("Not TaggingForm");
@@ -1116,8 +1257,10 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				if (tagging.equals(this.tagging))
 				{
 					String filename = file.getFileName().toLowerCase();
-					ArrayList<TaggingForm> currentTaggingForms = this.tagging.getTaggingForms();
-					ArrayList<TaggingForm> taggingForms = tagging.getTaggingForms();
+					ArrayList<TaggingForm> currentTaggingForms = this.tagging
+							.getTaggingForms();
+					ArrayList<TaggingForm> taggingForms = tagging
+							.getTaggingForms();
 					currentVolume = 0;
 
 					if (filename.endsWith("cfof") || filename.endsWith("cfoc"))
@@ -1125,25 +1268,29 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 						if (adfor == null && dfo == null)
 						{
 							facade.updateTagging(tagging);
-							save(facade, currentTaggingForms, taggingForms, false);
+							save(facade, currentTaggingForms, taggingForms,
+									false);
 							tagging.setTaggingForms(currentTaggingForms);
-							taggings.set(taggings.indexOf(this.tagging), tagging);
+							taggings.set(taggings.indexOf(this.tagging),
+									tagging);
 
 							this.tagging = tagging;
 							models = currentTaggingForms;
 						}
 						else
-							addMessage(FacesMessage.SEVERITY_WARN, null,
-									tagging + " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
+							addMessage(FacesMessage.SEVERITY_WARN, null, tagging
+									+ " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
 					}
 					else if (filename.endsWith("cfor"))
 					{
 						if (adfor != null && dfo == null)
 						{
 							facade.updateTagging(tagging);
-							save(facade, currentTaggingForms, taggingForms, false);
+							save(facade, currentTaggingForms, taggingForms,
+									false);
 							tagging.setTaggingForms(currentTaggingForms);
-							taggings.set(taggings.indexOf(this.tagging), tagging);
+							taggings.set(taggings.indexOf(this.tagging),
+									tagging);
 
 							this.tagging = tagging;
 							models = currentTaggingForms;
@@ -1151,31 +1298,34 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 							downloaded = false;
 						}
 						else
-							addMessage(FacesMessage.SEVERITY_WARN, null,
-									tagging + " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
+							addMessage(FacesMessage.SEVERITY_WARN, null, tagging
+									+ " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
 					}
 					else if (filename.endsWith("cfoo"))
 					{
 						if (adfor == null && dfo != null)
 						{
 							facade.updateTagging(tagging);
-							save(facade, currentTaggingForms, taggingForms, true);
+							save(facade, currentTaggingForms, taggingForms,
+									true);
 							tagging.setTaggingForms(currentTaggingForms);
-							taggings.set(taggings.indexOf(this.tagging), tagging);
+							taggings.set(taggings.indexOf(this.tagging),
+									tagging);
 
 							this.tagging = tagging;
 							models = currentTaggingForms;
 						}
 						else
-							addMessage(FacesMessage.SEVERITY_WARN, null,
-									tagging + " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
+							addMessage(FacesMessage.SEVERITY_WARN, null, tagging
+									+ " tidak dapat ditambahkan kerana sesi penandaan yang dimuat naik tidak sah.");
 					}
 
 					for (TaggingForm taggingForm : models)
 					{
 						if (taggingForm.getTaggingTypeID() == 1)
 						{
-							ArrayList<TaggingRecord> taggingRecords = taggingForm.getTaggingRecords();
+							ArrayList<TaggingRecord> taggingRecords = taggingForm
+									.getTaggingRecords();
 
 							for (TaggingRecord taggingRecord : taggingRecords)
 								if (taggingRecord.getTreeTypeID() == 1)
@@ -1184,8 +1334,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 					}
 				}
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, null,
-							tagging + " tidak dapat ditambahkan kerana maklumat sesi penandaan yang dimuat naik tidak sama dengan sesi penandaan yang dipilih.");
+					addMessage(FacesMessage.SEVERITY_WARN, null, tagging
+							+ " tidak dapat ditambahkan kerana maklumat sesi penandaan yang dimuat naik tidak sama dengan sesi penandaan yang dipilih.");
 			}
 			catch (Exception e)
 			{
@@ -1232,31 +1382,21 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 		}
 	}
 
-	private void save(TaggingFacade facade, ArrayList<TaggingForm> currentTaggingForms, ArrayList<TaggingForm> taggingForms, boolean strict) throws SQLException
+	private void save(TaggingFacade facade,
+			ArrayList<TaggingForm> currentTaggingForms,
+			ArrayList<TaggingForm> taggingForms, boolean strict)
+			throws SQLException
 	{
 		int totalTaggingForm = 0, totalRecord = 0;
-		/*LinkedHashMap<Integer, Integer> map = new LinkedHashMap<>();
-
-		// New mapping
-		map.put(472, 263);
-		map.put(473, 472);
-		map.put(474, 473);
-		map.put(475, 474);
-		map.put(476, 475);
-		map.put(477, 476);
-		map.put(478, 477);
-		map.put(479, 478);
-		map.put(480, 479);
-		map.put(481, 480);
-		map.put(482, 481);
-		map.put(483, 482);
-		map.put(484, 483);
-		map.put(485, 484);
-		map.put(486, 485);
-		map.put(487, 283);
-		map.put(502, 359);
-		map.put(505, 486);
-		map.put(506, 502);*/
+		/*
+		 * LinkedHashMap<Integer, Integer> map = new LinkedHashMap<>(); // New
+		 * mapping map.put(472, 263); map.put(473, 472); map.put(474, 473);
+		 * map.put(475, 474); map.put(476, 475); map.put(477, 476); map.put(478,
+		 * 477); map.put(479, 478); map.put(480, 479); map.put(481, 480);
+		 * map.put(482, 481); map.put(483, 482); map.put(484, 483); map.put(485,
+		 * 484); map.put(486, 485); map.put(487, 283); map.put(502, 359);
+		 * map.put(505, 486); map.put(506, 502);
+		 */
 
 		for (TaggingForm taggingForm : taggingForms)
 		{
@@ -1264,7 +1404,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 				continue;
 
 			ArrayList<TaggingRecord> currentTaggingRecords = null;
-			ArrayList<TaggingRecord> taggingRecords = taggingForm.getTaggingRecords();
+			ArrayList<TaggingRecord> taggingRecords = taggingForm
+					.getTaggingRecords();
 
 			if (facade.addTaggingForm(taggingForm, false) != 0)
 			{
@@ -1276,33 +1417,37 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 					currentTaggingRecords = new ArrayList<>();
 
 					currentTaggingForms.add(taggingForm);
-					log(facade, "Tambah borang penandaan, ID " + taggingForm.getTaggingFormID());
+					log(facade, "Tambah borang penandaan, ID "
+							+ taggingForm.getTaggingFormID());
 				}
 				else
 				{
 					TaggingForm temp = currentTaggingForms.get(index);
 					currentTaggingRecords = temp.getTaggingRecords();
 
-					log(facade, "Kemaskini borang penandaan, ID " + taggingForm.getTaggingFormID());
+					log(facade, "Kemaskini borang penandaan, ID "
+							+ taggingForm.getTaggingFormID());
 					taggingForm.setTaggingFormID(temp.getTaggingFormID());
 					currentTaggingForms.set(index, taggingForm);
 				}
 
 				for (TaggingRecord taggingRecord : taggingRecords)
 				{
-					/*Integer nID = map.get(taggingRecord.getSpeciesID());
+					/*
+					 * Integer nID = map.get(taggingRecord.getSpeciesID()); if
+					 * (nID != null) taggingRecord.setSpeciesID(nID);
+					 */
 
-					if (nID != null)
-						taggingRecord.setSpeciesID(nID);*/
-
-					taggingRecord.setTaggingFormID(taggingForm.getTaggingFormID());
+					taggingRecord
+							.setTaggingFormID(taggingForm.getTaggingFormID());
 
 					if (facade.addTaggingRecord(taggingRecord, false) != 0)
 					{
 						totalRecord++;
 						index = currentTaggingRecords.indexOf(taggingRecord);
 
-						log(facade, "Tambah rekod penandaan, ID " + taggingRecord.getTaggingRecordID());
+						log(facade, "Tambah rekod penandaan, ID "
+								+ taggingRecord.getTaggingRecordID());
 
 						if (index == -1)
 							currentTaggingRecords.add(taggingRecord);
@@ -1320,7 +1465,8 @@ public class TaggingFormManagedBean extends AbstractManagedBean<TaggingForm>
 
 		if (totalTaggingForm != 0 || totalRecord != 0)
 			addMessage(FacesMessage.SEVERITY_INFO, null,
-					totalTaggingForm + " borang penandaan dan " + totalRecord + " rekod penandaan berjaya ditambahkan.");
+					totalTaggingForm + " borang penandaan dan " + totalRecord
+							+ " rekod penandaan berjaya ditambahkan.");
 		else
 			addMessage(FacesMessage.SEVERITY_INFO, null,
 					"Tiada borang penandaan dan rekod penandaan berjaya ditambahkan.");

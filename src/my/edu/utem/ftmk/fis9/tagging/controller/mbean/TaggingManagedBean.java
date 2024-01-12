@@ -29,7 +29,7 @@ import javax.mail.MessagingException;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -89,13 +89,16 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 	public TaggingManagedBean()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade(); TaggingFacade tFacade = new TaggingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade();
+				TaggingFacade tFacade = new TaggingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade, tFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID();
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID();
 
 			forestList = new ArrayList<>();
 			yearList = new ArrayList<>();
@@ -108,10 +111,11 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					if (i == yearRange[0])
 						yearList.add(new SelectItem(i, String.valueOf(i)));
 					else
-						yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+						yearList.add(new SelectItem(i,
+								Math.max(i - 4, yearRange[0]) + " - " + i));
 				}
 			}
-			
+
 			if (stateID == 0)
 			{
 				ArrayList<State> states = mFacade.getStates();
@@ -124,16 +128,20 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 					for (District district : districts)
 					{
-						SelectItemGroup group = new SelectItemGroup(district.getName() + ", " + state.getName());
+						SelectItemGroup group = new SelectItemGroup(
+								district.getName() + ", " + state.getName());
 						ArrayList<SelectItem> items = new ArrayList<>();
 
 						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
+							if (forest.getDistrictID() == district
+									.getDistrictID())
+								items.add(new SelectItem(forest.getForestID(),
+										forest.toString()));
 
 						if (!items.isEmpty())
 						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							forestList.add(group);
 						}
 					}
@@ -148,7 +156,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				}
 				else
 				{
-					Contractor contractor = mFacade.getContractor(user.getContractorID());
+					Contractor contractor = mFacade
+							.getContractor(user.getContractorID());
 					tenders = mFacade.getTenders("T", "A", user);
 					hammers = mFacade.getHammers(contractor);
 					hammerList = new ArrayList<>();
@@ -161,26 +170,35 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				State state = mFacade.getState(stateID);
 				forests = mFacade.getForests(state);
 
-				if (state.getDirectorID().equals(staffID) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()))
+				if (state.getDirectorID().equals(staffID)
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID()))
 				{
 					accessLevel = 1;
 					downtype = "ctoh";
-					preFellingSurveys = pFacade.getPreFellingSurveys(state, true);
+					preFellingSurveys = pFacade.getPreFellingSurveys(state,
+							true);
 					tenders = mFacade.getTenders("T", "A", state);
 					districts = mFacade.getDistricts(state);
 
 					for (District district : districts)
 					{
-						SelectItemGroup group = new SelectItemGroup(district.getName());
+						SelectItemGroup group = new SelectItemGroup(
+								district.getName());
 						ArrayList<SelectItem> items = new ArrayList<>();
 
 						for (Forest forest : forests)
-							if (forest.getDistrictID() == district.getDistrictID())
-								items.add(new SelectItem(forest.getForestID(), forest.toString()));
+							if (forest.getDistrictID() == district
+									.getDistrictID())
+								items.add(new SelectItem(forest.getForestID(),
+										forest.toString()));
 
 						if (!items.isEmpty())
 						{
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							forestList.add(group);
 						}
 					}
@@ -193,7 +211,9 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					{
 						ranges = district.getRanges();
 						halls = new ArrayList<>();
-						accessLevel = district.getOfficerID().equals(staffID) ? 2 : 3;
+						accessLevel = district.getOfficerID().equals(staffID)
+								? 2
+								: 3;
 						uptype = "ctoh";
 						downtype = "ctoo";
 						ArrayList<Hall> temp = district.getHalls();
@@ -204,9 +224,12 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 						for (Forest forest : forests)
 						{
-							if (forest.getDistrictID() == district.getDistrictID())
+							if (forest.getDistrictID() == district
+									.getDistrictID())
 							{
-								SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+								SelectItem item = new SelectItem(
+										forest.getForestID(),
+										forest.toString());
 
 								if (!forestList.contains(item))
 									forestList.add(item);
@@ -218,7 +241,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 						range = mFacade.getRange(user);
 						staffs = mFacade.getStaffs(state);
 						staffList = new ArrayList<>();
-						ArrayList<Designation> designations = mFacade.getDesignations();
+						ArrayList<Designation> designations = mFacade
+								.getDesignations();
 
 						if (range != null)
 						{
@@ -237,7 +261,9 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 							{
 								if (hammer.getHammerTypeID() == 2)
 								{
-									hammerList.add(new SelectItem(hammer.getHammerNo(), hammer.toString()));
+									hammerList.add(
+											new SelectItem(hammer.getHammerNo(),
+													hammer.toString()));
 									tempHammers.add(hammer);
 								}
 							}
@@ -257,19 +283,25 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 						{
 							designationID = designation.getDesignationID();
 
-							if ((designationID == 18 || designationID == 19) && user.getDesignationID() <= designationID)
+							if ((designationID == 18 || designationID == 19)
+									&& user.getDesignationID() <= designationID)
 							{
 								ArrayList<SelectItem> items = new ArrayList<>();
 
 								for (Staff staff : staffs)
-									if (staff.getDesignationID() == designationID)
-										items.add(new SelectItem(staff.getStaffID(), staff.toString()));
+									if (staff
+											.getDesignationID() == designationID)
+										items.add(new SelectItem(
+												staff.getStaffID(),
+												staff.toString()));
 
 								if (!items.isEmpty())
 								{
-									SelectItemGroup group = new SelectItemGroup(designation.getName());
+									SelectItemGroup group = new SelectItemGroup(
+											designation.getName());
 
-									group.setSelectItems(ArrayListConverter.asSelectItem(items));
+									group.setSelectItems(ArrayListConverter
+											.asSelectItem(items));
 									staffList.add(group);
 								}
 							}
@@ -300,7 +332,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 		return taggingLimitException;
 	}
 
-	public void setTaggingLimitException(TaggingLimitException taggingLimitException)
+	public void setTaggingLimitException(
+			TaggingLimitException taggingLimitException)
 	{
 		this.taggingLimitException = taggingLimitException;
 	}
@@ -320,7 +353,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 		return preFellingSurveys;
 	}
 
-	public void setPreFellingSurveys(ArrayList<PreFellingSurvey> preFellingSurveys)
+	public void setPreFellingSurveys(
+			ArrayList<PreFellingSurvey> preFellingSurveys)
 	{
 		this.preFellingSurveys = preFellingSurveys;
 	}
@@ -409,7 +443,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 	{
 		return yearList;
 	}
-	
+
 	public String[] getSelectedStaffs()
 	{
 		return selectedStaffs;
@@ -469,7 +503,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 	{
 		this.selectedYearRange = selectedYearRange;
 	}
-	
+
 	public int getAccessLevel()
 	{
 		return accessLevel;
@@ -477,13 +511,18 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 	public void handleYearChange()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade(); TaggingFacade tFacade = new TaggingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PreFellingFacade pFacade = new PreFellingFacade();
+				TaggingFacade tFacade = new TaggingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade, tFacade);
 
 			Staff user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID(), endYear = selectedYearRange, startYear = selectedYearRange - 4;
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID(),
+					endYear = selectedYearRange,
+					startYear = selectedYearRange - 4;
 
 			if (stateID == 0)
 			{
@@ -497,22 +536,30 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				State state = mFacade.getState(stateID);
 				forests = mFacade.getForests(state);
 
-				if (state.getDirectorID().equals(staffID) || staffID.equals(state.getDeputyDirector1ID()) || staffID.equals(state.getDeputyDirector2ID()) || staffID.equals(state.getSeniorAsstDirector1ID()) || staffID.equals(state.getAsstDirector1ID()))
-					models = tFacade.getTaggings(state, false, startYear, endYear);
+				if (state.getDirectorID().equals(staffID)
+						|| staffID.equals(state.getDeputyDirector1ID())
+						|| staffID.equals(state.getDeputyDirector2ID())
+						|| staffID.equals(state.getSeniorAsstDirector1ID())
+						|| staffID.equals(state.getAsstDirector1ID()))
+					models = tFacade.getTaggings(state, false, startYear,
+							endYear);
 				else
 				{
 					district = mFacade.getDistrict(user);
 
 					if (district != null)
-						models = tFacade.getTaggings(district, false, startYear, endYear);
+						models = tFacade.getTaggings(district, false, startYear,
+								endYear);
 					else
 					{
 						range = mFacade.getRange(user);
 
 						if (range != null)
-							models = tFacade.getTaggings(range, startYear, endYear);
+							models = tFacade.getTaggings(range, startYear,
+									endYear);
 						else
-							models = tFacade.getTaggings(user, startYear, endYear);
+							models = tFacade.getTaggings(user, startYear,
+									endYear);
 
 						if (models != null)
 						{
@@ -520,9 +567,12 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 							{
 								for (Tagging tagging : models)
 								{
-									if (forest.getForestID() == tagging.getForestID())
+									if (forest.getForestID() == tagging
+											.getForestID())
 									{
-										SelectItem item = new SelectItem(forest.getForestID(), forest.toString());
+										SelectItem item = new SelectItem(
+												forest.getForestID(),
+												forest.toString());
 
 										if (!forestList.contains(item))
 											forestList.add(item);
@@ -537,11 +587,13 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			if (models != null)
 			{
 				sort(models);
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
 
 				for (Tagging tagging : models)
 				{
-					String path = external.getRealPath("/") + "files/tagging/", name = "_" + tagging.getTaggingID() + ".png";
+					String path = external.getRealPath("/") + "files/tagging/",
+							name = "_" + tagging.getTaggingID() + ".png";
 					File file1 = new File(path + "pelan" + name);
 					File file2 = new File(path + "stok" + name);
 
@@ -549,7 +601,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					tagging.setStockUploaded(file2.exists());
 					tagging.setRecorders(mFacade.getStaffs(tagging));
 					tagging.setHammers(mFacade.getHammers(tagging));
-					tagging.setTaggingLimitExceptions(tFacade.getTaggingLimitExceptions(tagging));
+					tagging.setTaggingLimitExceptions(
+							tFacade.getTaggingLimitExceptions(tagging));
 				}
 			}
 			else
@@ -561,7 +614,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			addMessage(e);
 		}
 	}
-	
+
 	@Override
 	public void handleOpen()
 	{
@@ -589,7 +642,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			State state = new State();
 
 			for (PreFellingSurvey preFellingSurvey : preFellingSurveys)
-				if (preFellingSurvey.getPreFellingSurveyID() == model.getPreFellingSurveyID())
+				if (preFellingSurvey.getPreFellingSurveyID() == model
+						.getPreFellingSurveyID())
 					state.setStateID(preFellingSurvey.getStateID());
 
 			tenders = facade.getTenders("T", "A", state);
@@ -635,10 +689,13 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 	public void handleAddTaggingLimitException()
 	{
-		ArrayList<TaggingLimitException> taggingLimitExceptions = model.getTaggingLimitExceptions();
+		ArrayList<TaggingLimitException> taggingLimitExceptions = model
+				.getTaggingLimitExceptions();
 
 		if (taggingLimitExceptions.contains(taggingLimitException))
-			addMessage(FacesMessage.SEVERITY_WARN, "messagesLimit", taggingLimitException + " tidak dapat ditambahkan kerana telah direkodkan sebelumnya.");
+			addMessage(FacesMessage.SEVERITY_WARN, "messagesLimit",
+					taggingLimitException
+							+ " tidak dapat ditambahkan kerana telah direkodkan sebelumnya.");
 		else
 		{
 			taggingLimitExceptions.add(taggingLimitException);
@@ -650,7 +707,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 	public void taggingEntry()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); TaggingFacade tFacade = new TaggingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				TaggingFacade tFacade = new TaggingFacade())
 		{
 			AbstractFacade.group(mFacade, tFacade);
 			PreFellingSurvey preFellingSurvey = null;
@@ -659,7 +717,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			{
 				for (PreFellingSurvey s : preFellingSurveys)
 				{
-					if (model.getPreFellingSurveyID() == s.getPreFellingSurveyID())
+					if (model.getPreFellingSurveyID() == s
+							.getPreFellingSurveyID())
 					{
 						preFellingSurvey = s;
 
@@ -685,7 +744,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				for (Staff staff : staffs)
 					if (staff.getStaffID().equals(model.getTeamLeaderID()))
 						model.setTeamLeaderName(staff.getName());
-			
+
 			if (halls != null)
 				for (Hall hall : halls)
 					if (hall.getHallID() == model.getHallID())
@@ -701,7 +760,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					{
 						for (Tender tender : tenders)
 						{
-							if (tender.getTenderNo().equals(model.getTenderNo()))
+							if (tender.getTenderNo()
+									.equals(model.getTenderNo()))
 							{
 								model.setStartDate(tender.getStartDate());
 								model.setEndDate(tender.getEndDate());
@@ -714,7 +774,9 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			if (addOperation)
 			{
 				int status = tFacade.addTagging(model, true);
-				finalizeModelEntry(status, addOperation, tFacade, "penandaan, ID " + model.getTaggingID(), null, models, model);
+				finalizeModelEntry(status, addOperation, tFacade,
+						"penandaan, ID " + model.getTaggingID(), null, models,
+						model);
 
 				if (status != 0 && preFellingSurvey != null)
 					preFellingSurveys.remove(preFellingSurvey);
@@ -745,9 +807,11 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					model.setHammers(taggingHammers);
 				}
 
-				finalizeModelEntry(tFacade.updateTagging(model), addOperation, tFacade, "penandaan, ID " + model.getTaggingID(), null, models, model);
+				finalizeModelEntry(tFacade.updateTagging(model), addOperation,
+						tFacade, "penandaan, ID " + model.getTaggingID(), null,
+						models, model);
 			}
-			
+
 			if (updateYear(model))
 			{
 				if (!models.contains(model))
@@ -760,7 +824,10 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			{
 				FacesContext context = FacesContext.getCurrentInstance();
 				ExternalContext external = context.getExternalContext();
-				String name = "Penandaan_" + model.getForestName().replaceAll(" ", "") + "_" + model.getComptBlockNo() + "_" + model.getYear() + ".pdf";
+				String name = "Penandaan_"
+						+ model.getForestName().replaceAll(" ", "") + "_"
+						+ model.getComptBlockNo() + "_" + model.getYear()
+						+ ".pdf";
 				int level = 0;
 
 				if (accessLevel == 0 || accessLevel == 1)
@@ -795,29 +862,47 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 				if (level != 0)
 				{
-					File file = new File(external.getRealPath("/") + "files/tagging/" + name);
+					File file = new File(external.getRealPath("/")
+							+ "files/tagging/" + name);
 
 					file.getParentFile().mkdirs();
-					TaggingLetterGenerator.generate(file, model, district, range, level);
+					TaggingLetterGenerator.generate(file, model, district,
+							range, level);
 
 					if (level == 1)
 					{
 						String message = null;
 
 						if (addOperation)
-							message = "Sesi penandaan baru telah dibuka oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
+							message = "Sesi penandaan baru telah dibuka oleh "
+									+ model.getCreatorName()
+									+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+									+ model.getForestName()
+									+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+									+ model.getComptBlockNo()
+									+ "</td></tr></table><br/>Sila log masuk ke FIS9 untuk tindakan anda seterusnya.";
 						else if (!addOperation && !model.isOpen())
-							message = "Sesi penandaan telah ditutup oleh " + model.getCreatorName() + " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>" + model.getForestName() + "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>" + model.getComptBlockNo() + "</td></tr></table><br/>";
+							message = "Sesi penandaan telah ditutup oleh "
+									+ model.getCreatorName()
+									+ " untuk:<br/><br/><table border='0'><tr><td>- Hutan simpan</td><td>:</td><td>"
+									+ model.getForestName()
+									+ "</td></tr><tr><td>- No. kompartmen/sub kompartmen</td><td>:</td><td>"
+									+ model.getComptBlockNo()
+									+ "</td></tr></table><br/>";
 
 						if (message != null)
-							new EmailSender().send(true, "Sesi Penandaan - " + model.getForestName() + " " + model.getComptBlockNo(), message, district.getOfficerID());
+							new EmailSender().send(true,
+									"Sesi Penandaan - " + model.getForestName()
+											+ " " + model.getComptBlockNo(),
+									message, district.getOfficerID());
 					}
 				}
 			}
 			catch (IOException | MessagingException e)
 			{
 				e.printStackTrace();
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Sistem tidak berjaya menghantar emel notifikasi.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Sistem tidak berjaya menghantar emel notifikasi.");
 			}
 			catch (Exception e)
 			{
@@ -840,7 +925,9 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 	{
 		try (TaggingFacade tFacade = new TaggingFacade())
 		{
-			finalizeModelEntry(tFacade.updateTagging(model), false, tFacade, "penandaan, ID " + model.getTaggingID(), null, models, model);
+			finalizeModelEntry(tFacade.updateTagging(model), false, tFacade,
+					"penandaan, ID " + model.getTaggingID(), null, models,
+					model);
 
 			if (!model.getTaggingLimitExceptions().isEmpty())
 			{
@@ -850,12 +937,21 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 				try
 				{
-					new EmailSender().send(true, "Pengecualian Had Pokok Tebangan - " + model.getForestName() + " " + model.getComptBlockNo(), "<p>Sila maklumkan kod pengesahan pengecualian had pokok tebangan berikut kepada Penolong Pegawai Hutan Daerah Renj " + model.getRangeName() + " atau ketua pasukan penandaan:</p><p>" + generate() + "</p>", district.getOfficerID());
+					new EmailSender().send(true,
+							"Pengecualian Had Pokok Tebangan - " + model
+									.getForestName() + " "
+									+ model.getComptBlockNo(),
+							"<p>Sila maklumkan kod pengesahan pengecualian had pokok tebangan berikut kepada Penolong Pegawai Hutan Daerah Renj "
+									+ model.getRangeName()
+									+ " atau ketua pasukan penandaan:</p><p>"
+									+ generate() + "</p>",
+							district.getOfficerID());
 				}
 				catch (IOException | MessagingException e)
 				{
 					e.printStackTrace();
-					addMessage(FacesMessage.SEVERITY_WARN, null, "Sistem tidak berjaya menghantar emel notifikasi.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							"Sistem tidak berjaya menghantar emel notifikasi.");
 				}
 			}
 
@@ -880,25 +976,28 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			if (taggingID == model.getTaggingID())
 			{
 				ArrayList<TaggingLimitException> taggingLimitExceptions = new ArrayList<>();
-				
+
 				for (int i = 1; i < temp.length; i++)
 				{
 					String[] value = temp[i].split(":");
 					TaggingLimitException taggingLimitException = new TaggingLimitException();
-	
+
 					taggingLimitException.setBlockNo(value[0]);
 					taggingLimitException.setPlotNo(value[1]);
-					taggingLimitException.setQuantity(Integer.parseInt(value[2]));
+					taggingLimitException
+							.setQuantity(Integer.parseInt(value[2]));
 					taggingLimitException.setTaggingID(taggingID);
-	
+
 					taggingLimitExceptions.add(taggingLimitException);
 				}
-	
+
 				try (TaggingFacade tFacade = new TaggingFacade())
 				{
-					finalizeModelEntry(tFacade.updateTagging(model), false, tFacade, "penandaan, ID " + model.getTaggingID(), null, models, model);
+					finalizeModelEntry(tFacade.updateTagging(model), false,
+							tFacade, "penandaan, ID " + model.getTaggingID(),
+							null, models, model);
 					model.setTaggingLimitExceptions(taggingLimitExceptions);
-					
+
 					model = null;
 				}
 				catch (SQLException e)
@@ -908,11 +1007,13 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				}
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Kod pengesahan pengecualian had pokok tebangan tidak sah untuk sesi penandaan ini.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Kod pengesahan pengecualian had pokok tebangan tidak sah untuk sesi penandaan ini.");
 		}
 		catch (Exception e)
 		{
-			addMessage(FacesMessage.SEVERITY_WARN, null, "Kod pengesahan pengecualian had pokok tebangan tidak sah.");
+			addMessage(FacesMessage.SEVERITY_WARN, null,
+					"Kod pengesahan pengecualian had pokok tebangan tidak sah.");
 		}
 
 		code = null;
@@ -923,7 +1024,9 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "Penandaan_" + tagging.getForestName().replaceAll(" ", "") + "_" + tagging.getComptBlockNo() + "_" + tagging.getYear() + "." + (level != 0 ? "pdf" : downtype), type = null;
+		String name = "Penandaan_" + tagging.getForestName().replaceAll(" ", "")
+				+ "_" + tagging.getComptBlockNo() + "_" + tagging.getYear()
+				+ "." + (level != 0 ? "pdf" : downtype), type = null;
 
 		if (level != 0)
 		{
@@ -935,7 +1038,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				name = "Lantikan" + name;
 		}
 
-		File file = new File(external.getRealPath("/") + "files/tagging/" + name);
+		File file = new File(
+				external.getRealPath("/") + "files/tagging/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
@@ -959,7 +1063,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 								range = r;
 					}
 
-					TaggingLetterGenerator.generate(file, tagging, district, range, level);
+					TaggingLetterGenerator.generate(file, tagging, district,
+							range, level);
 				}
 
 				type = "application/pdf";
@@ -975,9 +1080,11 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				Tender tenderTagging = null;
 				PreFellingSurvey preFellingSurvey = null;
 
-				ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+				ObjectOutputStream oos = new ObjectOutputStream(
+						new GZIPOutputStream(new FileOutputStream(file)));
 
-				try (MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade();)
+				try (MaintenanceFacade mFacade = new MaintenanceFacade();
+						PreFellingFacade pFacade = new PreFellingFacade();)
 				{
 					AbstractFacade.group(mFacade, pFacade);
 
@@ -989,36 +1096,47 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					temp.add(mFacade.getStaff(district.getOfficerID(), null));
 
 					if (district.getAsstOfficerID() != null)
-						temp.add(mFacade.getStaff(district.getAsstOfficerID(), null));
+						temp.add(mFacade.getStaff(district.getAsstOfficerID(),
+								null));
 
 					if (district.getClerk1ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk1ID(), null));
-					
+						temp.add(
+								mFacade.getStaff(district.getClerk1ID(), null));
+
 					if (district.getClerk2ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk2ID(), null));
-					
+						temp.add(
+								mFacade.getStaff(district.getClerk2ID(), null));
+
 					if (district.getClerk3ID() != null)
-						temp.add(mFacade.getStaff(district.getClerk3ID(), null));
-					
+						temp.add(
+								mFacade.getStaff(district.getClerk3ID(), null));
+
 					for (Range range : ranges)
-						temp.add(mFacade.getStaff(range.getAsstOfficerID(), null));
+						temp.add(mFacade.getStaff(range.getAsstOfficerID(),
+								null));
 
 					if (tagging.getTeamLeaderID() != null)
-						temp.add(mFacade.getStaff(tagging.getTeamLeaderID(), null));
+						temp.add(mFacade.getStaff(tagging.getTeamLeaderID(),
+								null));
 
 					if (tagging.getTenderNo() != null)
 					{
-						tenderTagging = mFacade.getTender(tagging.getTenderNo());
-						contractorTagging = mFacade.getContractor(tenderTagging.getContractorID());
+						tenderTagging = mFacade
+								.getTender(tagging.getTenderNo());
+						contractorTagging = mFacade
+								.getContractor(tenderTagging.getContractorID());
 					}
 
 					staffs = temp.toArray(new Staff[0]);
-					preFellingSurvey = pFacade.getPreFellingSurvey(tagging.getPreFellingSurveyID());
-					
+					preFellingSurvey = pFacade.getPreFellingSurvey(
+							tagging.getPreFellingSurveyID());
+
 					if (preFellingSurvey.getTenderNo() != null)
 					{
-						tenderPreF = mFacade.getTender(preFellingSurvey.getTenderNo());
-						contractorPreF = mFacade.getContractor(tenderPreF.getContractorID());
+						tenderPreF = mFacade
+								.getTender(preFellingSurvey.getTenderNo());
+						contractorPreF = mFacade
+								.getContractor(tenderPreF.getContractorID());
 					}
 				}
 
@@ -1032,7 +1150,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				oos.writeObject(preFellingSurvey);
 				oos.writeObject(tagging);
 
-				String path = external.getRealPath("/") + "files/tagging/", image = "_" + tagging.getTaggingID() + ".png";
+				String path = external.getRealPath("/") + "files/tagging/",
+						image = "_" + tagging.getTaggingID() + ".png";
 				File plan = new File(path + "pelan" + image);
 				File stock = new File(path + "stok" + image);
 
@@ -1059,7 +1178,22 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				oos.close();
 			}
 
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1076,13 +1210,17 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); MaintenanceFacade mFacade = new MaintenanceFacade(); PreFellingFacade pFacade = new PreFellingFacade(); TaggingFacade tFacade = new TaggingFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					MaintenanceFacade mFacade = new MaintenanceFacade();
+					PreFellingFacade pFacade = new PreFellingFacade();
+					TaggingFacade tFacade = new TaggingFacade();)
 			{
 				AbstractFacade.group(mFacade, pFacade, tFacade);
 
 				if (ois.readInt() != 31)
 					throw new InvalidClassException("Not Tagging");
-				
+
 				Staff user = getCurrentUser();
 				Contractor contractorPreF = (Contractor) ois.readObject();
 				Contractor contractorTagging = (Contractor) ois.readObject();
@@ -1092,26 +1230,35 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				District district = (District) ois.readObject();
 				String staffID = user.getStaffID();
 
-				if (contractorPreF != null && mFacade.addContractor(contractorPreF) != 0)
-					log(mFacade, "Tambah kontraktor, ID " + contractorPreF.getContractorID());
+				if (contractorPreF != null
+						&& mFacade.addContractor(contractorPreF) != 0)
+					log(mFacade, "Tambah kontraktor, ID "
+							+ contractorPreF.getContractorID());
 
-				if (contractorTagging != null && mFacade.addContractor(contractorTagging) != 0)
-					log(mFacade, "Tambah kontraktor, ID " + contractorTagging.getContractorID());
-				
+				if (contractorTagging != null
+						&& mFacade.addContractor(contractorTagging) != 0)
+					log(mFacade, "Tambah kontraktor, ID "
+							+ contractorTagging.getContractorID());
+
 				if (tenderPreF != null && mFacade.addTender(tenderPreF) != 0)
-					log(mFacade, "Tambah sebut harga, ID " + tenderPreF.getTenderNo());
+					log(mFacade, "Tambah sebut harga, ID "
+							+ tenderPreF.getTenderNo());
 
-				if (tenderTagging != null && mFacade.addTender(tenderTagging) != 0)
-					log(mFacade, "Tambah sebut harga, ID " + tenderTagging.getTenderNo());
-				
+				if (tenderTagging != null
+						&& mFacade.addTender(tenderTagging) != 0)
+					log(mFacade, "Tambah sebut harga, ID "
+							+ tenderTagging.getTenderNo());
+
 				for (Staff staff : staffs)
 				{
 					if (staff != null)
 					{
 						if (mFacade.addStaff(staff) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ staff.getStaffID());
 						else if (mFacade.updateStaff(staff, false) != 0)
-							log(mFacade, "Kemaskini pekerja dan akses, ID " + staff.getStaffID());
+							log(mFacade, "Kemaskini pekerja dan akses, ID "
+									+ staff.getStaffID());
 					}
 				}
 
@@ -1160,7 +1307,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 					}
 				}
 
-				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois.readObject();
+				PreFellingSurvey preFellingSurvey = (PreFellingSurvey) ois
+						.readObject();
 				Tagging tagging = (Tagging) ois.readObject();
 				ArrayList<Staff> recorders = tagging.getRecorders();
 				ArrayList<Hammer> hammers = tagging.getHammers();
@@ -1168,62 +1316,76 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				if (recorders != null)
 					for (Staff recorder : recorders)
 						if (mFacade.addStaff(recorder) != 0)
-							log(mFacade, "Tambah pekerja dan akses, ID " + recorder.getStaffID());
+							log(mFacade, "Tambah pekerja dan akses, ID "
+									+ recorder.getStaffID());
 
 				if (hammers != null)
 					for (Hammer hammer : hammers)
 						if (mFacade.addHammer(hammer) != 0)
-							log(mFacade, "Tambah tukul, ID " + hammer.getHammerNo());
+							log(mFacade,
+									"Tambah tukul, ID " + hammer.getHammerNo());
 
 				pFacade.addPreFellingSurvey(preFellingSurvey, false);
 
 				if (tFacade.addTagging(tagging, false) != 0)
 				{
-					log(tFacade, "Tambah penandaan, ID " + tagging.getTaggingID());
+					log(tFacade,
+							"Tambah penandaan, ID " + tagging.getTaggingID());
 					boolean add = updateYear(tagging);
-					
+
 					if (models.contains(tagging))
 					{
-						addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya dikemaskini.");
+						addMessage(FacesMessage.SEVERITY_INFO, null,
+								tagging + " berjaya dikemaskini.");
 						models.set(models.indexOf(tagging), tagging);
 					}
 					else
 					{
 						if (accessLevel == 2 || accessLevel == 3)
 						{
-							if (district.getDistrictID() == tagging.getDistrictID())
+							if (district.getDistrictID() == tagging
+									.getDistrictID())
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan.");
+
 								if (add)
 									models.add(tagging);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 4)
 						{
-							if (range.getRangeID() == tagging.getRangeID() && tagging.getTenderNo() == null)
+							if (range.getRangeID() == tagging.getRangeID()
+									&& tagging.getTenderNo() == null)
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan.");
+
 								if (add)
 									models.add(tagging);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 5)
 						{
-							if (staffID.equals(tagging.getTeamLeaderID()) || recorders != null && recorders.contains(user))
+							if (staffID.equals(tagging.getTeamLeaderID())
+									|| recorders != null
+											&& recorders.contains(user))
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan.");
+
 								if (add)
 									models.add(tagging);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
 						}
 						else if (accessLevel == 6)
 						{
@@ -1240,30 +1402,36 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 							if (valid)
 							{
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan.");
-								
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan.");
+
 								if (add)
 									models.add(tagging);
 							}
 							else
-								addMessage(FacesMessage.SEVERITY_INFO, null, tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
+								addMessage(FacesMessage.SEVERITY_INFO, null,
+										tagging + " berjaya ditambahkan, namun sesi penandaan ini tidak termasuk dalam tanggung jawab anda.");
 						}
 					}
 				}
 				else
-					addMessage(FacesMessage.SEVERITY_WARN, null, tagging + " tidak dapat ditambahkan.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							tagging + " tidak dapat ditambahkan.");
 
 				byte[] bytes1 = (byte[]) ois.readObject();
 				byte[] bytes2 = (byte[]) ois.readObject();
 
 				if (bytes1 != null || bytes2 != null)
 				{
-					ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-					String path = external.getRealPath("/") + "files/tagging/", name = "_" + tagging.getTaggingID() + ".png";
+					ExternalContext external = FacesContext.getCurrentInstance()
+							.getExternalContext();
+					String path = external.getRealPath("/") + "files/tagging/",
+							name = "_" + tagging.getTaggingID() + ".png";
 
 					if (bytes1 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes1));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes1));
 						File plan = new File(path + "pelan" + name);
 
 						plan.getParentFile().mkdirs();
@@ -1273,7 +1441,8 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 					if (bytes2 != null)
 					{
-						BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes2));
+						BufferedImage bi = ImageIO
+								.read(new ByteArrayInputStream(bytes2));
 						File stock = new File(path + "stok" + name);
 
 						stock.getParentFile().mkdirs();
@@ -1298,14 +1467,18 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/tagging/pelan_" + model.getTaggingID() + ".png");
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(
+						external.getRealPath("/") + "files/tagging/pelan_"
+								+ model.getTaggingID() + ".png");
 
 				file.getParentFile().mkdirs();
 				ImageIO.write(bi, "png", file);
 				model.setPlanUploaded(true);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar pelan kerja berjaya dimuat naik.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar pelan kerja berjaya dimuat naik.");
 			}
 			catch (Exception e)
 			{
@@ -1314,7 +1487,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 			}
 		}
 	}
-	
+
 	public void uploadStock(FileUploadEvent event)
 	{
 		UploadedFile uf = event.getFile();
@@ -1323,14 +1496,18 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/tagging/stok_" + model.getTaggingID() + ".png");
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(
+						external.getRealPath("/") + "files/tagging/stok_"
+								+ model.getTaggingID() + ".png");
 
 				file.getParentFile().mkdirs();
 				ImageIO.write(bi, "png", file);
 				model.setStockUploaded(true);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar peta stok berjaya dimuat naik.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar peta stok berjaya dimuat naik.");
 			}
 			catch (Exception e)
 			{
@@ -1343,21 +1520,24 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 	private String generate()
 	{
 		String key = "";
-		ArrayList<TaggingLimitException> taggingLimitExceptions = model.getTaggingLimitExceptions();
+		ArrayList<TaggingLimitException> taggingLimitExceptions = model
+				.getTaggingLimitExceptions();
 
 		if (!taggingLimitExceptions.isEmpty())
 		{
 			key += model.getTaggingID();
 
 			for (TaggingLimitException taggingLimitException : taggingLimitExceptions)
-				key += ";" + taggingLimitException.getBlockNo() + ":" + taggingLimitException.getPlotNo() + ":" + taggingLimitException.getQuantity();
+				key += ";" + taggingLimitException.getBlockNo() + ":"
+						+ taggingLimitException.getPlotNo() + ":"
+						+ taggingLimitException.getQuantity();
 
 			key = StringProtector.encrypt(key, 1);
 		}
 
 		return key;
 	}
-	
+
 	private boolean updateYear(Tagging tagging)
 	{
 		int year = tagging.getYear();
@@ -1377,7 +1557,7 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 
 		if (models == null)
 			models = new ArrayList<>();
-		
+
 		if (update)
 		{
 			yearList = new ArrayList<>();
@@ -1393,13 +1573,14 @@ public class TaggingManagedBean extends AbstractManagedBean<Tagging>
 				if (i == yearRange[0])
 					yearList.add(new SelectItem(i, String.valueOf(i)));
 				else
-					yearList.add(new SelectItem(i, Math.max(i - 4, yearRange[0]) + " - " + i));
+					yearList.add(new SelectItem(i,
+							Math.max(i - 4, yearRange[0]) + " - " + i));
 			}
 		}
-		
+
 		if (year > selectedYearRange || year < selectedYearRange - 4)
 			add = false;
-		
+
 		return add;
 	}
 }

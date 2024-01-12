@@ -3,6 +3,7 @@ package my.edu.utem.ftmk.fis9.postfelling.controller.mbean;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,7 +27,7 @@ import javax.faces.model.SelectItemGroup;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.manager.AbstractFacade;
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
@@ -66,13 +67,13 @@ import my.edu.utem.ftmk.fis9.postfelling.util.PostFellingInspectionReportGenerat
 import my.edu.utem.ftmk.fis9.postfelling.util.PostFellingInspectionSurveyCardGenerator;
 import my.edu.utem.ftmk.fis9.postfelling.util.PostFellingSurveyReportGenerator;
 
-
 /**
  * @author Satrya Fajri Pratama
  */
 @ViewScoped
 @ManagedBean(name = "postFellingInspectionCardMBean")
-public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<PostFellingSurveyCard>
+public class PostFellingInspectionCardManagedBean
+		extends AbstractManagedBean<PostFellingSurveyCard>
 {
 	private static final long serialVersionUID = VERSION;
 	private PostFellingSurvey postFellingSurvey;
@@ -117,18 +118,18 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	private ArrayList<Staff> inspectionStaffs;
 	private boolean inspectionFinish;
 
-
 	public PostFellingInspectionCardManagedBean()
 	{
 
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade);
-			//String designationSivil = "20";
+			// String designationSivil = "20";
 			Staff user = getCurrentUser();
 			ArrayList<Designation> designations = mFacade.getDesignations();
-			int stateID = user.getStateID(), designationID = user.getDesignationID();
-
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID();
 
 			forestTypes = mFacade.getForestTypes();
 			soilTypes = mFacade.getSoilTypes();
@@ -161,7 +162,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 				}
 				else
 				{
-					postFellingSurveys = pFacade.getPostFellingInspections(user);
+					postFellingSurveys = pFacade
+							.getPostFellingInspections(user);
 					accessLevel = 6;
 					downtype = "pfco";
 				}
@@ -170,22 +172,21 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			{
 				State state = mFacade.getState(stateID);
 
-				staffs = mFacade.getStaffs(state);//, "DesignationID", designationSivil);
+				staffs = mFacade.getStaffs(state);// , "DesignationID",
+													// designationSivil);
 				staffList = new ArrayList<>();
 
-
-				/*ArrayList<SelectItem> items = new ArrayList<>();				
-				for (Staff staff : staffs)
-				{
-					if (user.getStaffID().equals(staff.getStaffID())) continue;
-					items.add(new SelectItem(staff.getStaffID(), staff.toString()));
-				}
-				if (!items.isEmpty())
-				{
-					SelectItemGroup group = new SelectItemGroup("Pengawas Hutan (Silvikultur dan Perlindungan)");
-					group.setSelectItems(ArrayListConverter.asSelectItem(items));
-					staffList.add(group);
-				}
+				/*
+				 * ArrayList<SelectItem> items = new ArrayList<>(); for (Staff
+				 * staff : staffs) { if
+				 * (user.getStaffID().equals(staff.getStaffID())) continue;
+				 * items.add(new SelectItem(staff.getStaffID(),
+				 * staff.toString())); } if (!items.isEmpty()) { SelectItemGroup
+				 * group = new
+				 * SelectItemGroup("Pengawas Hutan (Silvikultur dan Perlindungan)"
+				 * );
+				 * group.setSelectItems(ArrayListConverter.asSelectItem(items));
+				 * staffList.add(group); }
 				 */
 
 				for (Designation designation : designations)
@@ -199,30 +200,34 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 						for (Staff staff : staffs)
 							if (staff.getDesignationID() == designationID)
-								items.add(new SelectItem(staff.getStaffID(), staff.toString()));
+								items.add(new SelectItem(staff.getStaffID(),
+										staff.toString()));
 
 						if (!items.isEmpty())
 						{
-							SelectItemGroup group = new SelectItemGroup(designation.getName());
-							group.setSelectItems(ArrayListConverter.asSelectItem(items));
+							SelectItemGroup group = new SelectItemGroup(
+									designation.getName());
+							group.setSelectItems(
+									ArrayListConverter.asSelectItem(items));
 							staffList.add(group);
 						}
 					}
 				}
 
-
-
-				if (user.getDesignationID() < 3 || user.getDesignationID() == 5 || user.getDesignationID() == 11)
+				if (user.getDesignationID() < 3 || user.getDesignationID() == 5
+						|| user.getDesignationID() == 11)
 				{
-					postFellingSurveys = pFacade.getPostFellingInspections(state);
+					postFellingSurveys = pFacade
+							.getPostFellingInspections(state);
 
 					accessLevel = 1;
-					uptype = "pfco";	
+					uptype = "pfco";
 					downtype = "pfco";
 				}
 				else
 				{
-					postFellingSurveys = pFacade.getPostFellingInspections(user);
+					postFellingSurveys = pFacade
+							.getPostFellingInspections(user);
 					accessLevel = 3;
 					downtype = "pfco";
 					uptype = "pfco";
@@ -234,12 +239,12 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 				sort(postFellingSurveys);
 
 				for (PostFellingSurvey postFellingSurvey : postFellingSurveys)
-					postFellingSurvey.setInspectionRecorders(mFacade.getStaffs(postFellingSurvey, false));
+					postFellingSurvey.setInspectionRecorders(
+							mFacade.getStaffs(postFellingSurvey, false));
 
 			}
 			else
 				postFellingSurveys = new ArrayList<>();
-
 
 		}
 		catch (SQLException e)
@@ -254,7 +259,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return model;
 	}
 
-	public void setPostFellingSurveyCard(PostFellingSurveyCard postFellingSurveyCard)
+	public void setPostFellingSurveyCard(
+			PostFellingSurveyCard postFellingSurveyCard)
 	{
 		this.model = postFellingSurveyCard;
 	}
@@ -274,7 +280,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return postFellingSurveyRecord;
 	}
 
-	public void setPostFellingSurveyRecord(PostFellingSurveyRecord postFellingSurveyRecord)
+	public void setPostFellingSurveyRecord(
+			PostFellingSurveyRecord postFellingSurveyRecord)
 	{
 		this.postFellingSurveyRecord = postFellingSurveyRecord;
 	}
@@ -294,7 +301,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return traditionalPostFellingSurveyCards;
 	}
 
-	public void setTraditionalPostFellingSurveyCards(PostFellingSurveyCard[] traditionalPostFellingSurveyCards)
+	public void setTraditionalPostFellingSurveyCards(
+			PostFellingSurveyCard[] traditionalPostFellingSurveyCards)
 	{
 		this.traditionalPostFellingSurveyCards = traditionalPostFellingSurveyCards;
 	}
@@ -304,7 +312,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return models;
 	}
 
-	public void setPostFellingSurveyCards(ArrayList<PostFellingSurveyCard> postFellingSurveyCards)
+	public void setPostFellingSurveyCards(
+			ArrayList<PostFellingSurveyCard> postFellingSurveyCards)
 	{
 		this.models = postFellingSurveyCards;
 	}
@@ -314,7 +323,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return postFellingSurveys;
 	}
 
-	public void setPostFellingSurveys(ArrayList<PostFellingSurvey> postFellingSurveys)
+	public void setPostFellingSurveys(
+			ArrayList<PostFellingSurvey> postFellingSurveys)
 	{
 		this.postFellingSurveys = postFellingSurveys;
 	}
@@ -338,7 +348,6 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 		this.soilTypes = soilTypes;
 	}
-
 
 	public ArrayList<AreaStatus> getAreaStatuses()
 	{
@@ -419,12 +428,13 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 
 		ArrayList<PlotType> plotTypesReduced = new ArrayList<PlotType>();
-		for (int i = 0; i< plotTypes.size(); i++)
+		for (int i = 0; i < plotTypes.size(); i++)
 		{
-			if (plotTypes.get(i).getPlotTypeID() == 4) continue;
+			if (plotTypes.get(i).getPlotTypeID() == 4)
+				continue;
 			plotTypesReduced.add(plotTypes.get(i));
 
-		}	
+		}
 		return plotTypesReduced;
 	}
 
@@ -443,43 +453,53 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		this.logQualities = logQualities;
 	}
 
-	public ArrayList<Ginger> getGingers() {
+	public ArrayList<Ginger> getGingers()
+	{
 		return gingers;
 	}
 
-	public void setGingers(ArrayList<Ginger> gingers) {
+	public void setGingers(ArrayList<Ginger> gingers)
+	{
 		this.gingers = gingers;
 	}
 
-	public ArrayList<Banana> getBananas() {
+	public ArrayList<Banana> getBananas()
+	{
 		return bananas;
 	}
 
-	public void setBananas(ArrayList<Banana> bananas) {
+	public void setBananas(ArrayList<Banana> bananas)
+	{
 		this.bananas = bananas;
 	}
 
-	public ArrayList<TreeStatus> getTreeStatuses() {
+	public ArrayList<TreeStatus> getTreeStatuses()
+	{
 		return treeStatuses;
 	}
 
-	public void setTreeStatuses(ArrayList<TreeStatus> treeStatuses) {
+	public void setTreeStatuses(ArrayList<TreeStatus> treeStatuses)
+	{
 		this.treeStatuses = treeStatuses;
 	}
 
-	public ArrayList<Silara> getSilaras() {
+	public ArrayList<Silara> getSilaras()
+	{
 		return silaras;
 	}
 
-	public void setSilaras(ArrayList<Silara> silaras) {
+	public void setSilaras(ArrayList<Silara> silaras)
+	{
 		this.silaras = silaras;
 	}
 
-	public ArrayList<Dominance> getDominances() {
+	public ArrayList<Dominance> getDominances()
+	{
 		return dominances;
 	}
 
-	public void setDominances(ArrayList<Dominance> dominances) {
+	public void setDominances(ArrayList<Dominance> dominances)
+	{
 		this.dominances = dominances;
 	}
 
@@ -558,7 +578,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		return addPostFellingSurveyRecordOperation;
 	}
 
-	public void setAddPostFellingSurveyRecordOperation(boolean addPostFellingSurveyRecordOperation)
+	public void setAddPostFellingSurveyRecordOperation(
+			boolean addPostFellingSurveyRecordOperation)
 	{
 		this.addPostFellingSurveyRecordOperation = addPostFellingSurveyRecordOperation;
 	}
@@ -600,7 +621,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 	public String getComponent()
 	{
-		return ":frmManager:table" + (model == null ? "" : ":" + models.indexOf(model) + ":subtable");
+		return ":frmManager:table" + (model == null ? ""
+				: ":" + models.indexOf(model) + ":subtable");
 	}
 
 	public ArrayList<SelectItem> getStaffList()
@@ -623,8 +645,6 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		this.selectedStaffs = selectedStaffs;
 	}
 
-
-
 	public ArrayList<Staff> getInspectionStaffs()
 	{
 		return inspectionStaffs;
@@ -639,7 +659,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 		clearFilter();
 
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade();)
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
@@ -651,50 +672,57 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			percentage = null;
 			lineList = null;
 			map = null;
-			inspectionFinish=false;
+			inspectionFinish = false;
 
 			for (PostFellingSurvey s : postFellingSurveys)
 				if (s.getPostFellingSurveyID() == selectedPostFellingSurveyID)
 					postFellingSurvey = s;
 
-
-
-			ArrayList<PostFellingInspectionLine> postFellingInspectionLines = pFacade.getPostFellingInspectionLines(postFellingSurvey);
-			postFellingSurvey.setPostFellingInspectionLines(postFellingInspectionLines);
-			//models = pFacade.getPostFellingInspectionCards(postFellingSurvey);
+			ArrayList<PostFellingInspectionLine> postFellingInspectionLines = pFacade
+					.getPostFellingInspectionLines(postFellingSurvey);
+			postFellingSurvey
+					.setPostFellingInspectionLines(postFellingInspectionLines);
+			// models =
+			// pFacade.getPostFellingInspectionCards(postFellingSurvey);
 
 			Staff user = getCurrentUser();
 
-
-			if (user.getDesignationID() < 3 || user.getDesignationID() == 5 || user.getDesignationID() == 11)
+			if (user.getDesignationID() < 3 || user.getDesignationID() == 5
+					|| user.getDesignationID() == 11)
 			{
 				uptype = "pfco";
 				downtype = "pfco";
-				//models = pFacade.getPostFellingSurveyCards(postFellingSurvey);
-			} 
+				// models =
+				// pFacade.getPostFellingSurveyCards(postFellingSurvey);
+			}
 			else
 			{
 				uptype = "pfco";
 				downtype = "pfco";
-				//models = pFacade.getPostFellingInspectionCards(postFellingSurvey);
-
-
+				// models =
+				// pFacade.getPostFellingInspectionCards(postFellingSurvey);
 
 			}
 
 			ArrayList<PostFellingSurveyCard> filteredCards = new ArrayList<PostFellingSurveyCard>();
-			for (PostFellingSurveyCard postFellingSurveyCard : pFacade.getPostFellingInspectionCards(postFellingSurvey))
+			for (PostFellingSurveyCard postFellingSurveyCard : pFacade
+					.getPostFellingInspectionCards(postFellingSurvey))
 			{
 
 				ArrayList<PostFellingSurveyRecord> filteredRecords = new ArrayList<PostFellingSurveyRecord>();
-				for (PostFellingSurveyRecord record : postFellingSurveyCard.getPostFellingSurveyRecords())
+				for (PostFellingSurveyRecord record : postFellingSurveyCard
+						.getPostFellingSurveyRecords())
 				{
-					if ((record.getPlotTypeID()<6 && record.getInspectionDiameter()>0))
+					if ((record.getPlotTypeID() < 6
+							&& record.getInspectionDiameter() > 0))
 						filteredRecords.add(record);
-					else if (record.getPlotTypeID() == 6 && (record.getInspectionSaplingQuantity()>0 || record.getInspectionSeedlingQuantity()>0))
+					else if (record.getPlotTypeID() == 6 && (record
+							.getInspectionSaplingQuantity() > 0
+							|| record.getInspectionSeedlingQuantity() > 0))
 						filteredRecords.add(record);
 				}
-				postFellingSurveyCard.setPostFellingSurveyRecords(filteredRecords);
+				postFellingSurveyCard
+						.setPostFellingSurveyRecords(filteredRecords);
 				filteredCards.add(postFellingSurveyCard);
 
 			}
@@ -716,8 +744,9 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 			}
 
-
-			validated =  (totalInspectionCard == totalvalidated && postFellingSurvey.getInspectionOpen()==2) ? true : false;
+			validated = (totalInspectionCard == totalvalidated
+					&& postFellingSurvey.getInspectionOpen() == 2) ? true
+							: false;
 		}
 		catch (SQLException e)
 		{
@@ -751,7 +780,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			model.setSurveyDate(date);
 			model.setRecorderID(user.getStaffID());
 			model.setRecorderName(user.getName());
-			model.setPostFellingSurveyID(postFellingSurvey.getPostFellingSurveyID());
+			model.setPostFellingSurveyID(
+					postFellingSurvey.getPostFellingSurveyID());
 			model.setPostFellingSurveyRecords(new ArrayList<>());
 		}
 		else
@@ -761,12 +791,10 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	public void handleOpenInspectionDetails()
 	{
 
-
-
 	}
 
 	public void handleResetInspectionInfo()
-	{	
+	{
 		model = (PostFellingSurveyCard) copy(models, model);
 		model.setInspectionForestTypeID(0);
 		model.setInspectionSoilStatusID(0);
@@ -789,12 +817,13 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		model = (PostFellingSurveyCard) copy(models, model);
 		try (PostFellingFacade facade = new PostFellingFacade())
 		{
-			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = model.getPostFellingSurveyRecords();
-			for (PostFellingSurveyRecord postFellingSurveyRecord : postFellingSurveyRecords) 
-			{	
-				facade.resetPostFellingSurveyRecordForInspection(postFellingSurveyRecord);
-			}	
-
+			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = model
+					.getPostFellingSurveyRecords();
+			for (PostFellingSurveyRecord postFellingSurveyRecord : postFellingSurveyRecords)
+			{
+				facade.resetPostFellingSurveyRecordForInspection(
+						postFellingSurveyRecord);
+			}
 
 		}
 		catch (SQLException e)
@@ -807,18 +836,21 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		handlePostFellingSurveyIDChange();
 	}
 
-
 	public void handleOpenPostFellingSurveyRecord()
 	{
 		if (addPostFellingSurveyRecordOperation)
 		{
 			postFellingSurveyRecord = new PostFellingSurveyRecord();
-			postFellingSurveyRecord.setPostFellingSurveyRecordID(System.currentTimeMillis());
-			postFellingSurveyRecord.setPostFellingSurveyCardID(model.getPostFellingSurveyCardID());
+			postFellingSurveyRecord
+					.setPostFellingSurveyRecordID(System.currentTimeMillis());
+			postFellingSurveyRecord.setPostFellingSurveyCardID(
+					model.getPostFellingSurveyCardID());
 		}
 		else
 		{
-			postFellingSurveyRecord = (PostFellingSurveyRecord) copy(model.getPostFellingSurveyRecords(), postFellingSurveyRecord);
+			postFellingSurveyRecord = (PostFellingSurveyRecord) copy(
+					model.getPostFellingSurveyRecords(),
+					postFellingSurveyRecord);
 			handlePlotTypeIDChange();
 		}
 	}
@@ -834,12 +866,14 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			PostFellingSurveyCard postFellingSurveyCard = new PostFellingSurveyCard();
 			PlotType plotType = plotTypes.get(i);
 			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = new ArrayList<>();
-			postFellingSurveyCard.setPostFellingSurveyRecords(postFellingSurveyRecords);
+			postFellingSurveyCard
+					.setPostFellingSurveyRecords(postFellingSurveyRecords);
 
 			for (int j = 0; j < 10; j++)
 			{
 				PostFellingSurveyRecord postFellingSurveyRecord = new PostFellingSurveyRecord();
-				postFellingSurveyRecord.setPostFellingSurveyRecordID(current + i * 10 + j);
+				postFellingSurveyRecord
+						.setPostFellingSurveyRecordID(current + i * 10 + j);
 				postFellingSurveyRecord.setPlotTypeID(plotType.getPlotTypeID());
 				postFellingSurveyRecord.setPlotTypeName(plotType.toString());
 
@@ -852,38 +886,41 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 	public void handleOpenConfig()
 	{
-		////model = (PostFellingSurvey) copy(models, model);
+		//// model = (PostFellingSurvey) copy(models, model);
 		ArrayList<Staff> recorders = postFellingSurvey.getInspectionRecorders();
-
-
 
 		if (recorders != null)
 		{
 			int size = recorders.size();
 			selectedStaffs = new String[size];
 
-			for (int i = 0; i < size; i++) {
-				selectedStaffs[i] =  recorders.get(i).getStaffID();
+			for (int i = 0; i < size; i++)
+			{
+				selectedStaffs[i] = recorders.get(i).getStaffID();
 			}
 
 		}
 	}
+
 	public void handleUpdateInspectionDetails()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade())
 		{
 			AbstractFacade.group(mFacade, pFacade);
 
-			if (inspectionFinish) postFellingSurvey.setInspectionOpen(2);
+			if (inspectionFinish)
+				postFellingSurvey.setInspectionOpen(2);
 
 			pFacade.updatePostFellingSurvey(postFellingSurvey);
 
-			ArrayList<PostFellingInspectionLine> postFellingInspectionLines = postFellingSurvey.getPostFellingInspectionLines();
+			ArrayList<PostFellingInspectionLine> postFellingInspectionLines = postFellingSurvey
+					.getPostFellingInspectionLines();
 			for (PostFellingInspectionLine postFellingInspectionLine : postFellingInspectionLines)
 			{
-				pFacade.updatePostFellingInspectionLine(postFellingInspectionLine);
+				pFacade.updatePostFellingInspectionLine(
+						postFellingInspectionLine);
 			}
-
 
 		}
 		catch (SQLException e)
@@ -895,14 +932,13 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		execute("PF('popupInspectionDetails').hide()");
 	}
 
-
-
 	public void handleUpdateCommentPPPN()
 	{
 		try (PostFellingFacade pFacade = new PostFellingFacade())
 		{
 			pFacade.updatePostFellingSurvey(postFellingSurvey);
-			addMessage(FacesMessage.SEVERITY_INFO, null, "Ulasan berjaya dikemaskini.");
+			addMessage(FacesMessage.SEVERITY_INFO, null,
+					"Ulasan berjaya dikemaskini.");
 		}
 		catch (SQLException e)
 		{
@@ -913,6 +949,7 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		execute("PF('popupInspectionReport').show()");
 
 	}
+
 	public void handleValidateInspectionCard()
 	{
 
@@ -921,11 +958,18 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		try (PostFellingFacade pfacade = new PostFellingFacade())
 		{
-			model.setInspectorID(user.getStaffID());	
+			model.setInspectorID(user.getStaffID());
 			if (model.getInspectionDate() == null)
 				model.setInspectionDate(date);
 
-			finalizeModelEntry(addOperation ? pfacade.addPostFellingSurveyCard(model, true) : pfacade.updatePostFellingSurveyCardInspection(model), addOperation, pfacade, "kad bancian, ID " + model.getPostFellingSurveyCardID(), ", kerana no. garisan dan petak telah direkodkan sebelumnya", models, model);
+			finalizeModelEntry(
+					addOperation ? pfacade.addPostFellingSurveyCard(model, true)
+							: pfacade.updatePostFellingSurveyCardInspection(
+									model),
+					addOperation, pfacade,
+					"kad bancian, ID " + model.getPostFellingSurveyCardID(),
+					", kerana no. garisan dan petak telah direkodkan sebelumnya",
+					models, model);
 			model = null;
 			handlePostFellingSurveyIDChange();
 
@@ -939,10 +983,10 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 	public void postFellingSurveyUpdate()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade())
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade())
 		{
 			AbstractFacade.group(mFacade, pFacade);
-
 
 			if (selectedStaffs != null)
 			{
@@ -958,7 +1002,6 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 			pFacade.updatePostFellingSurvey(postFellingSurvey);
 
-
 		}
 		catch (SQLException e)
 		{
@@ -968,13 +1011,14 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		execute("PF('popupStaff').hide()");
 	}
+
 	public void postFellingInspectionCardEntry()
 	{
 		try (PostFellingFacade facade = new PostFellingFacade())
 		{
 			for (ForestType forestType : forestTypes)
 				if (forestType.getForestTypeID() == model.getForestTypeID())
-					model.setForestType(forestType.getCode());			
+					model.setForestType(forestType.getCode());
 
 			for (SoilStatus soilStatus : soilStatuses)
 				if (soilStatus.getSoilStatusID() == model.getSoilStatusID())
@@ -985,7 +1029,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 					model.setAspect(aspect.getCode());
 
 			for (SlopeLocation slopeLocation : slopeLocations)
-				if (slopeLocation.getSlopeLocationID() == model.getSlopeLocationID())
+				if (slopeLocation.getSlopeLocationID() == model
+						.getSlopeLocationID())
 					model.setSlopeLocation(slopeLocation.getCode());
 
 			for (Elevation elevation : elevations)
@@ -996,7 +1041,14 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 				if (resam.getResamID() == model.getResamID())
 					model.setResam(resam.getCode());
 
-			finalizeModelEntry(addOperation ? facade.addPostFellingSurveyCard(model, true) : facade.updatePostFellingSurveyCardInspection(model), addOperation, facade, "kad bancian, ID " + model.getPostFellingSurveyCardID(), ", kerana no. garisan dan petak telah direkodkan sebelumnya", models, model);
+			finalizeModelEntry(
+					addOperation ? facade.addPostFellingSurveyCard(model, true)
+							: facade.updatePostFellingSurveyCardInspection(
+									model),
+					addOperation, facade,
+					"kad bancian, ID " + model.getPostFellingSurveyCardID(),
+					", kerana no. garisan dan petak telah direkodkan sebelumnya",
+					models, model);
 			model = null;
 		}
 		catch (SQLException e)
@@ -1016,64 +1068,89 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			postFellingSurveyRecord.setInspection(true);
 			for (Species species : speciesList)
 			{
-				if (species.getSpeciesID() == postFellingSurveyRecord.getInspectionSpeciesID())
+				if (species.getSpeciesID() == postFellingSurveyRecord
+						.getInspectionSpeciesID())
 				{
-					postFellingSurveyRecord.setInspectionSpeciesCode(species.getCode());
-					postFellingSurveyRecord.setInspectionSpeciesName(species.getName());
-					//postFellingSurveyRecord.setSpeciesTypeID(species.getSpeciesTypeID());
+					postFellingSurveyRecord
+							.setInspectionSpeciesCode(species.getCode());
+					postFellingSurveyRecord
+							.setInspectionSpeciesName(species.getName());
+					// postFellingSurveyRecord.setSpeciesTypeID(species.getSpeciesTypeID());
 				}
 			}
 
 			for (LogQuality logQuality : logQualities)
 			{
-				if (logQuality.getLogQualityID() == postFellingSurveyRecord.getInspectionLogQualityID())
+				if (logQuality.getLogQualityID() == postFellingSurveyRecord
+						.getInspectionLogQualityID())
 				{
-					postFellingSurveyRecord.setInspectionLogQuality(logQuality.getCode());
-					postFellingSurveyRecord.setInspectionLogQualityName(logQuality.getName());
+					postFellingSurveyRecord
+							.setInspectionLogQuality(logQuality.getCode());
+					postFellingSurveyRecord
+							.setInspectionLogQualityName(logQuality.getName());
 				}
 			}
 
 			for (Fertility fertility : fertilities)
 			{
-				if (fertility.getFertilityID() == postFellingSurveyRecord.getInspectionFertilityID())
+				if (fertility.getFertilityID() == postFellingSurveyRecord
+						.getInspectionFertilityID())
 				{
-					postFellingSurveyRecord.setInspectionFertility(fertility.getCode());
-					postFellingSurveyRecord.setInspectionFertilityName(fertility.getName());
+					postFellingSurveyRecord
+							.setInspectionFertility(fertility.getCode());
+					postFellingSurveyRecord
+							.setInspectionFertilityName(fertility.getName());
 				}
 			}
 
 			for (TreeStatus treeStatus : treeStatuses)
 			{
-				if (treeStatus.getTreeStatusID() == postFellingSurveyRecord.getInspectionTreeStatusID())
+				if (treeStatus.getTreeStatusID() == postFellingSurveyRecord
+						.getInspectionTreeStatusID())
 				{
-					postFellingSurveyRecord.setInspectionTreeStatus(treeStatus.getCode());
-					postFellingSurveyRecord.setInspectionTreeStatusName(treeStatus.getName());
+					postFellingSurveyRecord
+							.setInspectionTreeStatus(treeStatus.getCode());
+					postFellingSurveyRecord
+							.setInspectionTreeStatusName(treeStatus.getName());
 				}
 			}
 
 			for (Silara silara : silaras)
 			{
-				if (silara.getSilaraID() == postFellingSurveyRecord.getInspectionSilaraID())
+				if (silara.getSilaraID() == postFellingSurveyRecord
+						.getInspectionSilaraID())
 				{
-					postFellingSurveyRecord.setInspectionSilara(silara.getCode());
-					postFellingSurveyRecord.setInspectionSilaraName(silara.getName());
+					postFellingSurveyRecord
+							.setInspectionSilara(silara.getCode());
+					postFellingSurveyRecord
+							.setInspectionSilaraName(silara.getName());
 				}
 			}
 
 			for (Dominance dominance : dominances)
 			{
-				if (dominance.getDominanceID() == postFellingSurveyRecord.getInspectionDominanceID())
+				if (dominance.getDominanceID() == postFellingSurveyRecord
+						.getInspectionDominanceID())
 				{
-					postFellingSurveyRecord.setInspectionDominance(dominance.getCode());
-					postFellingSurveyRecord.setInspectionDominanceName(dominance.getName());
+					postFellingSurveyRecord
+							.setInspectionDominance(dominance.getCode());
+					postFellingSurveyRecord
+							.setInspectionDominanceName(dominance.getName());
 				}
 			}
 
 			if (addPostFellingSurveyRecordOperation)
 			{
 
-
-				finalizeModelEntry(facade.addPostFellingSurveyRecord(postFellingSurveyRecord, true), addPostFellingSurveyRecordOperation, facade, "rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID(), ", kerana rekod bancian telah direkodkan sebelumnya", model.getPostFellingSurveyRecords(), postFellingSurveyRecord);
+				finalizeModelEntry(
+						facade.addPostFellingSurveyRecord(
+								postFellingSurveyRecord, true),
+						addPostFellingSurveyRecordOperation, facade,
+						"rekod bancian, ID " + postFellingSurveyRecord
+								.getPostFellingSurveyRecordID(),
+						", kerana rekod bancian telah direkodkan sebelumnya",
+						model.getPostFellingSurveyRecords(),
+						postFellingSurveyRecord);
 
 				int plotTypeID = postFellingSurveyRecord.getPlotTypeID();
 				String plotTypeName = postFellingSurveyRecord.getPlotTypeName();
@@ -1084,7 +1161,15 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			}
 			else
 			{
-				finalizeModelEntry(facade.updatePostFellingSurveyRecord(postFellingSurveyRecord), addPostFellingSurveyRecordOperation, facade, "rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID(), ", kerana rekod bancian telah direkodkan sebelumnya", model.getPostFellingSurveyRecords(), postFellingSurveyRecord);
+				finalizeModelEntry(
+						facade.updatePostFellingSurveyRecord(
+								postFellingSurveyRecord),
+						addPostFellingSurveyRecordOperation, facade,
+						"rekod bancian, ID " + postFellingSurveyRecord
+								.getPostFellingSurveyRecordID(),
+						", kerana rekod bancian telah direkodkan sebelumnya",
+						model.getPostFellingSurveyRecords(),
+						postFellingSurveyRecord);
 				postFellingSurveyRecord = null;
 			}
 		}
@@ -1102,14 +1187,19 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 		try (PostFellingFacade facade = new PostFellingFacade())
 		{
-			if (facade.deletePostFellingSurveyRecord(postFellingSurveyRecord) != 0)
+			if (facade.deletePostFellingSurveyRecord(
+					postFellingSurveyRecord) != 0)
 			{
-				addMessage(FacesMessage.SEVERITY_INFO, null, postFellingSurveyRecord + " berjaya dipadamkan.");
-				model.getPostFellingSurveyRecords().remove(postFellingSurveyRecord);
-				log(facade, "Padam rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID());
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						postFellingSurveyRecord + " berjaya dipadamkan.");
+				model.getPostFellingSurveyRecords()
+						.remove(postFellingSurveyRecord);
+				log(facade, "Padam rekod bancian, ID " + postFellingSurveyRecord
+						.getPostFellingSurveyRecordID());
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, null, postFellingSurveyRecord + " tidak dapat dipadamkan.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						postFellingSurveyRecord + " tidak dapat dipadamkan.");
 
 			postFellingSurveyRecord = null;
 		}
@@ -1125,7 +1215,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		try (PostFellingFacade facade = new PostFellingFacade())
 		{
-			facade.resetPostFellingSurveyRecordForInspection(postFellingSurveyRecord);	
+			facade.resetPostFellingSurveyRecordForInspection(
+					postFellingSurveyRecord);
 			model.getPostFellingSurveyRecords().remove(postFellingSurveyRecord);
 			handlePlotTypeIDChange();
 		}
@@ -1144,89 +1235,120 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 			for (PostFellingSurveyCard traditionalPostFellingSurveyCard : traditionalPostFellingSurveyCards)
 			{
-				ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = traditionalPostFellingSurveyCard.getPostFellingSurveyRecords();
+				ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = traditionalPostFellingSurveyCard
+						.getPostFellingSurveyRecords();
 
-				
-				
 				for (PostFellingSurveyRecord postFellingSurveyRecord : postFellingSurveyRecords)
 				{
-					
+
 					if (postFellingSurveyRecord.getInspectionSpeciesID() != 0)
 					{
-						postFellingSurveyRecord.setPostFellingSurveyCardID(model.getPostFellingSurveyCardID());
+						postFellingSurveyRecord.setPostFellingSurveyCardID(
+								model.getPostFellingSurveyCardID());
 
 						for (Species species : speciesList)
 						{
-							if (species.getSpeciesID() == postFellingSurveyRecord.getInspectionSpeciesID())
+							if (species
+									.getSpeciesID() == postFellingSurveyRecord
+											.getInspectionSpeciesID())
 							{
-								postFellingSurveyRecord.setSpeciesCode(species.getCode());
-								postFellingSurveyRecord.setSpeciesName(species.getName());
-								postFellingSurveyRecord.setSpeciesTypeID(species.getSpeciesTypeID());
+								postFellingSurveyRecord
+										.setSpeciesCode(species.getCode());
+								postFellingSurveyRecord
+										.setSpeciesName(species.getName());
+								postFellingSurveyRecord.setSpeciesTypeID(
+										species.getSpeciesTypeID());
 							}
 						}
 
 						for (LogQuality logQuality : logQualities)
 						{
-							if (logQuality.getLogQualityID() == postFellingSurveyRecord.getInspectionLogQualityID())
+							if (logQuality
+									.getLogQualityID() == postFellingSurveyRecord
+											.getInspectionLogQualityID())
 							{
-								postFellingSurveyRecord.setInspectionLogQuality(logQuality.getCode());
-								postFellingSurveyRecord.setInspectionLogQualityName(logQuality.getName());
+								postFellingSurveyRecord.setInspectionLogQuality(
+										logQuality.getCode());
+								postFellingSurveyRecord
+										.setInspectionLogQualityName(
+												logQuality.getName());
 							}
 						}
 
 						for (Fertility fertility : fertilities)
 						{
-							if (fertility.getFertilityID() == postFellingSurveyRecord.getInspectionFertilityID())
+							if (fertility
+									.getFertilityID() == postFellingSurveyRecord
+											.getInspectionFertilityID())
 							{
-								postFellingSurveyRecord.setInspectionFertility(fertility.getCode());
-								postFellingSurveyRecord.setInspectionFertilityName(fertility.getName());
+								postFellingSurveyRecord.setInspectionFertility(
+										fertility.getCode());
+								postFellingSurveyRecord
+										.setInspectionFertilityName(
+												fertility.getName());
 							}
 						}
 
 						for (TreeStatus treeStatus : treeStatuses)
 						{
-							if (treeStatus.getTreeStatusID() == postFellingSurveyRecord.getInspectionTreeStatusID())
+							if (treeStatus
+									.getTreeStatusID() == postFellingSurveyRecord
+											.getInspectionTreeStatusID())
 							{
-								postFellingSurveyRecord.setInspectionTreeStatus(treeStatus.getCode());
-								postFellingSurveyRecord.setInspectionTreeStatusName(treeStatus.getName());
+								postFellingSurveyRecord.setInspectionTreeStatus(
+										treeStatus.getCode());
+								postFellingSurveyRecord
+										.setInspectionTreeStatusName(
+												treeStatus.getName());
 							}
 						}
 
-
 						for (Silara silara : silaras)
 						{
-							if (silara.getSilaraID() == postFellingSurveyRecord.getInspectionSilaraID())
+							if (silara.getSilaraID() == postFellingSurveyRecord
+									.getInspectionSilaraID())
 							{
-								postFellingSurveyRecord.setInspectionSilara(silara.getCode());
-								postFellingSurveyRecord.setInspectionSilaraName(silara.getName());
+								postFellingSurveyRecord
+										.setInspectionSilara(silara.getCode());
+								postFellingSurveyRecord.setInspectionSilaraName(
+										silara.getName());
 							}
 						}
 
 						for (Dominance dominance : dominances)
 						{
-							if (dominance.getDominanceID() == postFellingSurveyRecord.getInspectionDominanceID())
+							if (dominance
+									.getDominanceID() == postFellingSurveyRecord
+											.getInspectionDominanceID())
 							{
-								postFellingSurveyRecord.setInspectionDominance(dominance.getCode());
-								postFellingSurveyRecord.setInspectionDominanceName(dominance.getName());
+								postFellingSurveyRecord.setInspectionDominance(
+										dominance.getCode());
+								postFellingSurveyRecord
+										.setInspectionDominanceName(
+												dominance.getName());
 							}
 						}
 
 						postFellingSurveyRecord.setInspection(true);
-						
-						if (facade.addPostFellingSurveyRecord(postFellingSurveyRecord, true) != 0)
+
+						if (facade.addPostFellingSurveyRecord(
+								postFellingSurveyRecord, true) != 0)
 						{
 							count++;
 
-							model.getPostFellingSurveyRecords().add(postFellingSurveyRecord);
-							log(facade, "Tambah rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID());
+							model.getPostFellingSurveyRecords()
+									.add(postFellingSurveyRecord);
+							log(facade, "Tambah rekod bancian, ID "
+									+ postFellingSurveyRecord
+											.getPostFellingSurveyRecordID());
 						}
 					}
 				}
 			}
 
-			
 			sort(model.getPostFellingSurveyRecords());
-			addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak " + count + " rekod bancian berjaya ditambahkan.");
+			addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak " + count
+					+ " rekod bancian berjaya ditambahkan.");
 
 			traditionalPostFellingSurveyCards = null;
 		}
@@ -1239,8 +1361,6 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		execute("PF('popupTraditional').hide()");
 	}
 
-
-
 	public void prepareDownload()
 	{
 		lineList = new ArrayList<>();
@@ -1251,7 +1371,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			if (postFellingSurveyCard.getInspectorID() == null)
 			{
 				String lineNo = postFellingSurveyCard.getLineNo();
-				ArrayList<PostFellingSurveyCard> linePostFellingSurveyCard = map.get(lineNo);
+				ArrayList<PostFellingSurveyCard> linePostFellingSurveyCard = map
+						.get(lineNo);
 
 				if (linePostFellingSurveyCard == null)
 				{
@@ -1265,13 +1386,18 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		ArrayList<String> lines = new ArrayList<>(map.keySet());
 		int size = lines.size(), min = (int) Math.ceil(size * 0.1);
-		recommendation = "Terdapat " + size + " no. garisan yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya " + min + " no. garisan untuk disemak.";
+		recommendation = "Terdapat " + size
+				+ " no. garisan yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya "
+				+ min + " no. garisan untuk disemak.";
 
 		selectLine(null);
 		Collections.sort(lines);
 
 		for (String line : lines)
-			lineList.add(new SelectItem(line, "No. garisan " + line + " (mengandungi " + map.get(line).size() + " no. petak yang belum disemak)"));
+			lineList.add(new SelectItem(line,
+					"No. garisan " + line + " (mengandungi "
+							+ map.get(line).size()
+							+ " no. petak yang belum disemak)"));
 	}
 
 	public void prepareInspection()
@@ -1284,7 +1410,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			if (postFellingSurveyCard.getInspectorID() == null)
 			{
 				String lineNo = postFellingSurveyCard.getLineNo();
-				ArrayList<PostFellingSurveyCard> linePostFellingSurveyCard = map.get(lineNo);
+				ArrayList<PostFellingSurveyCard> linePostFellingSurveyCard = map
+						.get(lineNo);
 
 				if (linePostFellingSurveyCard == null)
 				{
@@ -1298,32 +1425,42 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		ArrayList<String> lines = new ArrayList<>(map.keySet());
 		int size = lines.size(), min = (int) Math.ceil(size * 0.1);
-		recommendation = "Terdapat " + size + " no. garisan yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya " + min + " no. garisan untuk disemak.";
+		recommendation = "Terdapat " + size
+				+ " no. garisan yang belum disahkan, anda dinasihatkan untuk memilih sekurang-kurangnya "
+				+ min + " no. garisan untuk disemak.";
 
 		selectLine(null);
 		Collections.sort(lines);
 
 		for (String line : lines)
-			lineList.add(new SelectItem(line, "No. garisan " + line + " (mengandungi " + map.get(line).size() + " no. petak yang belum disemak)"));
+			lineList.add(new SelectItem(line,
+					"No. garisan " + line + " (mengandungi "
+							+ map.get(line).size()
+							+ " no. petak yang belum disemak)"));
 	}
 
 	public void prepareReport()
 	{
-		try (PostFellingFacade facade = new PostFellingFacade(); MaintenanceFacade mFacade = new MaintenanceFacade())
+		try (PostFellingFacade facade = new PostFellingFacade();
+				MaintenanceFacade mFacade = new MaintenanceFacade())
 		{
 			State state = new State();
 			state.setStateID(postFellingSurvey.getStateID());
 			PostFellingSurvey reportPostFellingSurvey = postFellingSurvey;
-			reportPostFellingSurvey.setPostFellingSurveyCards(facade.getPostFellingSurveyCards(postFellingSurvey));
+			reportPostFellingSurvey.setPostFellingSurveyCards(
+					facade.getPostFellingSurveyCards(postFellingSurvey));
 
-
-			ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade.getRegenerationSpeciesList(state);
+			ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade
+					.getRegenerationSpeciesList(state);
 			if (postFellingSurvey.getPostFellingReport() == null)
-				postFellingSurvey.setPostFellingReport(new PostFellingReport(reportPostFellingSurvey, regenerationSpeciesList));
+				postFellingSurvey.setPostFellingReport(new PostFellingReport(
+						reportPostFellingSurvey, regenerationSpeciesList));
 
-			if (postFellingSurvey.getCommentPPPN() == null || postFellingSurvey.getCommentPPPN().length() < 1) 
+			if (postFellingSurvey.getCommentPPPN() == null
+					|| postFellingSurvey.getCommentPPPN().length() < 1)
 			{
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Sila isi Ulasan PPPN untuk muat turun laporan bancian");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Sila isi Ulasan PPPN untuk muat turun laporan bancian");
 
 			}
 
@@ -1337,21 +1474,26 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 	public void prepareInspectionReport()
 	{
-		try (MaintenanceFacade mFacade = new MaintenanceFacade();PostFellingFacade pFacade = new PostFellingFacade(); )
+		try (MaintenanceFacade mFacade = new MaintenanceFacade();
+				PostFellingFacade pFacade = new PostFellingFacade();)
 		{
-
 
 			State state = new State();
 			PostFellingSurvey postFellingSurveyForInspectionReport = postFellingSurvey;
-			postFellingSurveyForInspectionReport.setPostFellingSurveyCards(pFacade.getPostFellingSurveyCards(postFellingSurvey));
+			postFellingSurveyForInspectionReport.setPostFellingSurveyCards(
+					pFacade.getPostFellingSurveyCards(postFellingSurvey));
 			state.setStateID(postFellingSurvey.getStateID());
-			postFellingSurvey.setPostFellingInspectionReport(new PostFellingInspectionReport(postFellingSurveyForInspectionReport));
+			postFellingSurvey.setPostFellingInspectionReport(
+					new PostFellingInspectionReport(
+							postFellingSurveyForInspectionReport));
 
 			Staff teamLeader = null;
 			ArrayList<Staff> staffs = mFacade.getStaffs();
 
-			for (Staff staff : staffs) {
-				if (staff.getStaffID().equals(postFellingSurvey.getInspectionLeaderID()))
+			for (Staff staff : staffs)
+			{
+				if (staff.getStaffID()
+						.equals(postFellingSurvey.getInspectionLeaderID()))
 				{
 					teamLeader = staff;
 					break;
@@ -1360,10 +1502,13 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			teamLeader.setStaffID(postFellingSurvey.getInspectionLeaderID());
 			teamLeader.setName(postFellingSurvey.getInspectionLeaderName());
 			inspectionStaffs = mFacade.getStaffs(postFellingSurvey, false);
-			if (teamLeader != null) inspectionStaffs.add(0,teamLeader);
-			if (postFellingSurvey.getCommentPPPN() == null || postFellingSurvey.getCommentPPPN().length() < 1) 
+			if (teamLeader != null)
+				inspectionStaffs.add(0, teamLeader);
+			if (postFellingSurvey.getCommentPPPN() == null
+					|| postFellingSurvey.getCommentPPPN().length() < 1)
 			{
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Sila isi Ulasan PPPN untuk sebelum muat turun laporan semakan");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Sila isi Ulasan PPPN untuk sebelum muat turun laporan semakan");
 
 			}
 
@@ -1377,27 +1522,47 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 	public void selectLine(AjaxBehaviorEvent event)
 	{
-		percentage = "Jumlah kad dipilih: " + (selectedLines == null || selectedLines.length == 0 ? 100 : Math.round(selectedLines.length * 100d / map.size())) + "%";
+		percentage = "Jumlah kad dipilih: "
+				+ (selectedLines == null || selectedLines.length == 0 ? 100
+						: Math.round(selectedLines.length * 100d / map.size()))
+				+ "%";
 	}
-
-
 
 	public StreamedContent download()
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "LaporanBancian_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + ".pdf";
-		File file = new File(external.getRealPath("/") + "files/postFellingSurvey/" + name);
+		String name = "LaporanBancian_"
+				+ postFellingSurvey.getForestName().replaceAll(" ", "") + "_"
+				+ postFellingSurvey.getComptBlockNo() + "_"
+				+ postFellingSurvey.getYear() + ".pdf";
+		File file = new File(
+				external.getRealPath("/") + "files/postFellingSurvey/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
 
 		try
 		{
-			PostFellingSurveyReportGenerator.generate(file, postFellingSurvey,  resams, fertilities);
+			PostFellingSurveyReportGenerator.generate(file, postFellingSurvey,
+					resams, fertilities);
 
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
 
-			content = new DefaultStreamedContent(new FileInputStream(file), "application/pdf", name);
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1412,18 +1577,39 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "LaporanSemakanBancian_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + ".pdf";
-		File file = new File(external.getRealPath("/") + "files/postFellingSurvey/" + name);
+		String name = "LaporanSemakanBancian_"
+				+ postFellingSurvey.getForestName().replaceAll(" ", "") + "_"
+				+ postFellingSurvey.getComptBlockNo() + "_"
+				+ postFellingSurvey.getYear() + ".pdf";
+		File file = new File(
+				external.getRealPath("/") + "files/postFellingSurvey/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
 
 		try
 		{
-			postFellingSurvey.setPostFellingInspectionReport(new PostFellingInspectionReport(postFellingSurvey));
-			PostFellingInspectionReportGenerator.generate(file, postFellingSurvey, inspectionStaffs);
+			postFellingSurvey.setPostFellingInspectionReport(
+					new PostFellingInspectionReport(postFellingSurvey));
+			PostFellingInspectionReportGenerator.generate(file,
+					postFellingSurvey, inspectionStaffs);
 
-			content = new DefaultStreamedContent(new FileInputStream(file), "application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1439,16 +1625,23 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		Staff user = getCurrentUser();
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		String name = "KadBancian_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + "_" + user.getStaffID() + "." + (pdf ? "pdf" : downtype), type = null;
-		File file = new File(external.getRealPath("/") + "files/post-f/" + name);
+		String name = "KadBancian_"
+				+ postFellingSurvey.getForestName().replaceAll(" ", "") + "_"
+				+ postFellingSurvey.getComptBlockNo() + "_"
+				+ postFellingSurvey.getYear() + "_" + user.getStaffID() + "."
+				+ (pdf ? "pdf" : downtype), type = null;
+		File file = new File(
+				external.getRealPath("/") + "files/post-f/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
 
 		try (PostFellingFacade pFacade = new PostFellingFacade();)
 		{
-			postFellingSurvey.setPostFellingSurveyCards(pFacade.getPostFellingSurveyCards(postFellingSurvey));
-			postFellingSurvey.setPostFellingInspectionLines(pFacade.getPostFellingInspectionLines(postFellingSurvey));
+			postFellingSurvey.setPostFellingSurveyCards(
+					pFacade.getPostFellingSurveyCards(postFellingSurvey));
+			postFellingSurvey.setPostFellingInspectionLines(
+					pFacade.getPostFellingInspectionLines(postFellingSurvey));
 		}
 		catch (Exception e)
 		{
@@ -1459,29 +1652,42 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		{
 			if (pdf)
 			{
-				try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+				try (MaintenanceFacade mFacade = new MaintenanceFacade();
+						PostFellingFacade pFacade = new PostFellingFacade();)
 				{
 					State state = new State();
 
 					AbstractFacade.group(mFacade, pFacade);
 					state.setStateID(postFellingSurvey.getStateID());
 
-					ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade.getRegenerationSpeciesList(state);
+					ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade
+							.getRegenerationSpeciesList(state);
 					LinkedHashMap<String, String> map = new LinkedHashMap<>();
-					Tender tender = mFacade.getTender(postFellingSurvey.getTenderNo());
+					Tender tender = mFacade
+							.getTender(postFellingSurvey.getTenderNo());
 					Contractor contractor = null;
 
 					for (RegenerationSpecies regenerationSpecies : regenerationSpeciesList)
 					{
-						String species = regenerationSpecies.getName().toLowerCase(), code = regenerationSpecies.getCode(), symbol = "O";
+						String species = regenerationSpecies.getName()
+								.toLowerCase(),
+								code = regenerationSpecies.getCode(),
+								symbol = "O";
 
 						if (code != null)
 						{
-							if (code.equals("0106") || code.equals("0103") || code.equals("0105") || code.equals("0107"))
+							if (code.equals("0106") || code.equals("0103")
+									|| code.equals("0105")
+									|| code.equals("0107"))
 								symbol = "S";
-							else if (species.contains("keruing") || code.equals("3901") || code.equals("1001") || code.equals("1002"))
+							else if (species.contains("keruing")
+									|| code.equals("3901")
+									|| code.equals("1001")
+									|| code.equals("1002"))
 								symbol = "K";
-							else if (species.contains("nyatoh") || species.contains("kedondong") || species.contains("resak"))
+							else if (species.contains("nyatoh")
+									|| species.contains("kedondong")
+									|| species.contains("resak"))
 								symbol = "N";
 						}
 
@@ -1489,11 +1695,12 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 					}
 
 					if (tender != null)
-						contractor = mFacade.getContractor(tender.getContractorID());
-
+						contractor = mFacade
+								.getContractor(tender.getContractorID());
 
 					map.put("0201", "M");
-					PostFellingInspectionSurveyCardGenerator.generate(file, postFellingSurvey, contractor, map, false);
+					PostFellingInspectionSurveyCardGenerator.generate(file,
+							postFellingSurvey, contractor, map, false);
 				}
 
 				type = "application/pdf";
@@ -1501,7 +1708,8 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 			else
 			{
 				type = "application/octet-stream";
-				ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file)));
+				ObjectOutputStream oos = new ObjectOutputStream(
+						new GZIPOutputStream(new FileOutputStream(file)));
 
 				oos.writeInt(43);
 				oos.writeObject(postFellingSurvey);
@@ -1515,7 +1723,22 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 				oos.close();
 			}
 
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1533,20 +1756,30 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		ExternalContext external = context.getExternalContext();
 		String name = "", type = null;
 		if (all)
-			name ="KadBancian_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + "_" + user.getStaffID() + "(semua).pdf";
+			name = "KadBancian_"
+					+ postFellingSurvey.getForestName().replaceAll(" ", "")
+					+ "_" + postFellingSurvey.getComptBlockNo() + "_"
+					+ postFellingSurvey.getYear() + "_" + user.getStaffID()
+					+ "(semua).pdf";
 		else
-			name ="KadBancian_" + postFellingSurvey.getForestName().replaceAll(" ", "") + "_" + postFellingSurvey.getComptBlockNo() + "_" + postFellingSurvey.getYear() + "_" + user.getStaffID() + "(semakan).pdf";
+			name = "KadBancian_"
+					+ postFellingSurvey.getForestName().replaceAll(" ", "")
+					+ "_" + postFellingSurvey.getComptBlockNo() + "_"
+					+ postFellingSurvey.getYear() + "_" + user.getStaffID()
+					+ "(semakan).pdf";
 
-		File file = new File(external.getRealPath("/") + "files/post-f/" + name);
+		File file = new File(
+				external.getRealPath("/") + "files/post-f/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
 
 		try (PostFellingFacade pFacade = new PostFellingFacade();)
 		{
-			postFellingSurvey.setPostFellingSurveyCards(pFacade.getPostFellingSurveyCards(postFellingSurvey));
-			postFellingSurvey.setPostFellingInspectionLines(pFacade.getPostFellingInspectionLines(postFellingSurvey));
-
+			postFellingSurvey.setPostFellingSurveyCards(
+					pFacade.getPostFellingSurveyCards(postFellingSurvey));
+			postFellingSurvey.setPostFellingInspectionLines(
+					pFacade.getPostFellingInspectionLines(postFellingSurvey));
 
 		}
 		catch (Exception e)
@@ -1557,29 +1790,39 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		try
 		{
 
-			try (MaintenanceFacade mFacade = new MaintenanceFacade(); PostFellingFacade pFacade = new PostFellingFacade();)
+			try (MaintenanceFacade mFacade = new MaintenanceFacade();
+					PostFellingFacade pFacade = new PostFellingFacade();)
 			{
 				State state = new State();
 
 				AbstractFacade.group(mFacade, pFacade);
 				state.setStateID(postFellingSurvey.getStateID());
 
-				ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade.getRegenerationSpeciesList(state);
+				ArrayList<RegenerationSpecies> regenerationSpeciesList = mFacade
+						.getRegenerationSpeciesList(state);
 				LinkedHashMap<String, String> map = new LinkedHashMap<>();
-				Tender tender = mFacade.getTender(postFellingSurvey.getTenderNo());
+				Tender tender = mFacade
+						.getTender(postFellingSurvey.getTenderNo());
 				Contractor contractor = null;
 
 				for (RegenerationSpecies regenerationSpecies : regenerationSpeciesList)
 				{
-					String species = regenerationSpecies.getName().toLowerCase(), code = regenerationSpecies.getCode(), symbol = "O";
+					String species = regenerationSpecies.getName()
+							.toLowerCase(),
+							code = regenerationSpecies.getCode(), symbol = "O";
 
 					if (code != null)
 					{
-						if (code.equals("0106") || code.equals("0103") || code.equals("0105") || code.equals("0107"))
+						if (code.equals("0106") || code.equals("0103")
+								|| code.equals("0105") || code.equals("0107"))
 							symbol = "S";
-						else if (species.contains("keruing") || code.equals("3901") || code.equals("1001") || code.equals("1002"))
+						else if (species.contains("keruing")
+								|| code.equals("3901") || code.equals("1001")
+								|| code.equals("1002"))
 							symbol = "K";
-						else if (species.contains("nyatoh") || species.contains("kedondong") || species.contains("resak"))
+						else if (species.contains("nyatoh")
+								|| species.contains("kedondong")
+								|| species.contains("resak"))
 							symbol = "N";
 					}
 
@@ -1587,17 +1830,32 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 				}
 
 				if (tender != null)
-					contractor = mFacade.getContractor(tender.getContractorID());
-
+					contractor = mFacade
+							.getContractor(tender.getContractorID());
 
 				map.put("0201", "M");
-				PostFellingInspectionSurveyCardGenerator.generate(file, postFellingSurvey, contractor, map, all);
+				PostFellingInspectionSurveyCardGenerator.generate(file,
+						postFellingSurvey, contractor, map, all);
 			}
 
 			type = "application/pdf";
 
+			content = DefaultStreamedContent.builder().contentType(type)
+					.name(name).stream(() ->
+					{
+						FileInputStream fis = null;
 
-			content = new DefaultStreamedContent(new FileInputStream(file), type, name);
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -1614,36 +1872,48 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); PostFellingFacade facade = new PostFellingFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					PostFellingFacade facade = new PostFellingFacade();)
 			{
 				if (ois.readInt() != 43)
-					throw new InvalidClassException("Not PostFellingInspectionCard");
-				
-				PostFellingSurvey postFellingSurvey = (PostFellingSurvey) ois.readObject();
+					throw new InvalidClassException(
+							"Not PostFellingInspectionCard");
+
+				PostFellingSurvey postFellingSurvey = (PostFellingSurvey) ois
+						.readObject();
 
 				if (postFellingSurvey.equals(this.postFellingSurvey))
 				{
 					String filename = file.getFileName().toLowerCase();
-					ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards = this.postFellingSurvey.getPostFellingSurveyCards();
-					ArrayList<PostFellingSurveyCard> postFellingSurveyCards = postFellingSurvey.getPostFellingSurveyCards();
+					ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards = this.postFellingSurvey
+							.getPostFellingSurveyCards();
+					ArrayList<PostFellingSurveyCard> postFellingSurveyCards = postFellingSurvey
+							.getPostFellingSurveyCards();
 
 					if (filename.endsWith("pfco"))
-					{			
+					{
 						facade.updatePostFellingSurvey(postFellingSurvey);
-						save(facade, currentPostFellingSurveyCards, postFellingSurveyCards, false);
-						postFellingSurveys.set(postFellingSurveys.indexOf(this.postFellingSurvey), postFellingSurvey);
-						for (PostFellingInspectionLine  line :postFellingSurvey.getPostFellingInspectionLines())
+						save(facade, currentPostFellingSurveyCards,
+								postFellingSurveyCards, false);
+						postFellingSurveys.set(
+								postFellingSurveys
+										.indexOf(this.postFellingSurvey),
+								postFellingSurvey);
+						for (PostFellingInspectionLine line : postFellingSurvey
+								.getPostFellingInspectionLines())
 						{
 							facade.updatePostFellingInspectionLine(line);
 						}
 						this.postFellingSurvey = postFellingSurvey;
 						validated = false;
-						downloaded = false;			
+						downloaded = false;
 					}
 				}
 				else
 					addMessage(FacesMessage.SEVERITY_WARN, null,
-							postFellingSurvey + " tidak dapat ditambahkan kerana maklumat sesi bancian yang dimuat naik tidak sama dengan sesi bancian yang dipilih.");
+							postFellingSurvey
+									+ " tidak dapat ditambahkan kerana maklumat sesi bancian yang dimuat naik tidak sama dengan sesi bancian yang dipilih.");
 			}
 			catch (Exception e)
 			{
@@ -1653,7 +1923,10 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 		}
 	}
 
-	private void save(PostFellingFacade facade, ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards, ArrayList<PostFellingSurveyCard> postFellingSurveyCards, boolean strict) throws SQLException
+	private void save(PostFellingFacade facade,
+			ArrayList<PostFellingSurveyCard> currentPostFellingSurveyCards,
+			ArrayList<PostFellingSurveyCard> postFellingSurveyCards,
+			boolean strict) throws SQLException
 	{
 		int totalPostFellingSurveyCard = 0, totalRecord = 0;
 
@@ -1664,72 +1937,97 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 					continue;
 
 			ArrayList<PostFellingSurveyRecord> currentPostFellingSurveyRecords = null;
-			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = postFellingSurveyCard.getPostFellingSurveyRecords();
+			ArrayList<PostFellingSurveyRecord> postFellingSurveyRecords = postFellingSurveyCard
+					.getPostFellingSurveyRecords();
 			int type = 1;
 
-			if (facade.addPostFellingSurveyCard(postFellingSurveyCard, false) != 0)
+			if (facade.addPostFellingSurveyCard(postFellingSurveyCard,
+					false) != 0)
 			{
 				totalPostFellingSurveyCard++;
 
-				if (!currentPostFellingSurveyCards.contains(postFellingSurveyCard))
+				if (!currentPostFellingSurveyCards
+						.contains(postFellingSurveyCard))
 				{
 					PostFellingSurveyCard temp = null;
 
 					for (PostFellingSurveyCard c : currentPostFellingSurveyCards)
-						if (postFellingSurveyCard.toString().equals(c.toString()))
+						if (postFellingSurveyCard.toString()
+								.equals(c.toString()))
 							temp = c;
 
 					if (temp != null)
 					{
 						type = -1;
-						currentPostFellingSurveyRecords = temp.getPostFellingSurveyRecords();
+						currentPostFellingSurveyRecords = temp
+								.getPostFellingSurveyRecords();
 
-						log(facade, "Kemaskini kad bancian, ID " + temp.getPostFellingSurveyCardID());
-						postFellingSurveyCard.setPostFellingSurveyCardID(temp.getPostFellingSurveyCardID());
+						log(facade, "Kemaskini kad bancian, ID "
+								+ temp.getPostFellingSurveyCardID());
+						postFellingSurveyCard.setPostFellingSurveyCardID(
+								temp.getPostFellingSurveyCardID());
 					}
 					else
 					{
-						currentPostFellingSurveyCards.add(postFellingSurveyCard);
-						log(facade, "Tambah kad bancian, ID " + postFellingSurveyCard.getPostFellingSurveyCardID());
+						currentPostFellingSurveyCards
+								.add(postFellingSurveyCard);
+						log(facade,
+								"Tambah kad bancian, ID "
+										+ postFellingSurveyCard
+												.getPostFellingSurveyCardID());
 					}
 				}
 				else
 				{
 					type = 0;
-					currentPostFellingSurveyRecords = currentPostFellingSurveyCards.get(currentPostFellingSurveyCards.indexOf(postFellingSurveyCard)).getPostFellingSurveyRecords();
+					currentPostFellingSurveyRecords = currentPostFellingSurveyCards
+							.get(currentPostFellingSurveyCards
+									.indexOf(postFellingSurveyCard))
+							.getPostFellingSurveyRecords();
 
-					log(facade, "Kemaskini kad bancian, ID " + postFellingSurveyCard.getPostFellingSurveyCardID());
+					log(facade,
+							"Kemaskini kad bancian, ID " + postFellingSurveyCard
+									.getPostFellingSurveyCardID());
 				}
 
 				sort(currentPostFellingSurveyCards);
 			}
 
 			if (type != 1)
-				currentPostFellingSurveyCards.set(currentPostFellingSurveyCards.indexOf(postFellingSurveyCard), postFellingSurveyCard);
+				currentPostFellingSurveyCards.set(currentPostFellingSurveyCards
+						.indexOf(postFellingSurveyCard), postFellingSurveyCard);
 
 			for (PostFellingSurveyRecord postFellingSurveyRecord : postFellingSurveyRecords)
 			{
 				if (type == -1)
-					postFellingSurveyRecord.setPostFellingSurveyCardID(postFellingSurveyCard.getPostFellingSurveyCardID());
+					postFellingSurveyRecord.setPostFellingSurveyCardID(
+							postFellingSurveyCard.getPostFellingSurveyCardID());
 
 				postFellingSurveyRecord.setInspection(true);
-				if (facade.addPostFellingSurveyRecord(postFellingSurveyRecord, false) != 0)
+				if (facade.addPostFellingSurveyRecord(postFellingSurveyRecord,
+						false) != 0)
 				{
 					totalRecord++;
-					log(facade, "Tambah rekod bancian, ID " + postFellingSurveyRecord.getPostFellingSurveyRecordID());
+					log(facade,
+							"Tambah rekod bancian, ID "
+									+ postFellingSurveyRecord
+											.getPostFellingSurveyRecordID());
 				}
 			}
 
 			if (currentPostFellingSurveyRecords != null)
 			{
-				postFellingSurveyRecords.addAll(currentPostFellingSurveyRecords);
+				postFellingSurveyRecords
+						.addAll(currentPostFellingSurveyRecords);
 				sort(postFellingSurveyRecords);
 			}
 		}
 
 		if (totalPostFellingSurveyCard != 0 || totalRecord != 0)
 			addMessage(FacesMessage.SEVERITY_INFO, null,
-					totalPostFellingSurveyCard + " kad bancian dan " + totalRecord + " rekod bancian berjaya ditambahkan.");
+					totalPostFellingSurveyCard + " kad bancian dan "
+							+ totalRecord
+							+ " rekod bancian berjaya ditambahkan.");
 		else
 			addMessage(FacesMessage.SEVERITY_INFO, null,
 					"Tiada kad bancian dan rekod bancian berjaya ditambahkan.");
@@ -1744,6 +2042,5 @@ public class PostFellingInspectionCardManagedBean extends AbstractManagedBean<Po
 	{
 		this.inspectionFinish = inspectionFinish;
 	}
-
 
 }

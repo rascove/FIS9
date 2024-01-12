@@ -5,7 +5,6 @@ import java.util.Date;
 
 import my.edu.utem.ftmk.fis9.global.model.FieldWork;
 import my.edu.utem.ftmk.fis9.maintenance.model.Staff;
-import my.edu.utem.ftmk.fis9.postfelling.model.PostFellingReport;
 
 /**
  * @author Zurina
@@ -35,8 +34,7 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 	private String commentPPPN;
 	private int totalInventoryLine;
 	private ArrayList<PostFellingInspectionLine> postFellingInspectionLines;
-	
-	
+
 	public long getPostFellingSurveyID()
 	{
 		return getFieldWorkID();
@@ -72,7 +70,8 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		return postFellingInspectionReport;
 	}
 
-	public void setPostFellingInspectionReport(PostFellingInspectionReport postFellingInspectionReport)
+	public void setPostFellingInspectionReport(
+			PostFellingInspectionReport postFellingInspectionReport)
 	{
 		this.postFellingInspectionReport = postFellingInspectionReport;
 	}
@@ -82,12 +81,12 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		return getFieldWorksheets();
 	}
 
-	public void setPostFellingSurveyCards(ArrayList<PostFellingSurveyCard> postFellingSurveyCards)
+	public void setPostFellingSurveyCards(
+			ArrayList<PostFellingSurveyCard> postFellingSurveyCards)
 	{
 		setFieldWorksheets(postFellingSurveyCards);
 	}
 
-	
 	public String getInspectionLeaderID()
 	{
 		return inspectionLeaderID;
@@ -97,7 +96,7 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 	{
 		this.inspectionLeaderID = inspectionLeaderID;
 	}
-	
+
 	public Date getInspectionStartDate()
 	{
 		return inspectionStartDate;
@@ -118,9 +117,6 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		this.inspectionEndDate = inspectionEndDate;
 	}
 
-
-	
-	
 	public int getInspectionOpen()
 	{
 		return inspectionOpen;
@@ -150,7 +146,6 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 	{
 		this.inspectionLeaderName = inspectionLeaderName;
 	}
-	
 
 	public Date getOwnershipDate()
 	{
@@ -171,8 +166,6 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 	{
 		this.inspectionNo = inspectionNo;
 	}
-
-	
 
 	public int getInspectionSignage()
 	{
@@ -224,8 +217,6 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		this.inspectionSteepness = inspectionSteepness;
 	}
 
-	
-
 	public String getCommentPPPN()
 	{
 		return commentPPPN;
@@ -236,7 +227,6 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		this.commentPPPN = commentPPPN;
 	}
 
-	
 	public int getTotalInventoryLine()
 	{
 		return totalInventoryLine;
@@ -277,13 +267,13 @@ public class PostFellingSurvey extends FieldWork<PostFellingSurveyCard>
 		this.inspectionEndWorkDate = inspectionEndWorkDate;
 	}
 
-	
 	public ArrayList<PostFellingInspectionLine> getPostFellingInspectionLines()
 	{
 		return postFellingInspectionLines;
 	}
 
-	public void setPostFellingInspectionLines(ArrayList<PostFellingInspectionLine> postFellingInspectionLines)
+	public void setPostFellingInspectionLines(
+			ArrayList<PostFellingInspectionLine> postFellingInspectionLines)
 	{
 		this.postFellingInspectionLines = postFellingInspectionLines;
 	}

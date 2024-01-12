@@ -2,6 +2,7 @@ package my.edu.utem.ftmk.fis9.revenue.controller.mbean;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -98,7 +99,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 				}
 				else
 				{
-					
+
 					models = rFacade.getVouchers(user);
 				}
 			}
@@ -301,7 +302,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 	{
 		model = new Voucher();
 		Date date = new Date();
-		
+
 		model.setCategory(category);
 		model.setDate(date);
 		model.setRecorderID(user.getStaffID());
@@ -333,18 +334,20 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 		String comments = "";
 		if (model.getCategory() == 0)
 		{
-			for(Permit permit : permits)
+			for (Permit permit : permits)
 			{
-				if(permit.getLicenseID() == model.getLicenseID())
+				if (permit.getLicenseID() == model.getLicenseID())
 				{
-					if(!comments.equalsIgnoreCase("")) comments = comments + ", ";
+					if (!comments.equalsIgnoreCase(""))
+						comments = comments + ", ";
 					comments = comments + permit.getPermitNo();
 				}
 			}
-			if(!comments.equalsIgnoreCase("")) 
+			if (!comments.equalsIgnoreCase(""))
 			{
 				addMessage(FacesMessage.SEVERITY_WARN, null,
-						model + " tidak berjaya ditutup kerana terdapat permit " + comments + " masih aktif.");
+						model + " tidak berjaya ditutup kerana terdapat permit "
+								+ comments + " masih aktif.");
 				execute("PF('popup').hide()");
 			}
 			else
@@ -355,18 +358,18 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 					{
 						currentLicense = license;
 						model.setLicenseNo(license.getLicenseNo());
-						model.setLicenseeCompanyName(license.getLicenseeCompanyName());
-						
+						model.setLicenseeCompanyName(
+								license.getLicenseeCompanyName());
+
 						VoucherRecord voucherRecordWAKK = new VoucherRecord();
 						VoucherRecord voucherRecordWAL = new VoucherRecord();
-	
+
 						for (TrustFund trustFund : trustFunds)
 						{
-							if (trustFund.getSymbol()
-									.equalsIgnoreCase("WAKK"))
+							if (trustFund.getSymbol().equalsIgnoreCase("WAKK"))
 							{
-								voucherRecordWAKK
-										.setTrustFundID(trustFund.getTrustFundID());
+								voucherRecordWAKK.setTrustFundID(
+										trustFund.getTrustFundID());
 								voucherRecordWAKK.setTrustFundDepartmentVotID(
 										trustFund.getDepartmentVotID());
 								voucherRecordWAKK.setTrustFundDepartmentVotCode(
@@ -378,18 +381,17 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 								voucherRecordWAKK.setTrustFundBursaryVotCode(
 										trustFund.getBursaryVotCode());
 								voucherRecordWAKK.setTrustFundBursaryVotName(
-										trustFund.getBursaryVotName());							
+										trustFund.getBursaryVotName());
 								voucherRecordWAKK.setTrustFundDescription(
 										trustFund.getDescription());
 								voucherRecordWAKK
 										.setTotal(license.getWoodWorkFund());
 								voucherRecords.add(voucherRecordWAKK);
 							}
-							if (trustFund.getSymbol()
-									.equalsIgnoreCase("WAL"))
+							if (trustFund.getSymbol().equalsIgnoreCase("WAL"))
 							{
-								voucherRecordWAL
-										.setTrustFundID(trustFund.getTrustFundID());
+								voucherRecordWAL.setTrustFundID(
+										trustFund.getTrustFundID());
 								voucherRecordWAL.setTrustFundDepartmentVotID(
 										trustFund.getDepartmentVotID());
 								voucherRecordWAL.setTrustFundDepartmentVotCode(
@@ -401,10 +403,11 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 								voucherRecordWAL.setTrustFundBursaryVotCode(
 										trustFund.getBursaryVotCode());
 								voucherRecordWAL.setTrustFundBursaryVotName(
-										trustFund.getBursaryVotName());								
+										trustFund.getBursaryVotName());
 								voucherRecordWAL.setTrustFundDescription(
 										trustFund.getDescription());
-								voucherRecordWAL.setTotal(license.getLicenseFund());
+								voucherRecordWAL
+										.setTotal(license.getLicenseFund());
 								voucherRecords.add(voucherRecordWAL);
 							}
 						}
@@ -423,19 +426,18 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 					{
 						currentPermit = permit;
 						model.setPermitNo(permit.getPermitNo());
-						model.setLicenseeCompanyName(permit.getLicenseeCompanyName());
-						
+						model.setLicenseeCompanyName(
+								permit.getLicenseeCompanyName());
+
 						VoucherRecord voucherRecord = new VoucherRecord();
 
 						for (TrustFund trustFund : trustFunds)
 						{
-							if (trustFund.getSymbol()
-									.equalsIgnoreCase("WAJ")
+							if (trustFund.getSymbol().equalsIgnoreCase("WAJ")
 									|| trustFund.getSymbol()
-											.equalsIgnoreCase(
-													"WAKO") || trustFund.getSymbol()
-											.equalsIgnoreCase(
-													"WAM"))
+											.equalsIgnoreCase("WAKO")
+									|| trustFund.getSymbol()
+											.equalsIgnoreCase("WAM"))
 							{
 								voucherRecord.setTrustFundID(
 										trustFund.getTrustFundID());
@@ -450,11 +452,10 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 								voucherRecord.setTrustFundBursaryVotCode(
 										trustFund.getBursaryVotCode());
 								voucherRecord.setTrustFundBursaryVotName(
-										trustFund.getBursaryVotName());									
+										trustFund.getBursaryVotName());
 								voucherRecord.setTrustFundDescription(
 										trustFund.getDescription());
-								voucherRecord
-										.setTotal(permit.getPermitFund());
+								voucherRecord.setTotal(permit.getPermitFund());
 								voucherRecords.add(voucherRecord);
 								break;
 							}
@@ -464,8 +465,8 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 				}
 			}
 		}
-		
-		if(comments.equalsIgnoreCase("")) 
+
+		if (comments.equalsIgnoreCase(""))
 		{
 			execute("PF('popup').hide()");
 			update("frmEntryVoucherRecord");
@@ -475,7 +476,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 
 	public void handleTrustFundIDChange(VoucherRecord voucherRecord)
 	{
-		
+
 	}
 
 	public void voucherEntry()
@@ -489,7 +490,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 
 			model.setVoucherID(System.currentTimeMillis());
 			model.setVoucherNo(model.getVoucherNo().toUpperCase());
-			
+
 			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 			model.setRecordTime(timestamp);
 
@@ -502,7 +503,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 				}
 			}
 			model.setTotal(total);
-			
+
 			if (rFacade.addVoucher(model) != 0)
 			{
 				addMessage(FacesMessage.SEVERITY_INFO, null,
@@ -518,7 +519,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 					{
 						voucherRecord.setVoucherRecordID(voucherRecordID);
 						voucherRecord.setVoucherID(model.getVoucherID());
-						
+
 						if (rFacade.addVoucherRecord(voucherRecord) != 0)
 						{
 							count++;
@@ -529,7 +530,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 					}
 					voucherRecordID++;
 				}
-				
+
 				if (model.getCategory() == 0)
 				{
 					currentLicense.setWoodWorkFund(BigDecimal.ZERO);
@@ -580,7 +581,7 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 	{
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		
+
 		String name = "Baucar_" + voucherTemp.getVoucherNo() + ".pdf";
 		File file = new File(
 				external.getRealPath("/") + "files/revenue/" + name);
@@ -590,14 +591,29 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 
 		try (RevenueFacade rFacade = new RevenueFacade())
 		{
-			String[] voucher = rFacade.getVoucherHeader(voucherTemp.getVoucherID(), voucherTemp.getCategory());
+			String[] voucher = rFacade.getVoucherHeader(
+					voucherTemp.getVoucherID(), voucherTemp.getCategory());
 			ArrayList<String[]> voucherRecords = rFacade
 					.getVoucherRecords(voucherTemp.getVoucherID());
 
 			BaucarGenerator.generate(file, voucher, voucherRecords);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -645,8 +661,22 @@ public class VoucherManagedBean extends AbstractManagedBean<Voucher>
 
 			LaporanKedudukanKewanganLesen1Generator.generate(file, data);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{

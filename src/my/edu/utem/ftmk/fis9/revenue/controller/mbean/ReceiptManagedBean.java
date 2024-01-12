@@ -2,6 +2,7 @@ package my.edu.utem.ftmk.fis9.revenue.controller.mbean;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -275,14 +276,14 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 					{
 						if (forestDevelopmentContractor
 								.getForestDevelopmentContractorID() == renew
-								.getForestDevelopmentContractorID())
+										.getForestDevelopmentContractorID())
 						{
 							exist = true;
 							if (forestDevelopmentContractor.getEndDate()
 									.compareTo(renew.getEndDate()) < 0)
 							{
 								forestDevelopmentContractor
-								.setEndDate(renew.getEndDate());
+										.setEndDate(renew.getEndDate());
 							}
 							forestDevelopmentContractor.getRenews().add(renew);
 						}
@@ -292,7 +293,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 				if (exist == true)
 				{
 					forestDevelopmentContractors
-					.add(forestDevelopmentContractor);
+							.add(forestDevelopmentContractor);
 				}
 			}
 			allForestDevelopmentContractors = null;
@@ -314,7 +315,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									.compareTo(renew.getEndDate()) < 0)
 							{
 								loggingContractor
-								.setEndDate(renew.getEndDate());
+										.setEndDate(renew.getEndDate());
 							}
 							loggingContractor.getRenews().add(renew);
 						}
@@ -907,7 +908,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 		model.setReceiptRecords(null);
 		model.setReceiptRecords(new ArrayList<>());
 		execute("PF('popupConfirmation').hide()");
-		if(model.getCategory() == 5 || model.getCategory() == 9 || model.getCategory() == 11 || model.getCategory() == 13)
+		if (model.getCategory() == 5 || model.getCategory() == 9
+				|| model.getCategory() == 11 || model.getCategory() == 13)
 		{
 			execute("PF('popupRenewReceiptRecord').show()");
 		}
@@ -936,7 +938,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 	}
 
 	public void handleRenewReceiptRecord()
-	{	
+	{
 		departmentVotList = null;
 		departmentVotList = new ArrayList<>();
 		model.setCategory(renewTypeID);
@@ -953,7 +955,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 
 				for (DepartmentVot departmentVot : departmentVots)
 					if (departmentVot.getBursaryVotID() == bursaryVot
-					.getBursaryVotID())
+							.getBursaryVotID())
 						items.add(
 								new SelectItem(departmentVot.getBursaryVotID(),
 										departmentVot.toString()));
@@ -1060,14 +1062,14 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 
 								if (model.getCategory() == 5)
 								{
-									calendar.setTime(chosenForestDevelopmentContractor
-											.getEndDate());
+									calendar.setTime(
+											chosenForestDevelopmentContractor
+													.getEndDate());
 
 									calendar.add(Calendar.DAY_OF_MONTH, 1);
 									renew.setStartDate(calendar.getTime());
 									calendar.add(Calendar.MONTH, duration);
-									calendar.add(Calendar.DAY_OF_MONTH,
-											-1);
+									calendar.add(Calendar.DAY_OF_MONTH, -1);
 									renew.setEndDate(calendar.getTime());
 
 									renew.setType("F");
@@ -1077,23 +1079,25 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									if (rFacade.addRenew(renew) != 0)
 									{
 										chosenForestDevelopmentContractor
-										.setEndDate(renew.getEndDate());
-										chosenForestDevelopmentContractor.getRenews()
-										.add(renew);
+												.setEndDate(renew.getEndDate());
+										chosenForestDevelopmentContractor
+												.getRenews().add(renew);
 										sort(chosenForestDevelopmentContractor
 												.getRenews());
 
 										addMessage(FacesMessage.SEVERITY_INFO,
 												null,
 												chosenForestDevelopmentContractor
-												+ " berjaya diperbaharui.");
+														+ " berjaya diperbaharui.");
 										log(rFacade,
 												"Tambah perbaharui kontraktor pembangunan hutan, ID "
 														+ renew.getRenewID());
 
-										for(ForestDevelopmentContractor forestDevelopmentContractor : forestDevelopmentContractors) 
+										for (ForestDevelopmentContractor forestDevelopmentContractor : forestDevelopmentContractors)
 										{
-											if(forestDevelopmentContractor.getForestDevelopmentContractorID() == chosenForestDevelopmentContractor.getForestDevelopmentContractorID())
+											if (forestDevelopmentContractor
+													.getForestDevelopmentContractorID() == chosenForestDevelopmentContractor
+															.getForestDevelopmentContractorID())
 											{
 												forestDevelopmentContractor = chosenForestDevelopmentContractor;
 												break;
@@ -1105,13 +1109,13 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										addMessage(FacesMessage.SEVERITY_INFO,
 												null,
 												chosenForestDevelopmentContractor
-												+ " tidak berjaya diperbaharui.");
+														+ " tidak berjaya diperbaharui.");
 									}
 								}
 								else if (model.getCategory() == 9)
 								{
-									calendar.setTime(
-											chosenLoggingContractor.getEndDate());
+									calendar.setTime(chosenLoggingContractor
+											.getEndDate());
 
 									calendar.add(Calendar.DAY_OF_MONTH, 1);
 									renew.setStartDate(calendar.getTime());
@@ -1125,23 +1129,25 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 
 									if (rFacade.addRenew(renew) != 0)
 									{
-										chosenLoggingContractor.setEndDate(
-												renew.getEndDate());
+										chosenLoggingContractor
+												.setEndDate(renew.getEndDate());
 										chosenLoggingContractor.getRenews()
-										.add(renew);
-										sort(chosenLoggingContractor.getRenews());
+												.add(renew);
+										sort(chosenLoggingContractor
+												.getRenews());
 
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
+										addMessage(FacesMessage.SEVERITY_INFO,
 												null, chosenLoggingContractor
-												+ " berjaya diperbaharui.");
+														+ " berjaya diperbaharui.");
 										log(rFacade,
 												"Tambah perbaharui pengusaha/kontraktor pembalakan, ID "
 														+ renew.getRenewID());
 
-										for(LoggingContractor loggingContractor : loggingContractors) 
+										for (LoggingContractor loggingContractor : loggingContractors)
 										{
-											if(loggingContractor.getLoggingContractorID() == chosenLoggingContractor.getLoggingContractorID())
+											if (loggingContractor
+													.getLoggingContractorID() == chosenLoggingContractor
+															.getLoggingContractorID())
 											{
 												loggingContractor = chosenLoggingContractor;
 												break;
@@ -1150,10 +1156,9 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									}
 									else
 									{
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
+										addMessage(FacesMessage.SEVERITY_INFO,
 												null, chosenLoggingContractor
-												+ " tidak berjaya diperbaharui.");
+														+ " tidak berjaya diperbaharui.");
 									}
 								}
 								else if (model.getCategory() == 11)
@@ -1161,39 +1166,34 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									calendar.setTime(
 											chosenLicense.getEndDate());
 
-									calendar.add(Calendar.DAY_OF_MONTH,
-											1);
-									renew.setStartDate(
-											calendar.getTime());
-									calendar.add(Calendar.MONTH,
-											duration);
-									calendar.add(Calendar.DAY_OF_MONTH,
-											-1);
-									renew.setEndDate(
-											calendar.getTime());
+									calendar.add(Calendar.DAY_OF_MONTH, 1);
+									renew.setStartDate(calendar.getTime());
+									calendar.add(Calendar.MONTH, duration);
+									calendar.add(Calendar.DAY_OF_MONTH, -1);
+									renew.setEndDate(calendar.getTime());
 
 									renew.setType("L");
-									renew.setLicenseID(
-											model.getLicenseID());
+									renew.setLicenseID(model.getLicenseID());
 
 									if (rFacade.addRenew(renew) != 0)
 									{
-										chosenLicense.setEndDate(
-												renew.getEndDate());
+										chosenLicense
+												.setEndDate(renew.getEndDate());
 										chosenLicense.getRenews().add(renew);
 										sort(chosenLicense.getRenews());
 
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
-												null,
-												chosenLicense + " berjaya diperbaharui.");
+										addMessage(FacesMessage.SEVERITY_INFO,
+												null, chosenLicense
+														+ " berjaya diperbaharui.");
 										log(rFacade,
 												"Tambah perbaharui lesen, ID "
 														+ renew.getRenewID());
 
-										for(License license : licenses) 
+										for (License license : licenses)
 										{
-											if(license.getLicenseID() == chosenLicense.getLicenseID())
+											if (license
+													.getLicenseID() == chosenLicense
+															.getLicenseID())
 											{
 												license = chosenLicense;
 												break;
@@ -1202,51 +1202,41 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									}
 									else
 									{
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
-												null,
-												chosenLicense + " tidak berjaya diperbaharui.");
+										addMessage(FacesMessage.SEVERITY_INFO,
+												null, chosenLicense
+														+ " tidak berjaya diperbaharui.");
 									}
 								}
 								else if (model.getCategory() == 13)
 								{
-									calendar.setTime(
-											chosenPermit.getEndDate());
-									calendar.add(
-											Calendar.DAY_OF_MONTH,
-											1);
-									renew.setStartDate(
-											calendar.getTime());
-									calendar.add(Calendar.MONTH,
-											duration);
-									calendar.add(Calendar.DAY_OF_MONTH,
-											-1);
-									renew.setEndDate(
-											calendar.getTime());
+									calendar.setTime(chosenPermit.getEndDate());
+									calendar.add(Calendar.DAY_OF_MONTH, 1);
+									renew.setStartDate(calendar.getTime());
+									calendar.add(Calendar.MONTH, duration);
+									calendar.add(Calendar.DAY_OF_MONTH, -1);
+									renew.setEndDate(calendar.getTime());
 									renew.setType("P");
-									renew.setPermitID(
-											model.getPermitID());
+									renew.setPermitID(model.getPermitID());
 
-									if (rFacade
-											.addRenew(renew) != 0)
+									if (rFacade.addRenew(renew) != 0)
 									{
-										chosenPermit.setEndDate(
-												renew.getEndDate());
-										chosenPermit.getRenews()
-										.add(renew);
+										chosenPermit
+												.setEndDate(renew.getEndDate());
+										chosenPermit.getRenews().add(renew);
 										sort(chosenPermit.getRenews());
 
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
-												null,
-												chosenPermit + " berjaya diperbaharui.");
+										addMessage(FacesMessage.SEVERITY_INFO,
+												null, chosenPermit
+														+ " berjaya diperbaharui.");
 										log(rFacade,
 												"Tambah perbaharui permit, ID "
 														+ renew.getRenewID());
 
-										for(Permit permit : permits) 
+										for (Permit permit : permits)
 										{
-											if(permit.getPermitID() == chosenPermit.getPermitID())
+											if (permit
+													.getPermitID() == chosenPermit
+															.getPermitID())
 											{
 												permit = chosenPermit;
 												break;
@@ -1255,14 +1245,13 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									}
 									else
 									{
-										addMessage(
-												FacesMessage.SEVERITY_INFO,
-												null,
-												chosenPermit + " tidak berjaya diperbaharui.");
+										addMessage(FacesMessage.SEVERITY_INFO,
+												null, chosenPermit
+														+ " tidak berjaya diperbaharui.");
 									}
 								}
 							}
-							else 
+							else
 							{
 								if (model.getCategory() == 10)
 								{
@@ -1273,15 +1262,15 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										{
 											if (trustFund
 													.getDepartmentVotID() == receiptRecord
-													.getDepartmentVotID())
+															.getDepartmentVotID())
 											{
 												rFacade.addWoodWorkFund(
 														receiptRecord.getRate()
-														.multiply(
-																receiptRecord
-																.getQuantity())
-														.setScale(2,
-																BigDecimal.ROUND_HALF_UP),
+																.multiply(
+																		receiptRecord
+																				.getQuantity())
+																.setScale(2,
+																		BigDecimal.ROUND_HALF_UP),
 														model.getLicenseID());
 											}
 										}
@@ -1290,14 +1279,15 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										{
 											if (trustFund
 													.getDepartmentVotID() == receiptRecord
-													.getDepartmentVotID())
+															.getDepartmentVotID())
 											{
-												rFacade.addLicenseFund(receiptRecord
-														.getRate()
-														.multiply(receiptRecord
-																.getQuantity())
-														.setScale(2,
-																BigDecimal.ROUND_HALF_UP),
+												rFacade.addLicenseFund(
+														receiptRecord.getRate()
+																.multiply(
+																		receiptRecord
+																				.getQuantity())
+																.setScale(2,
+																		BigDecimal.ROUND_HALF_UP),
 														model.getLicenseID());
 											}
 										}
@@ -1310,23 +1300,23 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										if (trustFund.getSymbol()
 												.equalsIgnoreCase("WAJ")
 												|| trustFund.getDescription()
-												.equalsIgnoreCase(
-														"WAKO")
+														.equalsIgnoreCase(
+																"WAKO")
 												|| trustFund.getDescription()
-												.equalsIgnoreCase(
-														"WAM"))
+														.equalsIgnoreCase(
+																"WAM"))
 										{
 											if (trustFund
 													.getDepartmentVotID() == receiptRecord
-													.getDepartmentVotID())
+															.getDepartmentVotID())
 											{
 												rFacade.addPermitFund(
 														receiptRecord.getRate()
-														.multiply(
-																receiptRecord
-																.getQuantity())
-														.setScale(2,
-																BigDecimal.ROUND_HALF_UP),
+																.multiply(
+																		receiptRecord
+																				.getQuantity())
+																.setScale(2,
+																		BigDecimal.ROUND_HALF_UP),
 														model.getPermitID());
 											}
 										}
@@ -1345,18 +1335,18 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 								revenue = null;
 
 								Transaction transaction = new Transaction();
-								transaction.setTransactionID(
-										timestamp + count);
+								transaction.setTransactionID(timestamp + count);
 								transaction.setTransactionType(
 										"11" + model.getCategory());
-								transaction
-								.setTransactionFormID(model.getReceiptID());
+								transaction.setTransactionFormID(
+										model.getReceiptID());
 								transaction.setDepartmentVotID(
 										receiptRecord.getDepartmentVotID());
 								transaction.setValue(receiptRecord.getRate()
 										.multiply(receiptRecord.getQuantity())
 										.setScale(2, BigDecimal.ROUND_HALF_UP));
-								transaction.setRecordTime(model.getRecordTime());
+								transaction
+										.setRecordTime(model.getRecordTime());
 								rFacade.addTransaction(transaction);
 								log(rFacade, "Tambah transaksi, ID "
 										+ transaction.getTransactionID());
@@ -1365,16 +1355,17 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 						}
 						else
 						{
-							addMessage(FacesMessage.SEVERITY_WARN, null, receiptRecord
-									+ " tidak dapat ditambahkan kerana resit rekod telah direkodkan sebelumnya.");
+							addMessage(FacesMessage.SEVERITY_WARN, null,
+									receiptRecord
+											+ " tidak dapat ditambahkan kerana resit rekod telah direkodkan sebelumnya.");
 						}
 					}
 
 					models.add(model);
 					sort(models);
 
-					addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak " + count
-							+ " rekod resit berjaya ditambahkan.");
+					addMessage(FacesMessage.SEVERITY_INFO, null, "Sebanyak "
+							+ count + " rekod resit berjaya ditambahkan.");
 				}
 				else
 				{
@@ -1385,9 +1376,10 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 				execute("PF('popupConfirmation').hide()");
 			}
 			model = null;
-		}catch(
+		}
+		catch (
 
-				SQLException e)
+		SQLException e)
 		{
 			e.printStackTrace();
 			addMessage(e);
@@ -1477,14 +1469,14 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 								receiptRecord.getRate().setScale(2,
 										BigDecimal.ROUND_HALF_UP);
 								receiptRecord
-								.setReceiptID(model.getReceiptID());
+										.setReceiptID(model.getReceiptID());
 
 								if (rFacade
 										.addReceiptRecord(receiptRecord) != 0)
 								{
 									log(rFacade, "Tambah rekod resit, ID "
 											+ receiptRecord
-											.getReceiptRecordID());
+													.getReceiptRecordID());
 
 									Revenue revenue = new Revenue();
 									revenue.setDepartmentVotID(
@@ -1519,7 +1511,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									{
 										if (receiptRecord
 												.getDepartmentVotID() == departmentVot
-												.getDepartmentVotID())
+														.getDepartmentVotID())
 										{
 											receiptRecord.setDepartmentVotCode(
 													departmentVot.getCode());
@@ -1528,7 +1520,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										}
 									}
 									model.getReceiptRecords()
-									.add(receiptRecord);
+											.add(receiptRecord);
 								}
 							}
 						}
@@ -1550,17 +1542,17 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							{
 								if (forestDevelopmentContractor
 										.getForestDevelopmentContractorID() == model
-										.getForestDevelopmentContractorID())
+												.getForestDevelopmentContractorID())
 								{
 									model.setContractorName(
 											forestDevelopmentContractor
-											.getName());
+													.getName());
 									model.setCompanyName(
 											forestDevelopmentContractor
-											.getCompanyName());
+													.getCompanyName());
 									model.setCompanyRegistrationNo(
 											forestDevelopmentContractor
-											.getRegisteredBusinessNo());
+													.getRegisteredBusinessNo());
 									model.setAddress(forestDevelopmentContractor
 											.getAddress());
 									model.setTelNo(forestDevelopmentContractor
@@ -1582,16 +1574,16 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									if (rFacade.addRenew(renew) != 0)
 									{
 										forestDevelopmentContractor
-										.setEndDate(renew.getEndDate());
+												.setEndDate(renew.getEndDate());
 										forestDevelopmentContractor.getRenews()
-										.add(renew);
+												.add(renew);
 										sort(forestDevelopmentContractor
 												.getRenews());
 
 										addMessage(FacesMessage.SEVERITY_INFO,
 												null,
 												forestDevelopmentContractor
-												+ " berjaya diperbaharui.");
+														+ " berjaya diperbaharui.");
 										log(rFacade,
 												"Tambah perbaharui kontraktor pembangunan hutan, ID "
 														+ renew.getRenewID());
@@ -1601,7 +1593,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										addMessage(FacesMessage.SEVERITY_INFO,
 												null,
 												forestDevelopmentContractor
-												+ " tidak berjaya diperbaharui.");
+														+ " tidak berjaya diperbaharui.");
 									}
 
 									break;
@@ -1616,11 +1608,11 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 								{
 									if (loggingContractor
 											.getLoggingContractorID() == model
-											.getLoggingContractorID())
+													.getLoggingContractorID())
 									{
 										model.setLoggingContractorRegistrationSerialNo(
 												loggingContractor
-												.getRegistrationSerialNo());
+														.getRegistrationSerialNo());
 										model.setLoggingContractorType(
 												loggingContractor.getType());
 										model.setContractorName(
@@ -1629,7 +1621,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 												.getCompanyName());
 										model.setCompanyRegistrationNo(
 												loggingContractor
-												.getBusinessRegistrationNo());
+														.getBusinessRegistrationNo());
 										model.setAddress(
 												loggingContractor.getAddress());
 										model.setTelNo(
@@ -1653,13 +1645,13 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 											loggingContractor.setEndDate(
 													renew.getEndDate());
 											loggingContractor.getRenews()
-											.add(renew);
+													.add(renew);
 											sort(loggingContractor.getRenews());
 
 											addMessage(
 													FacesMessage.SEVERITY_INFO,
 													null, loggingContractor
-													+ " berjaya diperbaharui.");
+															+ " berjaya diperbaharui.");
 											log(rFacade,
 													"Tambah perbaharui pengusaha/kontraktor pembalakan, ID "
 															+ renew.getRenewID());
@@ -1669,7 +1661,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 											addMessage(
 													FacesMessage.SEVERITY_INFO,
 													null, loggingContractor
-													+ " tidak berjaya diperbaharui.");
+															+ " tidak berjaya diperbaharui.");
 										}
 
 										break;
@@ -1789,7 +1781,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 													permit.setEndDate(
 															renew.getEndDate());
 													permit.getRenews()
-													.add(renew);
+															.add(renew);
 													sort(permit.getRenews());
 
 													addMessage(
@@ -1920,22 +1912,22 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							{
 								if (forestDevelopmentContractor
 										.getForestDevelopmentContractorID() == model
-										.getForestDevelopmentContractorID())
+												.getForestDevelopmentContractorID())
 								{
 									forestDevelopmentContractor.getRenews()
-									.remove(renew);
+											.remove(renew);
 									forestDevelopmentContractor
-									.setEndDate(date);
+											.setEndDate(date);
 									for (Renew ra : forestDevelopmentContractor
 											.getRenews())
 									{
 										if (ra.getEndDate().compareTo(
 												forestDevelopmentContractor
-												.getEndDate()) > 0)
+														.getEndDate()) > 0)
 										{
 											forestDevelopmentContractor
-											.setEndDate(
-													ra.getEndDate());
+													.setEndDate(
+															ra.getEndDate());
 										}
 									}
 									sort(forestDevelopmentContractor
@@ -1958,7 +1950,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							{
 								if (loggingContractor
 										.getLoggingContractorID() == model
-										.getLoggingContractorID())
+												.getLoggingContractorID())
 								{
 									loggingContractor.getRenews().remove(renew);
 									loggingContractor.setEndDate(date);
@@ -1980,7 +1972,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							}
 							addMessage(FacesMessage.SEVERITY_INFO, null,
 									"Perbaharui " + chosenLoggingContractor
-									+ " berjaya dibatalkan.");
+											+ " berjaya dibatalkan.");
 							log(facade,
 									"Batal perbaharui kontraktor pembangunan hutan, ID "
 											+ renew.getRenewID());
@@ -2009,7 +2001,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							}
 							addMessage(FacesMessage.SEVERITY_INFO, null,
 									"Perbaharui " + chosenLicense
-									+ " berjaya dibatalkan.");
+											+ " berjaya dibatalkan.");
 							log(facade, "Batal perbaharui lesen, ID "
 									+ renew.getRenewID());
 						}
@@ -2036,7 +2028,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							}
 							addMessage(FacesMessage.SEVERITY_INFO, null,
 									"Perbaharui " + chosenPermit
-									+ " berjaya dibatalkan.");
+											+ " berjaya dibatalkan.");
 							log(facade, "Batal perbaharui permit, ID "
 									+ renew.getRenewID());
 						}
@@ -2085,7 +2077,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							{
 								if (trustFund
 										.getDepartmentVotID() == receiptRecord
-										.getDepartmentVotID())
+												.getDepartmentVotID())
 								{
 									facade.subtractWoodWorkFund(receiptRecord
 											.getRate()
@@ -2100,7 +2092,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							{
 								if (trustFund
 										.getDepartmentVotID() == receiptRecord
-										.getDepartmentVotID())
+												.getDepartmentVotID())
 								{
 									facade.subtractLicenseFund(receiptRecord
 											.getRate()
@@ -2122,20 +2114,20 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 						{
 							if (trustFund.getSymbol().equalsIgnoreCase("WAJ")
 									|| trustFund.getSymbol()
-									.equalsIgnoreCase("WAKO")
+											.equalsIgnoreCase("WAKO")
 									|| trustFund.getSymbol()
-									.equalsIgnoreCase("WAM"))
+											.equalsIgnoreCase("WAM"))
 							{
 								if (trustFund
 										.getDepartmentVotID() == receiptRecord
-										.getDepartmentVotID())
+												.getDepartmentVotID())
 								{
 									facade.subtractJalanMatauKongsiFund(
 											receiptRecord.getRate()
-											.multiply(receiptRecord
-													.getQuantity())
-											.setScale(2,
-													BigDecimal.ROUND_HALF_UP),
+													.multiply(receiptRecord
+															.getQuantity())
+													.setScale(2,
+															BigDecimal.ROUND_HALF_UP),
 											model.getPermitID());
 								}
 							}
@@ -2197,9 +2189,9 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							.getDepartmentVotID())
 					{
 						receiptRecord
-						.setDepartmentVotCode(departmentVot.getCode());
+								.setDepartmentVotCode(departmentVot.getCode());
 						receiptRecord
-						.setDepartmentVotName(departmentVot.getName());
+								.setDepartmentVotName(departmentVot.getName());
 						break;
 					}
 				}
@@ -2213,7 +2205,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 			}
 		}
 
-		sort(model.getReceiptRecords()); 
+		sort(model.getReceiptRecords());
 
 		if (recordReceiptExist == false)
 		{
@@ -2229,7 +2221,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 					{
 						if (forestDevelopmentContractor
 								.getForestDevelopmentContractorID() == model
-								.getForestDevelopmentContractorID())
+										.getForestDevelopmentContractorID())
 						{
 							model.setContractorName(
 									forestDevelopmentContractor.getName());
@@ -2237,7 +2229,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									.getCompanyName());
 							model.setCompanyRegistrationNo(
 									forestDevelopmentContractor
-									.getRegistrationNo());
+											.getRegistrationNo());
 							model.setAddress(
 									forestDevelopmentContractor.getAddress());
 							model.setTelNo(
@@ -2256,7 +2248,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 						{
 							model.setLoggingContractorRegistrationSerialNo(
 									loggingContractor
-									.getRegistrationSerialNo());
+											.getRegistrationSerialNo());
 							model.setLoggingContractorType(
 									loggingContractor.getType());
 							model.setContractorName(
@@ -2384,7 +2376,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 				{
 					if (forestDevelopmentContractor
 							.getForestDevelopmentContractorID() == model
-							.getForestDevelopmentContractorID())
+									.getForestDevelopmentContractorID())
 					{
 						model.setContractorName(
 								forestDevelopmentContractor.getName());
@@ -2392,7 +2384,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 								forestDevelopmentContractor.getCompanyName());
 						model.setCompanyRegistrationNo(
 								forestDevelopmentContractor
-								.getRegisteredBusinessNo());
+										.getRegisteredBusinessNo());
 						model.setAddress(
 								forestDevelopmentContractor.getAddress());
 						model.setTelNo(forestDevelopmentContractor.getTelNo());
@@ -2411,7 +2403,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 						{
 							model.setLoggingContractorRegistrationSerialNo(
 									loggingContractor
-									.getRegistrationSerialNo());
+											.getRegistrationSerialNo());
 							model.setLoggingContractorType(
 									loggingContractor.getType());
 							model.setContractorName(
@@ -2525,9 +2517,9 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 							.getDepartmentVotID())
 					{
 						receiptRecord
-						.setDepartmentVotCode(departmentVot.getCode());
+								.setDepartmentVotCode(departmentVot.getCode());
 						receiptRecord
-						.setDepartmentVotName(departmentVot.getName());
+								.setDepartmentVotName(departmentVot.getName());
 					}
 				}
 				model.setGrandTotal(model.getGrandTotal()
@@ -2613,8 +2605,22 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 
 			ResitGenerator.generate(file, receipt, recordReceipts);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -2742,7 +2748,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 													{
 														name = "Laporan_Kutipan_Harian_Mengikut_Operator_Pada_"
 																+ dateFormat
-																.format(specificDate)
+																		.format(specificDate)
 																+ ".pdf";
 													}
 													else
@@ -2791,7 +2797,7 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 				ArrayList<String[]> receipts = rFacade
 						.getReceiptsString(startDate, endDate, 1);
 				LaporanKutipanHarianResitDariTarikhMulaHinggaTarikhAkhirGenerator
-				.generate(file, startDate, endDate, receipts, 1);
+						.generate(file, startDate, endDate, receipts, 1);
 			}
 			else
 			{
@@ -2811,10 +2817,24 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 					else
 					{
 						SenaraiResitYangDibatalkanDariTarikhMulaHinggaTarikhAkhirGenerator
-						.generate(file, startDate, endDate, receipts);
-						content = new DefaultStreamedContent(
-								new FileInputStream(file), "application/pdf",
-								name);
+								.generate(file, startDate, endDate, receipts);
+						content = DefaultStreamedContent.builder()
+								.contentType("application/pdf").name(name)
+								.stream(() ->
+								{
+									FileInputStream fis = null;
+
+									try
+									{
+										fis = new FileInputStream(file);
+									}
+									catch (IOException e)
+									{
+										e.printStackTrace();
+									}
+
+									return fis;
+								}).build();
 					}
 				}
 				else
@@ -2824,8 +2844,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 						ArrayList<String[]> receipts = rFacade
 								.getReceiptsString(startDate, endDate, 3);
 						BukuTunaiPungutanTerimaanDariTarikhMulaHinggaTarikhAkhirGenerator
-						.generate(file, startDate, endDate, receipts,
-								3);
+								.generate(file, startDate, endDate, receipts,
+										3);
 					}
 					else
 					{
@@ -2835,8 +2855,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 									.getReceiptsString(specificDate,
 											specificDate, 4);
 							LaporanKutipanHarianMengikutBentukBayaranPadaTarikhGenerator
-							.generate(file, specificDate, specificDate,
-									receipts, 4);
+									.generate(file, specificDate, specificDate,
+											receipts, 4);
 						}
 						else
 						{
@@ -2846,8 +2866,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 										.getReceiptsReportType5(startDate,
 												endDate);
 								LaporanKutipanHarianMengikutJenisDariTarikhMulaHinggaTarikhAkhirGenerator
-								.generate(file, startDate, endDate,
-										receipts);
+										.generate(file, startDate, endDate,
+												receipts);
 
 							}
 							else
@@ -2858,8 +2878,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 											.getLaporanKutipanHarianPadaTarikh(
 													specificDate);
 									LaporanKutipanHarianPadaTarikhGenerator
-									.generate(file, specificDate,
-											listOfDailyTransactions);
+											.generate(file, specificDate,
+													listOfDailyTransactions);
 
 								}
 								else
@@ -2876,8 +2896,8 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 														Integer.parseInt(year),
 														true);
 										LaporanUrusniagaAkaunAmanahPadaBulanDanTahunGenerator
-										.generate(file, vots,
-												cal.getTime());
+												.generate(file, vots,
+														cal.getTime());
 
 									}
 									else
@@ -2898,9 +2918,9 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																	year),
 															false);
 											LaporanUrusniagaAkaunHasilPadaBulanDanTahunGenerator
-											.generate(file,
-													cal.getTime(),
-													header, vots);
+													.generate(file,
+															cal.getTime(),
+															header, vots);
 
 										}
 										else
@@ -2921,10 +2941,10 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																Integer.parseInt(
 																		year));
 												PenyataAkaunAmanahMengikutJabatanPadaBulanDanTahunGenerator
-												.generate(file,
-														cal.getTime(),
-														header,
-														contents);
+														.generate(file,
+																cal.getTime(),
+																header,
+																contents);
 
 											}
 											else
@@ -2946,10 +2966,10 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																	Integer.parseInt(
 																			year));
 													PenyataAkaunHasilMengikutJabatanPadaBulanDanTahunGenerator
-													.generate(file, cal
-															.getTime(),
-															header,
-															contents);
+															.generate(file, cal
+																	.getTime(),
+																	header,
+																	contents);
 
 												}
 												else
@@ -2962,10 +2982,10 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																		endDate);
 
 														LaporanBagiPembatalanHasilDariTarikhMulaHinggaTarikhAkhirGenerator
-														.generate(file,
-																startDate,
-																endDate,
-																listOfCancelledTransactions);
+																.generate(file,
+																		startDate,
+																		endDate,
+																		listOfCancelledTransactions);
 													}
 													else
 													{
@@ -2987,11 +3007,11 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																			currentStaff);
 
 															LaporanKutipanHarianMengikutOperatorSepertiPadaTarikhGenerator
-															.generate(
-																	file,
-																	data,
-																	specificDate,
-																	currentStaff);
+																	.generate(
+																			file,
+																			data,
+																			specificDate,
+																			currentStaff);
 														}
 														else
 														{
@@ -3014,15 +3034,15 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 																				endDate,
 																				licenseID);
 																PenyataAkaunBagiLesenDariBulanDanTahunMulaHinggaBulanDanTahunAkhirGenerator
-																.generate(
-																		file,
-																		startDate,
-																		endDate,
-																		header,
-																		contents,
-																		balance,
-																		cess,
-																		trailers);
+																		.generate(
+																				file,
+																				startDate,
+																				endDate,
+																				header,
+																				contents,
+																				balance,
+																				cess,
+																				trailers);
 															}
 															else
 															{
@@ -3046,8 +3066,22 @@ public class ReceiptManagedBean extends AbstractManagedBean<Receipt>
 				}
 			}
 			if (reportType != 2)
-				content = new DefaultStreamedContent(new FileInputStream(file),
-						"application/pdf", name);
+				content = DefaultStreamedContent.builder()
+						.contentType("application/pdf").name(name).stream(() ->
+						{
+							FileInputStream fis = null;
+
+							try
+							{
+								fis = new FileInputStream(file);
+							}
+							catch (IOException e)
+							{
+								e.printStackTrace();
+							}
+
+							return fis;
+						}).build();
 		}
 		catch (Exception e)
 		{

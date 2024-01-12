@@ -2,6 +2,7 @@ package my.edu.utem.ftmk.fis9.revenue.controller.mbean;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -76,12 +77,13 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 
 			user = getCurrentUser();
 			String staffID = user.getStaffID();
-			int stateID = user.getStateID(), designationID = user.getDesignationID();
-			
+			int stateID = user.getStateID(),
+					designationID = user.getDesignationID();
+
 			trustFunds = mFacade.getTrustFunds("A");
 
 			ArrayList<License> tempLicenses = new ArrayList<License>();
-			
+
 			if (stateID == 0)
 			{
 				licenses = rFacade.getLicenses("A");
@@ -93,12 +95,13 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 			else
 			{
 				State state = mFacade.getState(stateID);
-				
+
 				licenses = rFacade.getLicenses(state, "A");
 				permits = rFacade.getPermits(state, "A");
 				allTransferPasses = hFacade.getTransferPasses(state, "A");
 
-				if (state.getDirectorID().equals(staffID) || designationID > 24 && designationID < 28)
+				if (state.getDirectorID().equals(staffID)
+						|| designationID > 24 && designationID < 28)
 				{
 					models = rFacade.getJournals(state);
 				}
@@ -107,13 +110,12 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 					models = rFacade.getJournals(user);
 				}
 			}
-			
+
 			for (License license : licenses)
 			{
 				for (TransferPass transferPass : allTransferPasses)
 				{
-					if (transferPass.getLicenseID() == license
-							.getLicenseID())
+					if (transferPass.getLicenseID() == license.getLicenseID())
 					{
 						tempLicenses.add(license);
 						break;
@@ -367,7 +369,8 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 		model.setRecorderName(user.getName());
 		model.setTotal(BigDecimal.ZERO);
 		model.setJournalRecords(new ArrayList<JournalRecord>());
-		if(model.getCategory() == 0) model.setTransferPasses(new ArrayList<TransferPass>());
+		if (model.getCategory() == 0)
+			model.setTransferPasses(new ArrayList<TransferPass>());
 		model.setStatus("A");
 
 		try (MaintenanceFacade mFacade = new MaintenanceFacade())
@@ -375,8 +378,10 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 			transactionForm = new TransactionForm();
 			transactionForm.setName(transactionFormName);
 			transactionForm = mFacade.getTransactionFormByName(transactionForm);
-			transactionFormMapDepartmentVots = mFacade.getTransactionFormMapDepartmentVots(transactionForm, "A");
-			transactionFormMapTrustFunds = mFacade.getTransactionFormMapTrustFunds(transactionForm, "A");
+			transactionFormMapDepartmentVots = mFacade
+					.getTransactionFormMapDepartmentVots(transactionForm, "A");
+			transactionFormMapTrustFunds = mFacade
+					.getTransactionFormMapTrustFunds(transactionForm, "A");
 		}
 		catch (SQLException e)
 		{
@@ -438,14 +443,14 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 			{
 				if (trustFund.getSymbol().equalsIgnoreCase("ROY"))
 				{
-					journalRecordRoyalty.setBursaryVotID(
-							trustFund.getBursaryVotID());
-					journalRecordRoyalty.setBursaryVotCode(
-							trustFund.getBursaryVotCode());
-					journalRecordRoyalty.setBursaryVotName(
-							trustFund.getBursaryVotName());
-					journalRecordRoyalty.setDepartmentVotID(
-							trustFund.getDepartmentVotID());
+					journalRecordRoyalty
+							.setBursaryVotID(trustFund.getBursaryVotID());
+					journalRecordRoyalty
+							.setBursaryVotCode(trustFund.getBursaryVotCode());
+					journalRecordRoyalty
+							.setBursaryVotName(trustFund.getBursaryVotName());
+					journalRecordRoyalty
+							.setDepartmentVotID(trustFund.getDepartmentVotID());
 					journalRecordRoyalty.setDepartmentVotCode(
 							trustFund.getDepartmentVotCode());
 					journalRecordRoyalty.setDepartmentVotName(
@@ -453,14 +458,14 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 				}
 				if (trustFund.getSymbol().equalsIgnoreCase("SES"))
 				{
-					journalRecordCess.setBursaryVotID(
-							trustFund.getBursaryVotID());
-					journalRecordCess.setBursaryVotCode(
-							trustFund.getBursaryVotCode());
-					journalRecordCess.setBursaryVotName(
-							trustFund.getBursaryVotName());
-					journalRecordCess.setDepartmentVotID(
-							trustFund.getDepartmentVotID());
+					journalRecordCess
+							.setBursaryVotID(trustFund.getBursaryVotID());
+					journalRecordCess
+							.setBursaryVotCode(trustFund.getBursaryVotCode());
+					journalRecordCess
+							.setBursaryVotName(trustFund.getBursaryVotName());
+					journalRecordCess
+							.setDepartmentVotID(trustFund.getDepartmentVotID());
 					journalRecordCess.setDepartmentVotCode(
 							trustFund.getDepartmentVotCode());
 					journalRecordCess.setDepartmentVotName(
@@ -536,8 +541,7 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 					{
 						if (currentPermit.getPermitTypeID() == 2)
 						{
-							if (trustFund.getSymbol()
-									.equalsIgnoreCase("WAKO"))
+							if (trustFund.getSymbol().equalsIgnoreCase("WAKO"))
 							{
 								journalRecord.setTrustFundID(
 										trustFund.getTrustFundID());
@@ -598,7 +602,8 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 			model.setJournalID(System.currentTimeMillis());
 			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 			model.setRecordTime(timestamp);
-			model.setJournalNo(model.getJournalNo().replaceAll("\\s", "").toUpperCase());
+			model.setJournalNo(
+					model.getJournalNo().replaceAll("\\s", "").toUpperCase());
 
 			for (JournalRecord journalRecord : journalRecords)
 			{
@@ -619,8 +624,8 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 			{
 				if (model.getCategory() == 1)
 				{
-					if (model.getTotal().compareTo(
-							currentPermit.getPermitFund()) > 0)
+					if (model.getTotal()
+							.compareTo(currentPermit.getPermitFund()) > 0)
 					{
 						exceedFund = true;
 					}
@@ -711,34 +716,47 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 										journalRecord.getTotal(),
 										model.getLicenseID()) != 0)
 								{
-									model.setWoodWorkFund(model.getWoodWorkFund().subtract(journalRecord.getTotal()));
+									model.setWoodWorkFund(
+											model.getWoodWorkFund().subtract(
+													journalRecord.getTotal()));
 									log(rFacade, "Kemaskini lesen, ID "
 											+ model.getLicenseID());
-								}								
+								}
 							}
 							else
 							{
 								if (model.getCategory() == 1)
 								{
-									for(TransactionFormMapDepartmentVot transactionFormMapDepartmentVot : transactionFormMapDepartmentVots)
+									for (TransactionFormMapDepartmentVot transactionFormMapDepartmentVot : transactionFormMapDepartmentVots)
 									{
-										if(transactionFormMapDepartmentVot.getDepartmentVotID() == journalRecord.getDepartmentVotID())
+										if (transactionFormMapDepartmentVot
+												.getDepartmentVotID() == journalRecord
+														.getDepartmentVotID())
 										{
-											journalRecord.setBursaryVotCode(transactionFormMapDepartmentVot.getBursaryVotCode());
-											journalRecord.setBursaryVotName(transactionFormMapDepartmentVot.getBursaryVotName());
-											journalRecord.setDepartmentVotCode(transactionFormMapDepartmentVot.getDepartmentVotCode());
-											journalRecord.setDepartmentVotName(transactionFormMapDepartmentVot.getDepartmentVotName());
+											journalRecord.setBursaryVotCode(
+													transactionFormMapDepartmentVot
+															.getBursaryVotCode());
+											journalRecord.setBursaryVotName(
+													transactionFormMapDepartmentVot
+															.getBursaryVotName());
+											journalRecord.setDepartmentVotCode(
+													transactionFormMapDepartmentVot
+															.getDepartmentVotCode());
+											journalRecord.setDepartmentVotName(
+													transactionFormMapDepartmentVot
+															.getDepartmentVotName());
 											break;
 										}
 									}
-									
-									if (rFacade
-											.subtractJalanMatauKongsiFund(
-													journalRecord
-															.getTotal(),
-													model.getPermitID()) != 0)
+
+									if (rFacade.subtractJalanMatauKongsiFund(
+											journalRecord.getTotal(),
+											model.getPermitID()) != 0)
 									{
-										model.setPermitFund(model.getPermitFund().subtract(journalRecord.getTotal()));
+										model.setPermitFund(
+												model.getPermitFund()
+														.subtract(journalRecord
+																.getTotal()));
 										log(rFacade, "Kemaskini permit, ID "
 												+ model.getPermitID());
 									}
@@ -784,22 +802,25 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 					transferPasses = null;
 					journalRecords = null;
 					sort(model.getJournalRecords());
-					for(Journal journal : models)
+					for (Journal journal : models)
 					{
-						if(journal.getCategory() == 0)
+						if (journal.getCategory() == 0)
 						{
-							if(journal.getLicenseID() == model.getLicenseID())
+							if (journal.getLicenseID() == model.getLicenseID())
 							{
-								journal.setWoodWorkFund(model.getWoodWorkFund());
+								journal.setWoodWorkFund(
+										model.getWoodWorkFund());
 							}
 						}
 						else
 						{
-							if(journal.getCategory() == 1)
+							if (journal.getCategory() == 1)
 							{
-								if(journal.getPermitID() == model.getPermitID())
+								if (journal.getPermitID() == model
+										.getPermitID())
 								{
-									journal.setPermitFund(model.getPermitFund());
+									journal.setPermitFund(
+											model.getPermitFund());
 								}
 							}
 						}
@@ -838,7 +859,8 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 					{
 						currentLicense = license;
 						model.setLicenseNo(license.getLicenseNo());
-						model.setLicenseeCompanyName(license.getLicenseeCompanyName());
+						model.setLicenseeCompanyName(
+								license.getLicenseeCompanyName());
 						model.setWoodWorkFund(license.getWoodWorkFund());
 						model.setLicenseFund(license.getLicenseFund());
 						break;
@@ -859,7 +881,8 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 						{
 							currentPermit = permit;
 							model.setPermitNo(permit.getPermitNo());
-							model.setLicenseeCompanyName(permit.getLicenseeCompanyName());
+							model.setLicenseeCompanyName(
+									permit.getLicenseeCompanyName());
 							model.setPermitFund(permit.getPermitFund());
 							break;
 						}
@@ -912,14 +935,29 @@ public class JournalManagedBean extends AbstractManagedBean<Journal>
 
 		try (RevenueFacade rFacade = new RevenueFacade())
 		{
-			String[] journalHeader = rFacade.getJournalHeader(journal.getJournalID());
+			String[] journalHeader = rFacade
+					.getJournalHeader(journal.getJournalID());
 			ArrayList<String[]> journalRecords = rFacade
 					.getJournalRecords(journal.getJournalID());
 
 			JurnalGenerator.generate(file, journalHeader, journalRecords);
 
-			content = new DefaultStreamedContent(new FileInputStream(file),
-					"application/pdf", name);
+			content = DefaultStreamedContent.builder()
+					.contentType("application/pdf").name(name).stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{

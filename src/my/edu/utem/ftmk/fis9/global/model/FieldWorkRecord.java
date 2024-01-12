@@ -1,7 +1,5 @@
 package my.edu.utem.ftmk.fis9.global.model;
 
-import my.edu.utem.ftmk.fis9.global.model.AbstractModel;
-
 /**
  * @author Satrya Fajri Pratama
  */

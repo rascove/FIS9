@@ -3,6 +3,7 @@ package my.edu.utem.ftmk.fis9.maintenance.controller.mbean;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,7 +21,7 @@ import javax.faces.context.FacesContext;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 
 import my.edu.utem.ftmk.fis9.global.controller.mbean.AbstractManagedBean;
 import my.edu.utem.ftmk.fis9.maintenance.controller.manager.MaintenanceFacade;
@@ -121,7 +122,7 @@ public class SpeciesManagedBean extends AbstractManagedBean<Species>
 		{
 			if (model.getCode().trim().isEmpty())
 				model.setCode(null);
-			
+
 			if (model.getSymbol().trim().isEmpty())
 				model.setSymbol(null);
 
@@ -137,7 +138,11 @@ public class SpeciesManagedBean extends AbstractManagedBean<Species>
 				if (timberType.getTimberTypeID() == model.getTimberTypeID())
 					model.setTimberTypeName(timberType.getName());
 
-			finalizeModelEntry(addOperation ? facade.addSpecies(model) : facade.updateSpecies(model), addOperation, facade, "spesis, ID " + model.getSpeciesID(), null, models, model);
+			finalizeModelEntry(
+					addOperation ? facade.addSpecies(model)
+							: facade.updateSpecies(model),
+					addOperation, facade, "spesis, ID " + model.getSpeciesID(),
+					null, models, model);
 			model = null;
 		}
 		catch (SQLException e)
@@ -148,22 +153,41 @@ public class SpeciesManagedBean extends AbstractManagedBean<Species>
 
 		execute("PF('popup').hide()");
 	}
-	
+
 	public StreamedContent download()
 	{
 		String name = "Spesis.cdo";
 		FacesContext context = FacesContext.getCurrentInstance();
 		ExternalContext external = context.getExternalContext();
-		File file = new File(external.getRealPath("/") + "files/maintenance/" + name);
+		File file = new File(
+				external.getRealPath("/") + "files/maintenance/" + name);
 		StreamedContent content = null;
 
 		file.getParentFile().mkdirs();
 
-		try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(file))))
+		try (ObjectOutputStream oos = new ObjectOutputStream(
+				new GZIPOutputStream(new FileOutputStream(file))))
 		{
 			oos.writeInt(11);
 			oos.writeObject(models.toArray(new Species[0]));
-			content = new DefaultStreamedContent(new FileInputStream(file), "application/octet-stream", name);
+
+			content = DefaultStreamedContent.builder()
+					.contentType("application/octet-stream").name(name)
+					.stream(() ->
+					{
+						FileInputStream fis = null;
+
+						try
+						{
+							fis = new FileInputStream(file);
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+
+						return fis;
+					}).build();
 		}
 		catch (Exception e)
 		{
@@ -173,28 +197,33 @@ public class SpeciesManagedBean extends AbstractManagedBean<Species>
 
 		return content;
 	}
-	
+
 	public void upload(FileUploadEvent event)
 	{
 		UploadedFile file = event.getFile();
 
 		if (file != null)
 		{
-			try (ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(file.getInputstream())); MaintenanceFacade facade = new MaintenanceFacade();)
+			try (ObjectInputStream ois = new ObjectInputStream(
+					new GZIPInputStream(file.getInputStream()));
+					MaintenanceFacade facade = new MaintenanceFacade();)
 			{
 				if (ois.readInt() != 11)
 					throw new InvalidClassException("Not species");
-				
+
 				Species[] speciesList = (Species[]) ois.readObject();
 				int add = 0, update = 0;
-				
+
 				for (Species species : speciesList)
 				{
 					boolean addOperation = !models.contains(species);
-					int status = addOperation ? facade.addSpecies(species) : facade.updateSpecies(species);
-					
-					finalizeModelEntry(status, addOperation, facade, "spesis, ID " + species.getSpeciesID(), models, species);
-					
+					int status = addOperation ? facade.addSpecies(species)
+							: facade.updateSpecies(species);
+
+					finalizeModelEntry(status, addOperation, facade,
+							"spesis, ID " + species.getSpeciesID(), models,
+							species);
+
 					if (status != 0)
 					{
 						if (addOperation)
@@ -203,8 +232,10 @@ public class SpeciesManagedBean extends AbstractManagedBean<Species>
 							update++;
 					}
 				}
-				
-				addMessage(FacesMessage.SEVERITY_INFO, null, add + " spesis berjaya ditambahkan dan " + update + " spesis berjaya dikemaskini.");
+
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						add + " spesis berjaya ditambahkan dan " + update
+								+ " spesis berjaya dikemaskini.");
 			}
 			catch (Exception e)
 			{

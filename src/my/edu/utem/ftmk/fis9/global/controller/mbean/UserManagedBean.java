@@ -14,7 +14,7 @@ import javax.faces.context.FacesContext;
 import javax.imageio.ImageIO;
 
 import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.UploadedFile;
+import org.primefaces.model.file.UploadedFile;
 import org.primefaces.model.menu.DefaultMenuItem;
 import org.primefaces.model.menu.DefaultMenuModel;
 import org.primefaces.model.menu.DefaultSubMenu;
@@ -34,7 +34,7 @@ import my.edu.utem.ftmk.fis9.maintenance.model.Staff;
  * @author Satrya Fajri Pratama
  */
 @SessionScoped
-@ManagedBean(name="userMBean")
+@ManagedBean(name = "userMBean")
 public class UserManagedBean extends AbstractManagedBean<Staff>
 {
 	private static final long serialVersionUID = VERSION;
@@ -42,7 +42,7 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 	private DefaultMenuModel menu;
 	private ArrayList<String> authorized;
 	private LinkedHashMap<String, String> icons, headers;
-	
+
 	public Staff getUser()
 	{
 		return model;
@@ -51,7 +51,7 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 	public void setUser(Staff user)
 	{
 		this.model = user;
-		
+
 		if (user == null)
 		{
 			menu = null;
@@ -117,7 +117,8 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 
 		try (MaintenanceFacade facade = new MaintenanceFacade())
 		{
-			model = facade.getStaff(staffID, StringProtector.encrypt(password, 1));
+			model = facade.getStaff(staffID,
+					StringProtector.encrypt(password, 1));
 			staffID = password = null;
 
 			if (model != null)
@@ -132,24 +133,33 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 					TrailLog trailLog = new TrailLog();
 					ArrayList<Form> temps = model.getForms();
 					ArrayList<Module> modules = facade.getModules();
-					PrettyConfig config = PrettyContext.getCurrentInstance().getConfig();
-					ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-					File file = new File(external.getRealPath("/") + "files/user/" + model.getStaffID() + ".png");
+					PrettyConfig config = PrettyContext.getCurrentInstance()
+							.getConfig();
+					ExternalContext external = FacesContext.getCurrentInstance()
+							.getExternalContext();
+					File file = new File(external.getRealPath("/")
+							+ "files/user/" + model.getStaffID() + ".png");
 					String path = external.getRequestContextPath();
-					int stateID = model.getStateID(), designationID = model.getDesignationID();
+					int stateID = model.getStateID(),
+							designationID = model.getDesignationID();
 					boolean admin = model.isAdministrative();
 
 					trailLog.setOperation("Log masuk");
 					trailLog.setStaffID(model.getStaffID());
 					facade.addTrailLog(trailLog);
 
-					menu.addElement(new DefaultMenuItem("Utama", "fa fa-home", path + "/utama"));
+					menu.getElements()
+							.add(DefaultMenuItem.builder().value("Utama")
+									.icon("fa fa-home").url(path + "/utama")
+									.build());
 					authorized.add("/utama");
 					authorized.add("/400");
 
 					if (file.exists())
-						picture = "background-image: url('" + path + "/files/user/" + model.getStaffID() + ".png');";
-					
+						picture = "background-image: url('" + path
+								+ "/files/user/" + model.getStaffID()
+								+ ".png');";
+
 					if (designationID == 0 || admin)
 						role = "admin";
 					else if (designationID >= 1 && designationID <= 15)
@@ -166,7 +176,7 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 						role = "finance";
 					else if (designationID == 28)
 						role = "contract";
-					
+
 					for (Module module : modules)
 					{
 						DefaultSubMenu submenu = null;
@@ -175,29 +185,45 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 
 						for (Form form : forms)
 						{
-							if (stateID == 0 && designationID == 0 || admin || temps.contains(form))
+							if (stateID == 0 && designationID == 0 || admin
+									|| temps.contains(form))
 							{
 								if (submenu == null)
-									submenu = new DefaultSubMenu(module.getName(), "fa fa-bars");
+									submenu = DefaultSubMenu.builder()
+											.label(module.getName())
+											.icon("fa fa-bars").build();
 
 								String category = form.getCategory();
-								UrlMapping url = config.getMappingById(form.getPath());
+								UrlMapping url = config
+										.getMappingById(form.getPath());
 
 								if (category != null)
 								{
-									DefaultSubMenu subcat = categories.get(category);
+									DefaultSubMenu subcat = categories
+											.get(category);
 
 									if (subcat == null)
 									{
-										categories.put(category, subcat = new DefaultSubMenu(category, "fa fa-list-ul"));
-										submenu.addElement(subcat);
+										categories.put(category,
+												subcat = DefaultSubMenu
+														.builder()
+														.label(category)
+														.icon("fa fa-list-ul")
+														.build());
+										submenu.getElements().add(subcat);
 									}
 
 									if (url != null)
 									{
-										String viewID = url.getViewId(), name = form.getName(), icon = form.getIcon();
-										
-										subcat.addElement(new DefaultMenuItem(name, "fa fa-" + icon, path + url.getPattern()));
+										String viewID = url.getViewId(),
+												name = form.getName(),
+												icon = form.getIcon();
+
+										subcat.getElements().add(DefaultMenuItem
+												.builder().value(name)
+												.icon("fa fa-" + icon)
+												.url(path + url.getPattern())
+												.build());
 										authorized.add(url.getPattern());
 										icons.put(viewID, icon);
 										headers.put(viewID, name);
@@ -207,9 +233,17 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 								{
 									if (url != null)
 									{
-										String viewID = url.getViewId(), name = form.getName(), icon = form.getIcon();
-										
-										submenu.addElement(new DefaultMenuItem(name, "fa fa-" + icon, path + url.getPattern()));
+										String viewID = url.getViewId(),
+												name = form.getName(),
+												icon = form.getIcon();
+
+										submenu.getElements()
+												.add(DefaultMenuItem.builder()
+														.value(name)
+														.icon("fa fa-" + icon)
+														.url(path + url
+																.getPattern())
+														.build());
 										authorized.add(url.getPattern());
 										icons.put(viewID, icon);
 										headers.put(viewID, name);
@@ -219,17 +253,19 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 						}
 
 						if (submenu != null && submenu.getElementsCount() != 0)
-							menu.addElement(submenu);
+							menu.getElements().add(submenu);
 					}
 				}
 				else
 				{
 					model = null;
-					addMessage(FacesMessage.SEVERITY_WARN, null, "Akaun anda telah dinyahaktifkan. Sila hubungi Pentadbir Sistem untuk bantuan.");
+					addMessage(FacesMessage.SEVERITY_WARN, null,
+							"Akaun anda telah dinyahaktifkan. Sila hubungi Pentadbir Sistem untuk bantuan.");
 				}
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_ERROR, null, "Emel dan kata laluan tidak sah.");
+				addMessage(FacesMessage.SEVERITY_ERROR, null,
+						"Emel dan kata laluan tidak sah.");
 		}
 		catch (SQLException e)
 		{
@@ -255,7 +291,7 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 		}
 
 		setUser(null);
-		
+
 		return "pretty:login";
 	}
 
@@ -280,7 +316,8 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 
 			if (status != 0)
 			{
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Profil berjaya dikemaskini.");
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Profil berjaya dikemaskini.");
 
 				TrailLog trailLog = new TrailLog();
 
@@ -289,7 +326,8 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 				facade.addTrailLog(trailLog);
 			}
 			else
-				addMessage(FacesMessage.SEVERITY_WARN, null, "Profil tidak dapat dikemaskini.");
+				addMessage(FacesMessage.SEVERITY_WARN, null,
+						"Profil tidak dapat dikemaskini.");
 		}
 		catch (SQLException e)
 		{
@@ -297,7 +335,7 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 			addMessage(e);
 		}
 	}
-	
+
 	public void upload(FileUploadEvent event)
 	{
 		UploadedFile uf = event.getFile();
@@ -306,16 +344,23 @@ public class UserManagedBean extends AbstractManagedBean<Staff>
 		{
 			try
 			{
-				BufferedImage bi = ImageIO.read(uf.getInputstream());
-				ExternalContext external = FacesContext.getCurrentInstance().getExternalContext();
-				File file = new File(external.getRealPath("/") + "files/user/" + model.getStaffID() + ".png");
+				BufferedImage bi = ImageIO.read(uf.getInputStream());
+				ExternalContext external = FacesContext.getCurrentInstance()
+						.getExternalContext();
+				File file = new File(external.getRealPath("/") + "files/user/"
+						+ model.getStaffID() + ".png");
 				int dimension = Math.min(bi.getWidth(), bi.getHeight());
-				
+
 				file.getParentFile().mkdirs();
-				ImageIO.write(bi.getSubimage(0, 0, dimension, dimension), "png", file);
-				addMessage(FacesMessage.SEVERITY_INFO, null, "Gambar profil berjaya dikemaskini.");
-				
-				picture = "background-image: url('" + external.getRequestContextPath() + "/files/user/" + model.getStaffID() + ".png?v=" + System.currentTimeMillis() + "');";
+				ImageIO.write(bi.getSubimage(0, 0, dimension, dimension), "png",
+						file);
+				addMessage(FacesMessage.SEVERITY_INFO, null,
+						"Gambar profil berjaya dikemaskini.");
+
+				picture = "background-image: url('"
+						+ external.getRequestContextPath() + "/files/user/"
+						+ model.getStaffID() + ".png?v="
+						+ System.currentTimeMillis() + "');";
 			}
 			catch (Exception e)
 			{
