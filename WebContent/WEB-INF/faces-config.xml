@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+
+
+
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+
+
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd"
+
+
+
+    version="2.2">
+
+	<lifecycle>
+		<phase-listener>my.edu.utem.ftmk.fis9.global.controller.access.SessionListener</phase-listener>
+		<phase-listener>com.ocpsoft.pretty.faces.event.MultiPageMessagesSupport</phase-listener>
+	</lifecycle>
+	<application>
+		<view-handler>my.edu.utem.ftmk.fis9.global.controller.access.SessionHandler</view-handler>
+	</application>
+	<converter>
+		<converter-id>dateConverter</converter-id>
+		<converter-class>my.edu.utem.ftmk.fis9.global.util.DateConverter</converter-class>
+	</converter>
+	<component>
+		<component-type>org.primefaces.component.UltimaMenu</component-type>
+		<component-class>org.primefaces.ultima.component.menu.UltimaMenu</component-class>
+	</component>
+	<render-kit>
+		<renderer>
+			<component-family>org.primefaces.component</component-family>
+			<renderer-type>org.primefaces.component.UltimaMenuRenderer</renderer-type>
+			<renderer-class>org.primefaces.ultima.component.menu.UltimaMenuRenderer</renderer-class>
+		</renderer>
+	</render-kit>
+</faces-config>

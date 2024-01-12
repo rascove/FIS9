@@ -1,0 +1,2361 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<script type="text/javascript">
+			function getLocation() {
+				if (navigator.geolocation) {
+					navigator.geolocation
+							.getCurrentPosition(
+									function(position) {
+										document
+												.getElementById("frmEntry:accordion:latitude_input").value = position.coords.latitude;
+										document
+												.getElementById("frmEntry:accordion:longitude_input").value = position.coords.longitude;
+										document
+												.getElementById("frmEntry:accordion:latitude_hinput").value = position.coords.latitude;
+										document
+												.getElementById("frmEntry:accordion:longitude_hinput").value = position.coords.longitude;
+									}, function(error) {
+									}, {
+										enableHighAccuracy : true
+									});
+				}
+			}
+		</script>
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:outputPanel
+				rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and preFellingSurveyCardMBean.accessLevel gt 3}">
+				<h3 style="color: white">Tarikh Kerja:
+					#{preFellingSurveyCardMBean.workingDates}</h3>
+			</p:outputPanel>
+			<p:dataTable id="table" widgetVar="list" var="preFellingSurveyCard"
+				value="#{preFellingSurveyCardMBean.preFellingSurveyCards}"
+				reflow="true" emptyMessage="Tiada kad bancian direkodkan."
+				paginator="#{preFellingSurveyCardMBean.preFellingSurveyCards.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+								<p:selectOneMenu id="preFellingSurveyID"
+									value="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID}"
+									required="true" requiredMessage="Sila pilih sesi bancian."
+									filter="true" filterMatchMode="contains"
+									styleClass="table-filter">
+									<f:selectItem itemLabel="- pilih sesi bancian -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.preFellingSurveys}"
+										var="preFellingSurvey" itemLabel="#{preFellingSurvey}"
+										itemValue="#{preFellingSurvey.preFellingSurveyID}" />
+									<p:ajax update="frmManager :frmUpload" event="change"
+										listener="#{preFellingSurveyCardMBean.handlePreFellingSurveyIDChange}" />
+								</p:selectOneMenu>
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;"><p:menuButton
+									value="Import/eksport" iconPos="right"
+									styleClass="secondary flat"
+									rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and ((preFellingSurveyCardMBean.accessLevel lt 2 or preFellingSurveyCardMBean.accessLevel == 7) or (preFellingSurveyCardMBean.accessLevel == 2 or preFellingSurveyCardMBean.accessLevel == 3) and (preFellingSurveyCardMBean.preFellingSurvey.rangeID != 0 or preFellingSurveyCardMBean.preFellingSurvey.rangeID == 0 and not empty preFellingSurveyCardMBean.preFellingSurveyCards) or preFellingSurveyCardMBean.accessLevel == 4 or preFellingSurveyCardMBean.accessLevel gt 4 and preFellingSurveyCardMBean.accessLevel lt 7 and not empty preFellingSurveyCardMBean.preFellingSurveyCards)}">
+									<p:menuitem value="Muat turun (PDF)"
+										icon="ui-icon-picture-as-pdf" ajax="false"
+										rendered="#{not empty preFellingSurveyCardMBean.preFellingSurveyCards and (preFellingSurveyCardMBean.accessLevel != 2 and preFellingSurveyCardMBean.accessLevel != 3 or (preFellingSurveyCardMBean.accessLevel == 2 or preFellingSurveyCardMBean.accessLevel == 3) and preFellingSurveyCardMBean.validated)}">
+										<p:fileDownload
+											value="#{preFellingSurveyCardMBean.download(true)}" />
+									</p:menuitem>
+									<p:menuitem value="Muat turun (PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownload"
+										action="#{preFellingSurveyCardMBean.prepareDownload}"
+										oncomplete="PF('popupDownload').show()" process="@this"
+										rendered="#{not empty preFellingSurveyCardMBean.preFellingSurveyCards and (preFellingSurveyCardMBean.accessLevel == 2 or preFellingSurveyCardMBean.accessLevel == 3) and not preFellingSurveyCardMBean.validated}" />
+									<p:menuitem
+										value="Muat turun (#{preFellingSurveyCardMBean.downtype.toUpperCase()})"
+										icon="ui-icon-file-download" ajax="false"
+										rendered="#{not empty preFellingSurveyCardMBean.preFellingSurveyCards and ((preFellingSurveyCardMBean.accessLevel == 2 or preFellingSurveyCardMBean.accessLevel == 3) and preFellingSurveyCardMBean.validated or preFellingSurveyCardMBean.accessLevel gt 3 and preFellingSurveyCardMBean.accessLevel lt 7)}">
+										<p:fileDownload
+											value="#{preFellingSurveyCardMBean.download(false)}" />
+									</p:menuitem>
+									<p:menuitem
+										value="Muat naik (#{preFellingSurveyCardMBean.uptype.toUpperCase()})"
+										icon="ui-icon-file-upload"
+										oncomplete="PF('popupUpload').show()" process="@this"
+										rendered="#{((preFellingSurveyCardMBean.accessLevel lt 5 or preFellingSurveyCardMBean.accessLevel == 7) and preFellingSurveyCardMBean.preFellingSurvey.tenderNo == null or (preFellingSurveyCardMBean.accessLevel lt 2 or preFellingSurveyCardMBean.accessLevel == 7) and preFellingSurveyCardMBean.preFellingSurvey.tenderNo != null) and preFellingSurveyCardMBean.preFellingSurvey.open}">
+										<p:resetInput target=":frmUpload" />
+									</p:menuitem>
+								</p:menuButton> <p:spacer width="5" /> <p:commandButton
+									value="Tambah kad bancian" icon="ui-icon-add"
+									update=":frmEntry"
+									action="#{preFellingSurveyCardMBean.handleOpen}"
+									oncomplete="PF('popup').show(); getLocation();" process="@this"
+									styleClass="secondary flat"
+									rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and preFellingSurveyCardMBean.preFellingSurvey.open and preFellingSurveyCardMBean.accessLevel gt 3 and preFellingSurveyCardMBean.accessLevel lt 7}">
+									<f:setPropertyActionListener value="true"
+										target="#{preFellingSurveyCardMBean.addOperation}" />
+									<p:resetInput target=":frmEntry" />
+								</p:commandButton> <p:commandButton value="Sahkan kad bancian"
+									icon="ui-icon-check" update="frmManager"
+									action="#{preFellingSurveyCardMBean.validate}" process="@this"
+									styleClass="secondary flat"
+									rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and preFellingSurveyCardMBean.preFellingSurvey.open and preFellingSurveyCardMBean.preFellingSurvey.tenderNo == null and preFellingSurveyCardMBean.accessLevel == 2 and not preFellingSurveyCardMBean.validated and preFellingSurveyCardMBean.downloaded}" />
+								<p:commandButton value="Jana laporan" icon="ui-icon-web"
+									update="frmReport"
+									action="#{preFellingSurveyCardMBean.prepareReport}"
+									oncomplete="PF('popupReport').show()" process="@this"
+									styleClass="secondary flat"
+									rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and preFellingSurveyCardMBean.accessLevel lt 2 and (preFellingSurveyCardMBean.validated or preFellingSurveyCardMBean.preFellingSurvey.tenderNo != null) and not empty preFellingSurveyCardMBean.preFellingSurveyCards}" />
+								<p:menuButton value="Laporan" iconPos="right"
+									styleClass="secondary flat"
+									rendered="#{preFellingSurveyCardMBean.selectedPreFellingSurveyID != 0 and preFellingSurveyCardMBean.accessLevel == 7 and (preFellingSurveyCardMBean.validated or preFellingSurveyCardMBean.preFellingSurvey.tenderNo != null) and not empty preFellingSurveyCardMBean.preFellingSurveyCards}">
+									<p:menuitem value="Jana laporan" icon="ui-icon-web"
+										update="frmReport"
+										action="#{preFellingSurveyCardMBean.prepareReport}"
+										oncomplete="PF('popupReport').show()" process="@this" />
+									<p:menuitem value="Syor opsyen had tebangan"
+										icon="ui-icon-check-box" update="frmReport2"
+										action="#{preFellingSurveyCardMBean.prepareReport}"
+										oncomplete="PF('popupReport2').show()" process="@this"
+										disabled="#{not preFellingSurveyCardMBean.preFellingSurvey.open}" />
+									<p:menuitem value="Muat turun penetapan had tebangan"
+										icon="ui-icon-picture-as-pdf" ajax="false"
+										disabled="#{empty preFellingSurveyCardMBean.recommendations}">
+										<p:fileDownload
+											value="#{preFellingSurveyCardMBean.downloadLetter()}" />
+									</p:menuitem>
+								</p:menuButton></td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="No. Garisan"
+					sortBy="#{preFellingSurveyCard.lineNo}"
+					filterBy="#{preFellingSurveyCard.lineNo}"
+					filterMatchMode="contains">
+					<h:outputText value="#{preFellingSurveyCard.lineNo}" />
+				</p:column>
+				<p:column headerText="No. Petak"
+					sortBy="#{preFellingSurveyCard.plotNo}"
+					filterBy="#{preFellingSurveyCard.plotNo}"
+					filterMatchMode="contains">
+					<h:outputText value="#{preFellingSurveyCard.plotNo}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod Kod"
+					sortBy="#{preFellingSurveyCard.recorderName}"
+					filterBy="#{preFellingSurveyCard.recorderName}"
+					filterMatchMode="contains">
+					<h:outputText value="#{preFellingSurveyCard.recorderName}" />
+				</p:column>
+				<p:column headerText="Tarikh"
+					sortBy="#{preFellingSurveyCard.surveyDate}"
+					filterBy="#{preFellingSurveyCard.surveyDate}"
+					filterMatchMode="contains">
+					<h:outputText value="#{preFellingSurveyCard.surveyDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Status"
+					rendered="#{(preFellingSurveyCardMBean.accessLevel lt 4 or preFellingSurveyCardMBean.accessLevel == 7) and preFellingSurveyCardMBean.preFellingSurvey.tenderNo == null}">
+					<h:outputText
+						value="#{preFellingSurveyCard.inspectorID == null ? (preFellingSurveyCard.inspectionDate == null ? 'Belum disemak' : 'Belum disahkan') : 'Telah disahkan oleh '.concat(preFellingSurveyCard.inspectorName).concat(' pada ')}" />
+					<h:outputText value="#{preFellingSurveyCard.inspectionDate}"
+						rendered="#{preFellingSurveyCard.inspectorID != null}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Pilihan"
+					rendered="#{preFellingSurveyCardMBean.preFellingSurvey.open and preFellingSurveyCardMBean.accessLevel gt 3 and preFellingSurveyCardMBean.accessLevel lt 7}"
+					style="text-align: center">
+					<p:commandButton value="Kemaskini kad bancian" icon="ui-icon-edit"
+						update=":frmEntry"
+						action="#{preFellingSurveyCardMBean.handleOpen}"
+						oncomplete="PF('popup').show(); getLocation();" process="@this"
+						rendered="#{preFellingSurveyCard.inspectionDate == null and (preFellingSurveyCard.recorderID == userMBean.user.staffID or preFellingSurveyCardMBean.preFellingSurvey.teamLeaderID == userMBean.user.staffID or preFellingSurveyCardMBean.accessLevel == 4)}">
+						<f:setPropertyActionListener value="false"
+							target="#{preFellingSurveyCardMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{preFellingSurveyCard}"
+							target="#{preFellingSurveyCardMBean.preFellingSurveyCard}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+					<h:outputText value="Tiada pilihan tersedia"
+						rendered="#{preFellingSurveyCard.inspectionDate != null or preFellingSurveyCard.recorderID != userMBean.user.staffID and preFellingSurveyCardMBean.preFellingSurvey.teamLeaderID != userMBean.user.staffID and preFellingSurveyCardMBean.accessLevel != 4}" />
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCard.preFellingSurveyRecords}"
+							reflow="true" emptyMessage="Tiada rekod bancian direkodkan."
+							paginator="#{preFellingSurveyCard.preFellingSurveyRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<p:outputPanel style="text-align: right; margin: 8px 0px;"
+									rendered="#{preFellingSurveyCard.inspectionDate == null and (preFellingSurveyCard.recorderID == userMBean.user.staffID or preFellingSurveyCardMBean.preFellingSurvey.teamLeaderID == userMBean.user.staffID or preFellingSurveyCardMBean.accessLevel == 4) and preFellingSurveyCardMBean.preFellingSurvey.open}">
+									<p:menuButton value="Tambah rekod bancian" iconPos="right"
+										styleClass="secondary flat">
+										<p:menuitem value="Tunggal" icon="ui-icon-control-point"
+											update=":frmEntrySurveyRecord"
+											action="#{preFellingSurveyCardMBean.handleOpenPreFellingSurveyRecord}"
+											oncomplete="PF('popupSurveyRecord').show()" process="@this">
+											<f:setPropertyActionListener value="true"
+												target="#{preFellingSurveyCardMBean.addPreFellingSurveyRecordOperation}" />
+											<f:setPropertyActionListener value="#{preFellingSurveyCard}"
+												target="#{preFellingSurveyCardMBean.preFellingSurveyCard}" />
+											<p:resetInput target=":frmEntrySurveyRecord" />
+										</p:menuitem>
+										<p:menuitem value="Pelbagai"
+											icon="ui-icon-control-point-duplicate"
+											update=":frmEntryTraditional"
+											action="#{preFellingSurveyCardMBean.handleOpenTraditional}"
+											oncomplete="PF('popupTraditional').show()" process="@this">
+											<f:setPropertyActionListener value="#{preFellingSurveyCard}"
+												target="#{preFellingSurveyCardMBean.preFellingSurveyCard}" />
+											<p:resetInput target=":frmEntryTraditional" />
+										</p:menuitem>
+									</p:menuButton>
+								</p:outputPanel>
+								<h:outputText value="Senarai Rekod Bancian"
+									rendered="#{not preFellingSurveyCardMBean.preFellingSurvey.open or preFellingSurveyCard.inspectionDate != null or preFellingSurveyCard.recorderID != userMBean.user.staffID and preFellingSurveyCardMBean.preFellingSurvey.teamLeaderID != userMBean.user.staffID and preFellingSurveyCardMBean.accessLevel != 4}" />
+							</f:facet>
+							<p:column headerText="Jenis Petak"
+								sortBy="#{preFellingSurveyRecord.plotTypeName}"
+								filterBy="#{preFellingSurveyRecord.plotTypeID}"
+								filterMatchMode="contains" groupRow="true"
+								style="vertical-align: top">
+								<f:facet name="filter">
+									<p:selectOneMenu onchange="PF('sublist').filter()"
+										filter="true">
+										<f:selectItem itemLabel="Semua jenis petak" itemValue="" />
+										<f:selectItems value="#{preFellingSurveyCardMBean.plotTypes}"
+											var="plotType" itemLabel="#{plotType}"
+											itemValue="#{plotType.plotTypeID}" />
+									</p:selectOneMenu>
+								</f:facet>
+								<h:outputText value="#{preFellingSurveyRecord.plotTypeName}" />
+								<br />
+								<h:outputText
+									value="Bilangan rekod: #{preFellingSurveyCard.getRecordCount(preFellingSurveyRecord.plotTypeName)}" />
+							</p:column>
+							<p:column headerText="Spesis"
+								sortBy="#{preFellingSurveyRecord.speciesCode}"
+								filterBy="#{preFellingSurveyRecord.speciesCode} #{preFellingSurveyRecord.speciesName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{preFellingSurveyRecord.speciesCode == null ? '' : preFellingSurveyRecord.speciesCode.concat(' - ')}#{preFellingSurveyRecord.speciesName}" />
+							</p:column>
+							<p:column headerText="Keterangan" style="vertical-align: top">
+								<h:outputText
+									value="Diameter: #{preFellingSurveyRecord.diameter} cm"
+									rendered="#{preFellingSurveyRecord.plotTypeID lt 6}" />
+								<ui:fragment
+									rendered="#{preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyRecord.plotTypeID == 2}">
+									<br />
+									<h:outputText
+										value="Bilangan balak: #{preFellingSurveyRecord.logQuantity}" />
+									<br />
+									<h:outputText
+										value="Kualiti balak: #{preFellingSurveyRecord.logQuality} - #{preFellingSurveyRecord.logQualityName}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyRecord.plotTypeID == 4 or preFellingSurveyRecord.plotTypeID == 5}">
+									<br />
+									<h:outputText
+										value="Kesuburan: #{preFellingSurveyRecord.fertility} - #{preFellingSurveyRecord.fertilityName}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyRecord.plotTypeID == 2 or preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyRecord.plotTypeID == 4}">
+									<br />
+									<h:outputText
+										value="Melingkari: #{preFellingSurveyRecord.vineSpreadth} - #{preFellingSurveyRecord.vineSpreadthName}" />
+									<br />
+									<h:outputText
+										value="Diameter pepanjat: #{preFellingSurveyRecord.vineDiameter} cm"
+										rendered="#{preFellingSurveyRecord.vineSpreadthID == 1 or preFellingSurveyRecord.vineSpreadthID == 2}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{preFellingSurveyRecord.plotTypeID == 6}">
+									<h:outputText
+										value="Bilangan > 1.5 m tinggi - 5 cm diameter: #{preFellingSurveyRecord.saplingQuantity}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{preFellingSurveyRecord.plotTypeID == 7}">
+									<h:outputText
+										value="Bilangan > 15 cm - 150 cm tinggi: #{preFellingSurveyRecord.seedlingQuantity}" />
+								</ui:fragment>
+							</p:column>
+							<p:column headerText="Pilihan"
+								rendered="#{preFellingSurveyCard.inspectionDate == null and (preFellingSurveyCard.recorderID == userMBean.user.staffID or preFellingSurveyCardMBean.preFellingSurvey.teamLeaderID == userMBean.user.staffID or preFellingSurveyCardMBean.accessLevel == 4) and preFellingSurveyCardMBean.preFellingSurvey.open}"
+								style="text-align: center">
+								<p:menuButton value="Pilihan" iconPos="right">
+									<p:menuitem value="Kemaskini rekod bancian" icon="ui-icon-edit"
+										action="#{preFellingSurveyCardMBean.handleOpenPreFellingSurveyRecord}"
+										update=":frmEntrySurveyRecord"
+										oncomplete="PF('popupSurveyRecord').show()" process="@this">
+										<f:setPropertyActionListener value="false"
+											target="#{preFellingSurveyCardMBean.addPreFellingSurveyRecordOperation}" />
+										<f:setPropertyActionListener value="#{preFellingSurveyCard}"
+											target="#{preFellingSurveyCardMBean.preFellingSurveyCard}" />
+										<f:setPropertyActionListener value="#{preFellingSurveyRecord}"
+											target="#{preFellingSurveyCardMBean.preFellingSurveyRecord}" />
+										<p:resetInput target=":frmEntrySurveyRecord" />
+									</p:menuitem>
+									<p:menuitem value="Padam rekod bancian" icon="ui-icon-delete"
+										action="#{preFellingSurveyCardMBean.preFellingSurveyRecordDelete}"
+										update="subtable :frmManager:growl" process="@this">
+										<f:setPropertyActionListener value="#{preFellingSurveyCard}"
+											target="#{preFellingSurveyCardMBean.preFellingSurveyCard}" />
+										<f:setPropertyActionListener value="#{preFellingSurveyRecord}"
+											target="#{preFellingSurveyCardMBean.preFellingSurveyRecord}" />
+										<p:confirm header="Pengesahan" message="Apakah anda yakin?"
+											icon="ui-icon-alert" />
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+							<f:facet name="footer">#{preFellingSurveyCard.preFellingSurveyRecords.size()} rekod bancian direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{preFellingSurveyCardMBean.preFellingSurveyCards == null ? 0 : preFellingSurveyCardMBean.preFellingSurveyCards.size()} kad bancian direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+		<p:dialog widgetVar="modalloading" draggable="false" closable="false"
+			resizable="false" modal="true" showHeader="false">
+			<i class="fa fa-circle-o-notch fa-spin ajax-loader"
+				aria-hidden="true"></i>
+		</p:dialog>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:accordionPanel id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Asas">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="lineNo" value="No. garisan:" />
+							<p:inputText id="lineNo"
+								value="#{preFellingSurveyCardMBean.preFellingSurveyCard.lineNo}"
+								required="true" requiredMessage="No. garisan diperlukan."
+								validatorMessage="No. garisan mestilah 20 aksara dan ke bawah.">
+								<f:validateLength maximum="20" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="plotNo" value="No. petak:" />
+							<p:inputText id="plotNo"
+								value="#{preFellingSurveyCardMBean.preFellingSurveyCard.plotNo}"
+								required="true" requiredMessage="No. petak diperlukan."
+								validatorMessage="No. petak mestilah 20 aksara dan ke bawah.">
+								<f:validateLength maximum="20" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="latitude" value="Latitud:" />
+							<p:inputNumber id="latitude"
+								value="#{preFellingSurveyCardMBean.preFellingSurveyCard.latitude}"
+								decimalPlaces="15">
+								<p:clientValidator />
+							</p:inputNumber>
+							<p:outputLabel for="longitude" value="Longitud:" />
+							<p:inputNumber id="longitude"
+								value="#{preFellingSurveyCardMBean.preFellingSurveyCard.longitude}"
+								decimalPlaces="15">
+								<p:clientValidator />
+							</p:inputNumber>
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Maklumat Hutan">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="forestTypeID" value="Jenis hutan:" />
+								<p:selectOneMenu id="forestTypeID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.forestTypeID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Jenis hutan diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih jenis hutan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.forestTypes}"
+										var="forestType" itemLabel="#{forestType}"
+										itemValue="#{forestType.forestTypeID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="soilTypeID" value="Jenis tanah:" />
+								<p:selectOneMenu id="soilTypeID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.soilTypeID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Jenis tanah diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih jenis tanah -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.soilTypes}"
+										var="soilType" itemLabel="#{soilType}"
+										itemValue="#{soilType.soilTypeID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="geology" value="Geologi:" />
+								<p:inputText id="geology"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.geology}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Geologi diperlukan."
+									validatorMessage="Geologi mestilah 5 aksara dan ke bawah.">
+									<f:validateLength maximum="5" />
+									<p:clientValidator />
+								</p:inputText>
+								<p:outputLabel for="areaStatusID" value="Keadaan kawasan:" />
+								<p:selectOneMenu id="areaStatusID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.areaStatusID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Keadaan kawasan diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih keadaan kawasan -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.areaStatuses}"
+										var="areaStatus" itemLabel="#{areaStatus}"
+										itemValue="#{areaStatus.areaStatusID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="soilStatusID" value="Keadaan tanah:" />
+								<p:selectOneMenu id="soilStatusID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.soilStatusID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Keadaan tanah diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih keadaan tanah -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.soilStatuses}"
+										var="soilStatus" itemLabel="#{soilStatus}"
+										itemValue="#{soilStatus.soilStatusID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="aspectID" value="Aspek:" />
+								<p:selectOneMenu id="aspectID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.aspectID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Aspek diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih aspek -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.aspects}"
+										var="aspect" itemLabel="#{aspect}"
+										itemValue="#{aspect.aspectID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="slope" value="Cerun:" />
+								<p:inputNumber id="slope"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.slope}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Cerun diperlukan." decimalPlaces="0"
+									symbol="%" symbolPosition="s">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="slopeLocationID" value="Tempat cerun:" />
+								<p:selectOneMenu id="slopeLocationID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.slopeLocationID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Tempat cerun diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih tempat cerun -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.slopeLocations}"
+										var="slopeLocation" itemLabel="#{slopeLocation}"
+										itemValue="#{slopeLocation.slopeLocationID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="elevationID" value="Dongakan:" />
+								<p:selectOneMenu id="elevationID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.elevationID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Dongakan diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih dongakan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.elevations}"
+										var="elevation" itemLabel="#{elevation}"
+										itemValue="#{elevation.elevationID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="bertam" value="Bertam:" />
+								<p:inputNumber id="bertam"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.bertam}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Bertam diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="palm" value="Palma:" />
+								<p:inputNumber id="palm"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.palm}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Palma diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="resamID" value="Resam:" />
+								<p:selectOneMenu id="resamID"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.resamID}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Resam diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{preFellingSurveyCardMBean.preFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih resam -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.resams}"
+										var="resam" itemLabel="#{resam}" itemValue="#{resam.resamID}" />
+								</p:selectOneMenu>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+					<p:tab title="Maklumat Rotan dan Buluh">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="rattanA"
+									value="Rotan A (manau/manau tikus):" />
+								<p:inputNumber id="rattanA"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanA}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan A diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanB" value="Rotan B (semambu):" />
+								<p:inputNumber id="rattanB"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanB}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan B diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanC" value="Rotan C (dok):" />
+								<p:inputNumber id="rattanC"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanC}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan C diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanD" value="Rotan D (sega):" />
+								<p:inputNumber id="rattanD"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanD}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan D diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanE" value="Rotan E (dahan):" />
+								<p:inputNumber id="rattanE"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanE}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan E diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanF"
+									value="Rotan F (lain-lain jenis > 4 cm):" />
+								<p:inputNumber id="rattanF"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanF}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan F diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="rattanG"
+									value="Rotan G (lain-lain jenis ≤ 4 cm):" />
+								<p:inputNumber id="rattanG"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.rattanG}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Rotan G diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="bambooA"
+									value="Buluh A (kumpulan buluh betong):" />
+								<p:inputNumber id="bambooA"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.bambooA}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Buluh A diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="bambooB"
+									value="Buluh B (lain-lain jenis > 3 diameter):" />
+								<p:inputNumber id="bambooB"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.bambooB}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Buluh B diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="bambooC"
+									value="Buluh C (lain-lain jenis ≤ 3 diameter):" />
+								<p:inputNumber id="bambooC"
+									value="#{preFellingSurveyCardMBean.preFellingSurveyCard.bambooC}"
+									required="#{preFellingSurveyCardMBean.accessLevel == 4}"
+									requiredMessage="Buluh C diperlukan." decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{preFellingSurveyCardMBean.preFellingSurveyCardEntry}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popup').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntrySurveyRecord">
+			<p:dialog id="popupSurveyRecord" widgetVar="popupSurveyRecord"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesSurveyRecord" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="plotTypeID" value="Jenis petak:" />
+					<p:selectOneMenu id="plotTypeID"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID}"
+						required="true" requiredMessage="Sila pilih jenis petak."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupSurveyRecord').initPosition()"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord != null}">
+						<f:selectItem itemLabel="- pilih jenis petak -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{preFellingSurveyCardMBean.plotTypes}"
+							var="plotType" itemLabel="#{plotType}"
+							itemValue="#{plotType.plotTypeID}" />
+						<p:ajax update="grid" event="change"
+							listener="#{preFellingSurveyCardMBean.handlePlotTypeIDChange}"
+							oncomplete="PF('popupSurveyRecord').initPosition()" />
+					</p:selectOneMenu>
+					<p:outputLabel for="speciesID" value="Spesis:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID != 0}" />
+					<p:selectOneMenu id="speciesID"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.speciesID}"
+						required="true" requiredMessage="Sila pilih spesis." filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupSurveyRecord').initPosition()"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord != null and preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID != 0}">
+						<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+						<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+							var="species" itemLabel="#{species}"
+							itemValue="#{species.speciesID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="diameter" value="Diameter:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID != 0 and preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID lt 6}" />
+					<p:inputNumber id="diameter"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.diameter}"
+						required="true" requiredMessage="Diameter diperlukan."
+						validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotType.minDiameter} cm dan #{preFellingSurveyCardMBean.plotType.maxDiameter} cm."
+						symbol=" cm" symbolPosition="s"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID != 0 and preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID lt 6}">
+						<f:validateDoubleRange
+							minimum="#{preFellingSurveyCardMBean.plotType.minDiameter}"
+							maximum="#{preFellingSurveyCardMBean.plotType.maxDiameter}" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="logQuantity" value="Bilangan balak:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2}" />
+					<p:inputNumber id="logQuantity"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.logQuantity}"
+						required="true" requiredMessage="Bilangan balak diperlukan."
+						validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+						decimalPlaces="0"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2}">
+						<f:validateDoubleRange minimum="1" maximum="5" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="logQualityID" value="Kualiti balak:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2}" />
+					<p:selectOneRadio id="logQualityID"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.logQualityID}"
+						required="true" requiredMessage="Sila pilih kualiti balak."
+						layout="responsive" columns="3"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord != null and (preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2)}">
+						<f:selectItems value="#{preFellingSurveyCardMBean.logQualities}"
+							var="logQuality" itemLabel="#{logQuality}"
+							itemValue="#{logQuality.logQualityID}" />
+					</p:selectOneRadio>
+					<p:outputLabel for="fertilityID" value="Kesuburan:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 5}" />
+					<p:selectOneRadio id="fertilityID"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.fertilityID}"
+						required="true" requiredMessage="Sila pilih kesuburan."
+						layout="responsive" columns="2"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord != null and (preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 5)}">
+						<f:selectItems value="#{preFellingSurveyCardMBean.fertilities}"
+							var="fertility" itemLabel="#{fertility}"
+							itemValue="#{fertility.fertilityID}" />
+					</p:selectOneRadio>
+					<p:outputLabel for="vineSpreadthID" value="Melingkari:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4}" />
+					<p:selectOneRadio id="vineSpreadthID"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.vineSpreadthID}"
+						required="true" requiredMessage="Sila pilih melingkari."
+						layout="responsive" columns="3"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord != null and (preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4)}">
+						<f:selectItems value="#{preFellingSurveyCardMBean.vineSpreadths}"
+							var="vineSpreadth" itemLabel="#{vineSpreadth}"
+							itemValue="#{vineSpreadth.vineSpreadthID}" />
+						<p:ajax update="vineDiameter" event="change"
+							listener="#{preFellingSurveyCardMBean.doNothing}" />
+					</p:selectOneRadio>
+					<p:outputLabel for="vineDiameter" value="Diameter pepanjat:"
+						disabled="#{preFellingSurveyCardMBean.preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyCardMBean.preFellingSurveyRecord.vineSpreadthID != 2}"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4}" />
+					<p:inputNumber id="vineDiameter"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.vineDiameter}"
+						required="true" requiredMessage="Diameter pepanjat diperlukan."
+						decimalPlaces="0" symbol=" cm" symbolPosition="s"
+						disabled="#{preFellingSurveyCardMBean.preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyCardMBean.preFellingSurveyRecord.vineSpreadthID != 2}"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 1 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 2 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 3 or preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 4}">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="saplingQuantity"
+						value="Bilangan > 1.5 m tinggi - 5 cm diameter:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 6}" />
+					<p:inputNumber id="saplingQuantity"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.saplingQuantity}"
+						required="true"
+						requiredMessage="Bilangan anak-anak pokok diperlukan."
+						decimalPlaces="0"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 6}">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="seedlingQuantity"
+						value="Bilangan > 15 cm - 150 cm tinggi:"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 7}" />
+					<p:inputNumber id="seedlingQuantity"
+						value="#{preFellingSurveyCardMBean.preFellingSurveyRecord.seedlingQuantity}"
+						required="true" requiredMessage="Bilangan anak benih diperlukan."
+						decimalPlaces="0"
+						rendered="#{preFellingSurveyCardMBean.preFellingSurveyRecord.plotTypeID == 7}">
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{preFellingSurveyCardMBean.preFellingSurveyRecordEntry}"
+							update=":frmManager:growl messagesSurveyRecord grid #{preFellingSurveyCardMBean.component}"
+							oncomplete="PF('popupSurveyRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupSurveyRecord').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryTraditional">
+			<p:dialog id="popupTraditional" widgetVar="popupTraditional"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesTraditional" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:accordionPanel widgetVar="accordion"
+					onTabShow="PF('popupTraditional').initPosition()"
+					onTabChange="PF('popupTraditional').initPosition()"
+					onTabClose="PF('popupTraditional').initPosition()">
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[0].toString()}">
+						<p:dataTable id="bulk1" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[0].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk1:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber value="#{preFellingSurveyRecord.diameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotTypes[0].minDiameter} cm dan #{preFellingSurveyCardMBean.plotTypes[0].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{preFellingSurveyCardMBean.plotTypes[0].minDiameter}"
+										maximum="#{preFellingSurveyCardMBean.plotTypes[0].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Balak">
+								<p:inputNumber value="#{preFellingSurveyRecord.logQuantity}"
+									required="true" requiredMessage="Bilangan balak diperlukan."
+									validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+									decimalPlaces="0"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange minimum="1" maximum="5" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kualiti Balak">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.logQualityID}"
+									required="true" requiredMessage="Sila pilih kualiti balak."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih kualiti balak -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.logQualities}"
+										var="logQuality" itemLabel="#{logQuality}"
+										itemValue="#{logQuality.logQualityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Melingkari">
+								<p:selectOneMenu id="vineSpreadthID"
+									value="#{preFellingSurveyRecord.vineSpreadthID}"
+									required="true" requiredMessage="Sila pilih melingkari."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih melingkari -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.vineSpreadths}"
+										var="vineSpreadth" itemLabel="#{vineSpreadth}"
+										itemValue="#{vineSpreadth.vineSpreadthID}" />
+									<p:ajax update="vineDiameter" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter Pepanjat">
+								<p:inputNumber id="vineDiameter"
+									value="#{preFellingSurveyRecord.vineDiameter}" required="true"
+									requiredMessage="Diameter pepanjat diperlukan."
+									decimalPlaces="0" symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0 or preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyRecord.vineSpreadthID != 2}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[1].toString()}">
+						<p:dataTable id="bulk2" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[1].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk2:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber value="#{preFellingSurveyRecord.diameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotTypes[1].minDiameter} cm dan #{preFellingSurveyCardMBean.plotTypes[1].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{preFellingSurveyCardMBean.plotTypes[1].minDiameter}"
+										maximum="#{preFellingSurveyCardMBean.plotTypes[1].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Balak">
+								<p:inputNumber value="#{preFellingSurveyRecord.logQuantity}"
+									required="true" requiredMessage="Bilangan balak diperlukan."
+									validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+									decimalPlaces="0"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange minimum="1" maximum="5" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kualiti Balak">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.logQualityID}"
+									required="true" requiredMessage="Sila pilih kualiti balak."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih kualiti balak -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.logQualities}"
+										var="logQuality" itemLabel="#{logQuality}"
+										itemValue="#{logQuality.logQualityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Melingkari">
+								<p:selectOneMenu id="vineSpreadthID"
+									value="#{preFellingSurveyRecord.vineSpreadthID}"
+									required="true" requiredMessage="Sila pilih melingkari."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih melingkari -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.vineSpreadths}"
+										var="vineSpreadth" itemLabel="#{vineSpreadth}"
+										itemValue="#{vineSpreadth.vineSpreadthID}" />
+									<p:ajax update="vineDiameter" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter Pepanjat">
+								<p:inputNumber id="vineDiameter"
+									value="#{preFellingSurveyRecord.vineDiameter}" required="true"
+									requiredMessage="Diameter pepanjat diperlukan."
+									decimalPlaces="0" symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0 or preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyRecord.vineSpreadthID != 2}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[2].toString()}">
+						<p:dataTable id="bulk3" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[2].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk3:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber value="#{preFellingSurveyRecord.diameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotTypes[2].minDiameter} cm dan #{preFellingSurveyCardMBean.plotTypes[2].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{preFellingSurveyCardMBean.plotTypes[2].minDiameter}"
+										maximum="#{preFellingSurveyCardMBean.plotTypes[2].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kesuburan">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.fertilityID}"
+									required="true" requiredMessage="Sila pilih kesuburan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih kesuburan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.fertilities}"
+										var="fertility" itemLabel="#{fertility}"
+										itemValue="#{fertility.fertilityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Melingkari">
+								<p:selectOneMenu id="vineSpreadthID"
+									value="#{preFellingSurveyRecord.vineSpreadthID}"
+									required="true" requiredMessage="Sila pilih melingkari."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih melingkari -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.vineSpreadths}"
+										var="vineSpreadth" itemLabel="#{vineSpreadth}"
+										itemValue="#{vineSpreadth.vineSpreadthID}" />
+									<p:ajax update="vineDiameter" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter Pepanjat">
+								<p:inputNumber id="vineDiameter"
+									value="#{preFellingSurveyRecord.vineDiameter}" required="true"
+									requiredMessage="Diameter pepanjat diperlukan."
+									decimalPlaces="0" symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0 or preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyRecord.vineSpreadthID != 2}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[3].toString()}">
+						<p:dataTable id="bulk4" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[3].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk4:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber value="#{preFellingSurveyRecord.diameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotTypes[3].minDiameter} cm dan #{preFellingSurveyCardMBean.plotTypes[3].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{preFellingSurveyCardMBean.plotTypes[3].minDiameter}"
+										maximum="#{preFellingSurveyCardMBean.plotTypes[3].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kesuburan">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.fertilityID}"
+									required="true" requiredMessage="Sila pilih kesuburan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih kesuburan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.fertilities}"
+										var="fertility" itemLabel="#{fertility}"
+										itemValue="#{fertility.fertilityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Melingkari">
+								<p:selectOneMenu id="vineSpreadthID"
+									value="#{preFellingSurveyRecord.vineSpreadthID}"
+									required="true" requiredMessage="Sila pilih melingkari."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih melingkari -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{preFellingSurveyCardMBean.vineSpreadths}"
+										var="vineSpreadth" itemLabel="#{vineSpreadth}"
+										itemValue="#{vineSpreadth.vineSpreadthID}" />
+									<p:ajax update="vineDiameter" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter Pepanjat">
+								<p:inputNumber id="vineDiameter"
+									value="#{preFellingSurveyRecord.vineDiameter}" required="true"
+									requiredMessage="Diameter pepanjat diperlukan."
+									decimalPlaces="0" symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0 or preFellingSurveyRecord.vineSpreadthID != 1 and preFellingSurveyRecord.vineSpreadthID != 2}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[4].toString()}">
+						<p:dataTable id="bulk5" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[4].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk5:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber value="#{preFellingSurveyRecord.diameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{preFellingSurveyCardMBean.plotTypes[4].minDiameter} cm dan #{preFellingSurveyCardMBean.plotTypes[4].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{preFellingSurveyCardMBean.plotTypes[4].minDiameter}"
+										maximum="#{preFellingSurveyCardMBean.plotTypes[4].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kesuburan">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.fertilityID}"
+									required="true" requiredMessage="Sila pilih kesuburan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<f:selectItem itemLabel="- pilih kesuburan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.fertilities}"
+										var="fertility" itemLabel="#{fertility}"
+										itemValue="#{fertility.fertilityID}" />
+								</p:selectOneMenu>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[5].toString()}">
+						<p:dataTable id="bulk6" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[5].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk6:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Anak-anak Pokok">
+								<p:inputNumber value="#{preFellingSurveyRecord.saplingQuantity}"
+									required="true"
+									requiredMessage="Bilangan anak-anak pokok diperlukan."
+									decimalPlaces="0"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="#{preFellingSurveyCardMBean.plotTypes[6].toString()}">
+						<p:dataTable id="bulk7" rowIndexVar="ri"
+							var="preFellingSurveyRecord"
+							value="#{preFellingSurveyCardMBean.traditionalPreFellingSurveyCards[6].preFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu value="#{preFellingSurveyRecord.speciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems value="#{preFellingSurveyCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk7:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Anak Benih">
+								<p:inputNumber
+									value="#{preFellingSurveyRecord.seedlingQuantity}"
+									required="true"
+									requiredMessage="Bilangan anak benih diperlukan."
+									decimalPlaces="0"
+									disabled="#{preFellingSurveyRecord.speciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{preFellingSurveyCardMBean.preFellingSurveyRecordEntryTraditional}"
+							update=":frmManager:growl messagesTraditional #{preFellingSurveyCardMBean.component}"
+							onclick="PF('accordion').select(0)"
+							oncomplete="PF('popupTraditional').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popupTraditional').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload" enctype="multipart/form-data">
+			<p:dialog id="popupUpload" widgetVar="popupUpload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload widgetVar="upload"
+					fileUploadListener="#{preFellingSurveyCardMBean.upload}"
+					label="Pilih #{preFellingSurveyCardMBean.uptype.toUpperCase()} fail"
+					uploadLabel="Muat naik" cancelLabel="Batal"
+					invalidFileMessage="Sila hantar fail #{preFellingSurveyCardMBean.uptype.toUpperCase()} sahaja"
+					allowTypes="/(\.|\/)(#{preFellingSurveyCardMBean.uptype})$/"
+					dragDropSupport="true" update=":frmManager messagesUpload @this"
+					onstart="startUpload()" onerror="PF('modalloading').hide()" />
+				<p:remoteCommand name="prepareUpload"
+					actionListener="#{preFellingSurveyCardMBean.prepareUpload}" />
+				<script type="text/javascript">
+					function startUpload() {
+						prepareUpload([ {
+							name : 'totalFiles',
+							value : PF('upload').files.length
+						} ]);
+						PF('popupUpload').hide();
+						PF('modalloading').show();
+					}
+				</script>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownload">
+			<p:dialog id="popupDownload" widgetVar="popupDownload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">
+					#{preFellingSurveyCardMBean.recommendation}<br />Anda tidak perlu
+					memilih mana-mana no. garisan bila ingin memuat turun semua kad
+					bancian yang belum disemak.
+				</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:selectManyCheckbox id="lineList"
+						value="#{preFellingSurveyCardMBean.selectedLines}"
+						layout="pageDirection" columns="1">
+						<f:selectItems value="#{preFellingSurveyCardMBean.lineList}" />
+						<p:ajax listener="#{preFellingSurveyCardMBean.selectLine}"
+							update="percentage" />
+					</p:selectManyCheckbox>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<h:outputText id="percentage"
+							value="#{preFellingSurveyCardMBean.percentage}" />
+						<p:spacer width="10" />
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownload').hide();"
+							styleClass="save-btn">
+							<p:fileDownload
+								value="#{preFellingSurveyCardMBean.download(true)}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmReport">
+			<p:dialog id="popupReport" widgetVar="popupReport" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:tabView onTabShow="PF('popupReport').initPosition()"
+					onTabChange="PF('popupReport').initPosition()"
+					onTabClose="PF('popupReport').initPosition()">
+					<p:tab title="Jadual 1">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.nonCumulativeEstimations}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[0]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Kriteria" />
+									<p:column headerText="15" />
+									<p:column headerText="30" />
+									<p:column headerText="45" />
+									<p:column headerText="50" />
+									<p:column headerText="55" />
+									<p:column headerText="60" />
+									<p:column headerText="65" />
+									<p:column headerText="70" />
+									<p:column headerText="75" />
+									<p:column headerText="80" />
+									<p:column headerText="85" />
+									<p:column headerText="90+" />
+									<p:column headerText="Jumlah" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[12]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 2">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.cumulativeEstimations}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[1]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Kriteria" />
+									<p:column headerText="+15" />
+									<p:column headerText="+30" />
+									<p:column headerText="+45" />
+									<p:column headerText="+50" />
+									<p:column headerText="+55" />
+									<p:column headerText="+60" />
+									<p:column headerText="+65" />
+									<p:column headerText="+70" />
+									<p:column headerText="+75" />
+									<p:column headerText="+80" />
+									<p:column headerText="+85" />
+									<p:column headerText="+90" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 3">
+						<p:dataTable var="preFellingCuttingOption"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.preFellingCuttingOptions}"
+							emptyMessage="Tiada opsyen had tebangan tersedia."
+							scrollable="true" scrollHeight="200">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[2]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Opsyen Had Tebangan (cm)" />
+									<p:column colspan="3"
+										headerText="Pengeluaran Isipadu Bersih Sehektar (m&#x00B3;)" />
+									<p:column colspan="4"
+										headerText="Pokok Tebangan Sehektar (Bilangan)" />
+									<p:column colspan="4"
+										headerText="Bilangan Pokok Bersih Sehektar Dari Kelas Diameter + 30 cm - 45 cm dan Pokok Berdiameter + 45 cm yang Setara Dengannya Dalam Dirian Tinggal (Bilangan)" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.dipterocarpLimit}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.nonDipterocarpLimit}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipNetVolume}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipNetVolume}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetVolume}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipCount}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipCount}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalCount}" />
+									<p:column headerText="% Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeTotalCountRatio}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipNetCountPartial}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipNetCountPartial}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartial}" />
+									<p:column headerText="% Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartialRatio}" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.dipterocarpLimit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.nonDipterocarpLimit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalCountRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipNetCountPartial}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipNetCountPartial}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetCountPartial}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetCountPartialRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">NOTA: Peratus KAUM DIPTEROKARP yang berdiameter +30 cm dalam dirian asal = <h:outputText
+									value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.originalStandRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 4">
+						<p:dataTable var="preFellingCuttingOption"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.preFellingCuttingOptions}"
+							emptyMessage="Tiada opsyen had tebangan tersedia."
+							scrollable="true" scrollHeight="200">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[3]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Opsyen Had Tebangan (cm)" />
+									<p:column colspan="3"
+										headerText="Pengeluaran Isipadu Bersih Sehektar (m&#x00B3;)" />
+									<p:column colspan="4"
+										headerText="Pokok Tebangan Sehektar (Bilangan)" />
+									<p:column colspan="4"
+										headerText="Bilangan Pokok Bersih Sehektar Dari Kelas Diameter + 30 cm - 45 cm dan Pokok Berdiameter + 45 cm yang Setara Dengannya Dalam Dirian Tinggal (Bilangan)" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.dipterocarpLimit}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.nonDipterocarpLimit}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipNetVolume}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipNetVolume}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetVolume}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipCount}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipCount}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalCount}" />
+									<p:column headerText="% Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeTotalCountRatio}" />
+									<p:column headerText="Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeDipNetCountPartial}" />
+									<p:column headerText="Bukan Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeNonDipNetCountPartial}" />
+									<p:column headerText="Jumlah"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartial}" />
+									<p:column headerText="% Dipterokarp"
+										sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartialRatio}" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.dipterocarpLimit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.nonDipterocarpLimit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetVolume}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalCount}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalCountRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeDipNetCountAll}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeNonDipNetCountAll}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetCountAll}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText
+									value="#{preFellingCuttingOption.relativeTotalNetCountAllRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">NOTA: Peratus KAUM DIPTEROKARP yang berdiameter +30 cm dalam dirian asal = <h:outputText
+									value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.originalStandRatio}">
+									<f:convertNumber maxFractionDigits="2" type="percent" />
+								</h:outputText>
+							</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 5">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.vineSpreadthCounts}"
+							emptyMessage="Tiada bilangan pepanjat tersedia."
+							scrollable="true" scrollHeight="200">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[4]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" colspan="2"
+										headerText="Kelas Diameter Pokok (cm)" />
+									<p:column colspan="6" headerText="Diameter Pepanjat (cm)" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="2 cm - 5 cm Diameter" />
+									<p:column colspan="2" headerText="+ 5 cm Diameter" />
+									<p:column colspan="2" headerText="Jumlah Besar" />
+								</p:row>
+								<p:row>
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[0].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[1].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[0].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[1].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[0].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.vineSpreadths[1].name}" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 6">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.logQuantityCounts}"
+							emptyMessage="Tiada kuantiti balak tersedia." scrollable="true"
+							scrollHeight="300">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[5]}</f:facet>
+							<p:column headerText="Kumpulan Spesis" groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column headerText="Bilangan Balak" groupRow="true">
+								<h:outputText value="#{element.subgroup}" />
+							</p:column>
+							<p:column headerText="Kriteria">
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column headerText="+ 30 - 45">
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 45 - 60">
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 60 - 75">
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 75 - 90">
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 90">
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="Jumlah Besar">
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 7">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.logQualityCounts}"
+							emptyMessage="Tiada kualiti balak tersedia." scrollable="true"
+							scrollHeight="300">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[6]}</f:facet>
+							<p:column headerText="Kumpulan Spesis" groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column headerText="Kualiti Balak" groupRow="true">
+								<h:outputText value="#{element.subgroup}" />
+							</p:column>
+							<p:column headerText="Kriteria">
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column headerText="+ 30 - 45">
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 45 - 60">
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 60 - 75">
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 75 - 90">
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="+ 90">
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="Jumlah Besar">
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 8">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.bertamPalmCounts}"
+							emptyMessage="Tiada ringkasan rumpun tersedia.">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[7]}</f:facet>
+							<p:column headerText="Ringkasan">
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column headerText="Bertam">
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="Palma">
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 9">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.resamCounts}"
+							emptyMessage="Tiada ringkasan resam tersedia.">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[8]}</f:facet>
+							<p:column headerText="Kelas Peratusan">
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column
+								headerText="#{preFellingSurveyCardMBean.resams[0].name}">
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column
+								headerText="#{preFellingSurveyCardMBean.resams[1].name}">
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column
+								headerText="#{preFellingSurveyCardMBean.resams[2].name}">
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column
+								headerText="#{preFellingSurveyCardMBean.resams[3].name}">
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column
+								headerText="#{preFellingSurveyCardMBean.resams[4].name}">
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="Jumlah">
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 10">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.rattanBambooCounts}"
+							emptyMessage="Tiada ringkasa rotan dan buluh tersedia.">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[9]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="Jenis" />
+									<p:column colspan="8" headerText="Ringkasan Rotan" />
+									<p:column colspan="4" headerText="Ringkasan Buluh" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Manau/ Manau Tikus" />
+									<p:column headerText="Semambu" />
+									<p:column headerText="Dok" />
+									<p:column headerText="Sega" />
+									<p:column headerText="Dahan" />
+									<p:column headerText="Lain-lain Jenis > 4 cm" />
+									<p:column headerText="Lain-lain Jenis ≤ 4 cm" />
+									<p:column headerText="Jumlah" />
+									<p:column headerText="Kumpulan Buluh Betong" />
+									<p:column headerText="Lain-lain Jenis > 3 cm" />
+									<p:column headerText="Lain-lain Jenis ≤ 3 cm" />
+									<p:column headerText="Jumlah" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 11">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.fertilityCounts}"
+							emptyMessage="Tiada ringkasan kesuburan tersedia."
+							scrollable="true" scrollHeight="200">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[10]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Kelas Diameter" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.fertilities[0].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.fertilities[1].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.fertilities[2].name}" />
+									<p:column
+										headerText="#{preFellingSurveyCardMBean.fertilities[3].name}" />
+									<p:column headerText="Jumlah" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Jadual 12">
+						<p:dataTable var="element"
+							value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.seedlingCounts}"
+							emptyMessage="Tiada ringkasan rumpun tersedia.">
+							<f:facet name="header">#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.headers[11]}</f:facet>
+							<p:column headerText="Kelas Anak Benih">
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column headerText="Jumlah Bilangan">
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column headerText="Bilangan Sehektar">
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false" styleClass="save-btn">
+							<p:fileDownload value="#{preFellingSurveyCardMBean.download()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupReport').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmReport2">
+			<p:dialog id="popupReport2" widgetVar="popupReport2" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:dataTable id="availablePreFellingCuttingOptions"
+					var="preFellingCuttingOption"
+					value="#{preFellingSurveyCardMBean.preFellingSurvey.preFellingReport.preFellingCuttingOptions}"
+					scrollable="true" scrollHeight="150"
+					emptyMessage="Tiada opsyen had tebangan tersedia.">
+					<f:facet name="header">Opsyen Had Tebangan Yang Tersedia</f:facet>
+					<p:columnGroup type="header">
+						<p:row>
+							<p:column rowspan="3" style="width: 16px; text-align: center" />
+							<p:column rowspan="2" colspan="2"
+								headerText="Opsyen Had Tebangan (cm)" />
+							<p:column rowspan="2" colspan="3"
+								headerText="Pengeluaran Isipadu Bersih Sehektar (m&#x00B3;)" />
+							<p:column rowspan="2" colspan="4"
+								headerText="Pokok Tebangan Sehektar (Bilangan)" />
+							<p:column colspan="8"
+								headerText="Bilangan Pokok Bersih Sehektar Dari Kelas Diameter + 30 cm - 45 cm dan Pokok Berdiameter + 45 cm yang Setara Dengannya Dalam Dirian Tinggal (Bilangan)" />
+						</p:row>
+						<p:row>
+							<p:column colspan="4" headerText="Tanpa Pokok + 15 cm - 30 cm" />
+							<p:column colspan="4" headerText="Dengan Pokok + 15 cm - 30 cm" />
+						</p:row>
+						<p:row>
+							<p:column headerText="Dipterokarp"
+								sortBy="#{preFellingCuttingOption.dipterocarpLimit}" />
+							<p:column headerText="Bukan Dipterokarp"
+								sortBy="#{preFellingCuttingOption.nonDipterocarpLimit}" />
+							<p:column headerText="Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeDipNetVolume}" />
+							<p:column headerText="Bukan Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeNonDipNetVolume}" />
+							<p:column headerText="Jumlah"
+								sortBy="#{preFellingCuttingOption.relativeTotalNetVolume}" />
+							<p:column headerText="Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeDipCount}" />
+							<p:column headerText="Bukan Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeNonDipCount}" />
+							<p:column headerText="Jumlah"
+								sortBy="#{preFellingCuttingOption.relativeTotalCount}" />
+							<p:column headerText="% Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeTotalCountRatio}" />
+							<p:column headerText="Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeDipNetCountPartial}" />
+							<p:column headerText="Bukan Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeNonDipNetCountPartial}" />
+							<p:column headerText="Jumlah"
+								sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartial}" />
+							<p:column headerText="% Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeTotalNetCountPartialRatio}" />
+							<p:column headerText="Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeDipNetCountAll}" />
+							<p:column headerText="Bukan Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeNonDipNetCountAll}" />
+							<p:column headerText="Jumlah"
+								sortBy="#{preFellingCuttingOption.relativeTotalNetCountAll}" />
+							<p:column headerText="% Dipterokarp"
+								sortBy="#{preFellingCuttingOption.relativeTotalNetCountAllRatio}" />
+						</p:row>
+					</p:columnGroup>
+					<p:column>
+						<h:outputText id="dragIcon"
+							styleClass="ui-icon ui-icon-border-inner" />
+						<p:draggable for="dragIcon" revert="true" helper="clone" />
+					</p:column>
+					<p:column>
+						<h:outputText value="#{preFellingCuttingOption.dipterocarpLimit}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.nonDipterocarpLimit}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeDipNetVolume}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeNonDipNetVolume}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalNetVolume}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText value="#{preFellingCuttingOption.relativeDipCount}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeNonDipCount}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalCount}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalCountRatio}">
+							<f:convertNumber maxFractionDigits="2" type="percent" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeDipNetCountPartial}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeNonDipNetCountPartial}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalNetCountPartial}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalNetCountPartialRatio}">
+							<f:convertNumber maxFractionDigits="2" type="percent" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeDipNetCountAll}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeNonDipNetCountAll}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalNetCountAll}">
+							<f:convertNumber maxFractionDigits="2" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<h:outputText
+							value="#{preFellingCuttingOption.relativeTotalNetCountAllRatio}">
+							<f:convertNumber maxFractionDigits="2" type="percent" />
+						</h:outputText>
+					</p:column>
+				</p:dataTable>
+				<br />
+				<p:outputPanel id="dropArea">
+					<p:dataTable id="selectedPreFellingCuttingOptions"
+						var="preFellingCuttingOption"
+						value="#{preFellingSurveyCardMBean.preFellingCuttingOptions}"
+						rowIndexVar="ri" scrollable="true" scrollHeight="80"
+						emptyMessage="Tiada opsyen had tebangan disyorkan.">
+						<f:facet name="header">Opsyen Had Tebangan Yang Disyorkan</f:facet>
+						<p:column headerText="Opsyen">
+							<h:outputText value="Opsyen #{ri + 1}" />
+						</p:column>
+						<p:column headerText="Dipterokarp (cm)">
+							<h:outputText value="#{preFellingCuttingOption.dipterocarpLimit}">
+								<f:convertNumber maxFractionDigits="2" />
+							</h:outputText>
+						</p:column>
+						<p:column headerText="Bukan Dipterokarp (cm)">
+							<h:outputText
+								value="#{preFellingCuttingOption.nonDipterocarpLimit}">
+								<f:convertNumber maxFractionDigits="2" />
+							</h:outputText>
+						</p:column>
+						<p:column headerText="Pilihan" style="text-align: center">
+							<p:commandLink value="Padam"
+								update="selectedPreFellingCuttingOptions" process="@this">
+								<p:collector value="#{preFellingCuttingOption}"
+									removeFrom="#{preFellingSurveyCardMBean.preFellingCuttingOptions}"
+									unique="true" />
+							</p:commandLink>
+						</p:column>
+					</p:dataTable>
+				</p:outputPanel>
+				<p:droppable for="dropArea" tolerance="touch"
+					activeStyleClass="ui-state-highlight"
+					datasource="availablePreFellingCuttingOptions">
+					<p:ajax listener="#{preFellingSurveyCardMBean.handleDrop}"
+						update="selectedPreFellingCuttingOptions availablePreFellingCuttingOptions :frmManager:growl" />
+				</p:droppable>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{preFellingSurveyCardMBean.recommend}"
+							update=":frmManager" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupReport2').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

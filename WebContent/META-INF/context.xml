@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Context>
+<Context path="" reloadable="true"
+	allowCasualMultipartParsing="true">
+	<Resource name="jdbc/fis9" auth="Container"
+		type="javax.sql.DataSource"
+		factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+		url="jdbc:mysql://localhost:3306/dbFIS9?useAffectedRows=true"
+		username="root" password="" driverClassName="com.mysql.jdbc.Driver"
+		maxWait="-1" removeAbandoned="true" removeAbandonedTimeout="60"
+		validationQuery="SELECT 1" testOnBorrow="true" />
+	<Parameter name="key"
+		value="VkVCW0RbVFRRRFdaQltVVUlGVFlHQ11UX0BXME1YRUBXRV5HVVlTXEpUVVtZVEhaXlhNWEMp" />
+</Context>

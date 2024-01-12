@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<f:facet name="first">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+	</f:facet>
+	<title>Negeri Sembilan Forestry Integrated System (FIS9)</title>
+	<h:outputScript name="js/ripple.js" library="ultima-layout" />
+	<h:outputScript name="js/layout.js" library="ultima-layout" />
+	<h:outputStylesheet name="css/ripple.css" library="ultima-layout" />
+	<h:outputStylesheet name="css/layout-fis9.css" library="ultima-layout" />
+	<link rel="stylesheet" type="text/css"
+		href="#{request.contextPath}/resources/css/layout.css" media="screen" />
+	<link rel="shortcut icon"
+		href="#{request.contextPath}/resources/img/favicon.ico" />
+</h:head>
+<h:body styleClass="login-body login">
+	<div class="card ui-fluid"
+		style="position: absolute; padding: 20px; top: calc(50% - 180px); left: calc(50% - 144px); opacity: .8">
+		<div class="ui-g">
+			<h:form id="frmLogin" prependId="false">
+				<p:growl id="growl" showDetail="true" showSummary="false"
+					life="5000" />
+				<div class="ui-g-12" style="background-color: white">
+					<p:tooltip />
+					<p:focus context="panel" />
+					<p:panelGrid id="panel" columns="1" layout="grid"
+						styleClass="ui-panelgrid-blank form-group">
+						<p:graphicImage name="images/logo-ultima.png"
+							library="ultima-layout" width="200" />
+						<h:panelGroup styleClass="md-inputfield">
+							<p:inputText id="staffID" value="#{userMBean.staffID}"
+								required="true" requiredMessage="Emel diperlukan."
+								validatorMessage="Emel mestilah dalam bentuk yang sah.">
+								<f:validateRegex
+									pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
+							</p:inputText>
+							<p:outputLabel for="staffID" value="Emel:" />
+						</h:panelGroup>
+						<h:panelGroup styleClass="md-inputfield">
+							<p:password id="password" value="#{userMBean.password}"
+								required="true" requiredMessage="Kata laluan diperlukan.">
+							</p:password>
+							<p:outputLabel for="password" value="Kata laluan:" />
+						</h:panelGroup>
+						<p:commandButton value="Hantar" icon="ui-icon-verified-user"
+							update="frmLogin" action="#{userMBean.login}" />
+					</p:panelGrid>
+				</div>
+			</h:form>
+		</div>
+	</div>
+</h:body>
+</html>

@@ -1,0 +1,187 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="staff"
+				value="#{staffMBean.staffs}" reflow="true"
+				emptyMessage="Tiada pekerja direkodkan."
+				paginator="#{staffMBean.staffs.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah pekerja" icon="ui-icon-add"
+							update=":frmEntry" action="#{staffMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{staffMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Emel" sortBy="#{staff.staffID}"
+					filterBy="#{staff.staffID}" filterMatchMode="contains">
+					<h:outputText value="#{staff.staffID}" />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{staff.name}"
+					filterBy="#{staff.name}" filterMatchMode="contains">
+					<h:outputText value="#{staff.name}" />
+				</p:column>
+				<p:column headerText="Jawatan" sortBy="#{staff.designationName}"
+					filterBy="#{staff.designationName}" filterMatchMode="contains">
+					<h:outputText value="#{staff.designationName}" />
+				</p:column>
+				<p:column headerText="Negeri" sortBy="#{staff.stateName}"
+					filterBy="#{staff.stateID}" filterMatchMode="exact"
+					rendered="#{userMBean.user.stateID == 0}">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="Semua negeri" itemValue="" />
+							<f:selectItems value="#{staffMBean.states}" var="state"
+								itemLabel="#{state}" itemValue="#{state.stateID}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{staff.stateName == null ? 'Tiada negeri' : staff.stateName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini pekerja" icon="ui-icon-edit"
+							update=":frmEntry" action="#{staffMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{staffMBean.addOperation}" />
+							<f:setPropertyActionListener value="false"
+								target="#{staffMBean.resetPassword}" />
+							<f:setPropertyActionListener value="#{staff}"
+								target="#{staffMBean.staff}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Set semula kata laluan" icon="ui-icon-refresh"
+							update="frmManager:growl" action="#{staffMBean.staffEntry}"
+							process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{staffMBean.addOperation}" />
+							<f:setPropertyActionListener value="true"
+								target="#{staffMBean.resetPassword}" />
+							<f:setPropertyActionListener value="#{staff}"
+								target="#{staffMBean.staff}" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<f:facet name="footer">#{staffMBean.staffs.size()} pekerja direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="staffID" value="Emel:" />
+					<p:inputText id="staffID" value="#{staffMBean.staff.staffID}"
+						required="true" requiredMessage="Emel diperlukan."
+						validatorMessage="Emel mestilah 50 aksara dan ke bawah serta dalam bentuk yang sah."
+						disabled="#{not staffMBean.addOperation}">
+						<f:validateRegex
+							pattern="^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$" />
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{staffMBean.staff.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="designationID" value="Jawatan:" />
+					<p:selectOneMenu id="designationID"
+						value="#{staffMBean.staff.designationID}" required="true"
+						requiredMessage="Sila pilih jawatan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{staffMBean.staff != null}">
+						<f:selectItem itemLabel="- pilih jawatan -" itemValue="#{null}" />
+						<f:selectItems value="#{staffMBean.designations}"
+							var="designation" itemLabel="#{designation}"
+							itemValue="#{designation.designationID}" />
+						<p:ajax listener="#{staffMBean.doNothing}"
+							update="stateGrid contractorGrid"
+							oncomplete="PF('popup').initPosition()" />
+					</p:selectOneMenu>
+					<p:outputLabel for="status" value="Status:"
+						rendered="#{not staffMBean.addOperation}" />
+					<p:selectOneRadio id="status" value="#{staffMBean.staff.status}"
+						required="true" requiredMessage="Status diperlukan."
+						rendered="#{not staffMBean.addOperation}">
+						<f:selectItem itemLabel="Aktif" itemValue="true" />
+						<f:selectItem itemLabel="Nyahaktif" itemValue="false" />
+					</p:selectOneRadio>
+				</p:panelGrid>
+				<p:panelGrid id="stateGrid" columns="2" cellpadding="5"
+					layout="grid" styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="stateID" value="Negeri:"
+						rendered="#{(userMBean.user.administrative or userMBean.user.stateID == 0 and userMBean.user.designationID == 0) and staffMBean.staff.designationID != 0 and staffMBean.staff.designationID != 28}" />
+					<p:selectOneMenu id="stateID" value="#{staffMBean.staff.stateID}"
+						required="true" requiredMessage="Sila pilih negeri." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{(userMBean.user.administrative or userMBean.user.stateID == 0 and userMBean.user.designationID == 0) and staffMBean.staff != null and staffMBean.staff.designationID != 0 and staffMBean.staff.designationID != 28}">
+						<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+						<f:selectItems value="#{staffMBean.states}" var="state"
+							itemLabel="#{state}" itemValue="#{state.stateID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="administrative" value="Pentadbir sistem:"
+						rendered="#{(userMBean.user.administrative or userMBean.user.stateID == 0 and userMBean.user.designationID == 0) and staffMBean.staff.designationID != 0 and staffMBean.staff.designationID != 28}" />
+					<p:selectOneRadio id="administrative" value="#{staffMBean.staff.administrative}"
+						required="true" requiredMessage="Pentadbir sistem diperlukan."
+						rendered="#{(userMBean.user.administrative or userMBean.user.stateID == 0 and userMBean.user.designationID == 0) and staffMBean.staff.designationID != 0 and staffMBean.staff.designationID != 28}">
+						<f:selectItem itemLabel="Ya" itemValue="true" />
+						<f:selectItem itemLabel="Tidak" itemValue="false" />
+					</p:selectOneRadio>
+				</p:panelGrid>
+				<p:panelGrid id="contractorGrid" columns="2" cellpadding="5"
+					layout="grid" styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="contractorID" value="Nama syarikat:"
+						rendered="#{staffMBean.staff.designationID == 28}" />
+					<p:selectOneMenu id="contractorID"
+						value="#{staffMBean.staff.contractorID}" required="true"
+						requiredMessage="Sila pilih nama syarikat." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{staffMBean.staff != null and staffMBean.staff.designationID == 28}">
+						<f:selectItem itemLabel="- pilih nama syarikat -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{staffMBean.contractors}" var="contractor"
+							itemLabel="#{contractor}" itemValue="#{contractor.contractorID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{staffMBean.staffEntry}" update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

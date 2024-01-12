@@ -1,0 +1,174 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="hammer"
+				value="#{hammerMBean.hammers}" reflow="true"
+				emptyMessage="Tiada tukul direkodkan."
+				paginator="#{hammerMBean.hammers.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah tukul" icon="ui-icon-add"
+							update=":frmEntry" action="#{hammerMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{hammerMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Jenis Tukul" sortBy="#{hammer.hammerTypeName}"
+					filterBy="#{hammer.hammerTypeID}" filterMatchMode="contains"
+					rendered="#{hammerMBean.contractor == null}">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua jenis tukul" itemValue="" />
+							<f:selectItems value="#{hammerMBean.hammerTypes}"
+								var="hammerType" itemLabel="#{hammerType}"
+								itemValue="#{hammerType.hammerTypeID}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="#{hammer.hammerTypeName}" />
+				</p:column>
+				<p:column headerText="No. Tukul" sortBy="#{hammer.hammerNo}"
+					filterBy="#{hammer.hammerNo}" filterMatchMode="contains">
+					<h:outputText value="#{hammer.hammerNo}" />
+				</p:column>
+				<p:column headerText="No. Pendaftaran"
+					sortBy="#{hammer.registrationNo}"
+					filterBy="#{hammer.registrationNo}" filterMatchMode="contains">
+					<h:outputText value="#{hammer.registrationNo}" />
+				</p:column>
+				<p:column headerText="Daerah Hutan" sortBy="#{hammer.districtName}"
+					filterBy="#{hammer.districtID}" filterMatchMode="contains"
+					rendered="#{hammerMBean.districtList != null}">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua daerah hutan" itemValue="" />
+							<f:selectItems value="#{hammerMBean.districtList}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{hammer.districtID != 0 ? hammer.districtName : '-'}" />
+					<h:outputText value=", #{hammer.stateName}"
+						rendered="#{hammer.districtID != 0 and userMBean.user.stateID == 0}" />
+				</p:column>
+				<p:column headerText="Kontraktor" sortBy="#{hammer.contractorName}"
+					filterBy="#{hammer.contractorName}" filterMatchMode="contains"
+					rendered="#{hammerMBean.districtList != null}">
+					<h:outputText
+						value="#{hammer.contractorID != null ? hammer.contractorName : '-'}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini tukul" icon="ui-icon-edit"
+						update=":frmEntry" action="#{hammerMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{hammerMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{hammer}"
+							target="#{hammerMBean.hammer}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{hammerMBean.hammers.size()} tukul direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="hammerTypeID" value="Jenis tukul:"
+						rendered="#{hammerMBean.contractor == null}" />
+					<p:selectOneMenu id="hammerTypeID"
+						value="#{hammerMBean.hammer.hammerTypeID}" required="true"
+						requiredMessage="Jenis tukul diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{hammerMBean.hammer != null and hammerMBean.contractor == null}">
+						<f:selectItem itemLabel="- pilih jenis tukul -"
+							itemValue="#{hammerMBean.districtList == null ? null : 0}" />
+						<f:selectItems value="#{hammerMBean.hammerTypes}" var="hammerType"
+							itemLabel="#{hammerType}" itemValue="#{hammerType.hammerTypeID}" />
+						<p:ajax listener="#{hammerMBean.doNothing}"
+							update="districtGrid contractorGrid"
+							oncomplete="PF('popup').initPosition()" />
+					</p:selectOneMenu>
+					<p:outputLabel for="hammerNo" value="No. tukul:" />
+					<p:inputText id="hammerNo" value="#{hammerMBean.hammer.hammerNo}"
+						required="true" requiredMessage="No. tukul diperlukan."
+						validatorMessage="No. tukul mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="registrationNo" value="No. pendaftaran:" />
+					<p:inputText id="registrationNo"
+						value="#{hammerMBean.hammer.registrationNo}" required="true"
+						requiredMessage="No. pendaftaran diperlukan."
+						validatorMessage="No. pendaftaran mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+				</p:panelGrid>
+				<p:panelGrid id="districtGrid" columns="2" cellpadding="5"
+					layout="grid" styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="districtID" value="Daerah hutan:"
+						rendered="#{hammerMBean.hammer.hammerTypeID != 0 and hammerMBean.districtList != null}" />
+					<p:selectOneMenu id="districtID"
+						value="#{hammerMBean.hammer.districtID}" required="true"
+						requiredMessage="Daerah hutan diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{hammerMBean.hammer != null and hammerMBean.hammer.hammerTypeID != 0 and hammerMBean.districtList != null}">
+						<f:selectItem itemLabel="- pilih daerah hutan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{hammerMBean.districtList}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<p:panelGrid id="contractorGrid" columns="2" cellpadding="5"
+					layout="grid" styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="contractorID" value="Nama syarikat:"
+						rendered="#{hammerMBean.hammer.hammerTypeID == 0 and hammerMBean.districtList != null}" />
+					<p:selectOneMenu id="contractorID"
+						value="#{hammerMBean.hammer.contractorID}" required="true"
+						requiredMessage="Sila pilih nama syarikat." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{hammerMBean.hammer != null and hammerMBean.hammer.hammerTypeID == 0 and hammerMBean.districtList != null}">
+						<f:selectItem itemLabel="- pilih nama syarikat -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{hammerMBean.contractors}" var="contractor"
+							itemLabel="#{contractor}" itemValue="#{contractor.contractorID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{hammerMBean.hammerEntry}" update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

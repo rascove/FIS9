@@ -1,0 +1,185 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="smallProductRoyaltyRate"
+				value="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRates}"
+				reflow="true"
+				emptyMessage="Tiada kadar royalti keluaran kecil direkodkan."
+				paginator="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRates.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah kadar royalti keluaran kecil"
+							icon="ui-icon-add" update=":frmEntry"
+							action="#{smallProductRoyaltyRateMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{smallProductRoyaltyRateMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Keluaran kecil"
+					sortBy="#{smallProductRoyaltyRate.smallProductCode}"
+					filterBy="#{smallProductRoyaltyRate.smallProductCode}"
+					filterMatchMode="contains">
+					<h:outputText value="#{smallProductRoyaltyRate.smallProductCode} - #{smallProductRoyaltyRate.smallProductName}" />
+				</p:column>
+				<p:column headerText="Unit"
+					sortBy="#{smallProductRoyaltyRate.unitCode}"
+					filterBy="#{smallProductRoyaltyRate.unitCode}"
+					filterMatchMode="contains">
+					<h:outputText value="#{smallProductRoyaltyRate.unitCode}-#{smallProductRoyaltyRate.unitName}" />
+				</p:column>
+				<p:column headerText="Kadar Royalti dan Ses"
+					sortBy="#{smallProductRoyaltyRate.royaltyRate}"
+					filterBy="#{smallProductRoyaltyRate.royaltyRate}"
+					filterMatchMode="contains">
+										<h:outputText
+						value="Royalti : RM " ></h:outputText>
+					<h:outputText
+						value="#{smallProductRoyaltyRate.royaltyRate}" >
+						<f:convertNumber minFractionDigits="2" />
+						</h:outputText>
+						<br />
+						<h:outputText value="Ses : RM ">
+						</h:outputText>
+					<h:outputText value="#{smallProductRoyaltyRate.cessRate}" 
+					>
+					<f:convertNumber minFractionDigits="2" /></h:outputText>
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Padam" icon="ui-icon-delete"
+						update=":frmDelete" oncomplete="PF('popupDelete').show()"
+						process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{smallProductRoyaltyRateMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{smallProductRoyaltyRate}"
+							target="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate}" />
+						<p:resetInput target=":frmDelete" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{smallProductRoyaltyRateMBean.smallProductRoyaltyRates.size()} kadar royalti dan ses direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="smallProductID" value="Spesis:" />
+					<p:selectOneMenu id="smallProductID"
+						value="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.smallProductID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate != null}"
+						required="true" requiredMessage="Keluaran kecil diperlukan.">
+						<f:selectItem itemLabel="-pilih keluaran kecil-" itemValue="#{null}" />
+						<f:selectItems value="#{smallProductRoyaltyRateMBean.smallProducts}"
+							var="smallProduct" itemLabel="#{smallProduct.code} - #{smallProduct.name}"
+							itemValue="#{smallProduct.smallProductID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="unitID" value="Unit:" />
+					<p:selectOneMenu id="unitID"
+						value="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.unitID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate != null}"
+						required="true" requiredMessage="Unit diperlukan.">
+						<f:selectItem itemLabel="-pilih unit-" itemValue="#{null}" />
+						<f:selectItems value="#{smallProductRoyaltyRateMBean.units}"
+							var="unit" itemLabel="#{unit.code} - #{unit.name}"
+							itemValue="#{unit.unitID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="royaltyRate" value="Kadar royalti:" />
+					<p:inputNumber id="royaltyRate"
+						value="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.royaltyRate}"
+						required="true" requiredMessage="Kadar royalti diperlukan."
+						validatorMessage="Kadar royalti mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="cessRate" value="Kadar ses:" />
+					<p:inputNumber id="cessRate"
+						value="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.cessRate}"
+						required="true" requiredMessage="Kadar ses diperlukan."
+						validatorMessage="Kadar ses mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRateEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDelete">
+			<p:dialog id="popupDelete" widgetVar="popupDelete" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Adakah anda pasti ingin memadam rekod ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="Keluaran kecil : #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.smallProductCode} - #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.smallProductName}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Unit : #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.unitCode} - #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.unitName}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar royalti : RM #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.royaltyRate}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar ses : RM #{smallProductRoyaltyRateMBean.smallProductRoyaltyRate.cessRate}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Padam" icon="ui-icon-save"
+							action="#{smallProductRoyaltyRateMBean.smallProductRoyaltyRateDelete}"
+							update=":frmManager messages"
+							oncomplete="PF('popupDelete').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Batal" icon="ui-icon-block" type="button"
+							onclick="PF('popupDelete').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,22 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="template.xhtml">
+	<ui:param name="bg" value="false" />
+	<ui:define name="menu">
+		<ui:include src="secured/menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h1 style="color: white">
+			<i class="fa fa-unlink"></i> Ralat Sistem
+		</h1>
+		<p:fieldset style="background-color: white">
+			<p>
+				Laman yang anda minta tidak wujud atau anda tidak dibenarkan untuk
+				mencapai laman tersebut. Sila tekan di <a
+					href="#{request.contextPath}">sini</a> untuk kembali ke muka depan.
+			</p>
+		</p:fieldset>
+	</ui:define>
+</ui:composition>

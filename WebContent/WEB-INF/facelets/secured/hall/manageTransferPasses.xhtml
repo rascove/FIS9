@@ -1,0 +1,1491 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:outputPanel id="hallOfficerErrorMessage"
+				rendered="#{transferPassMBean.hallOfficerErrorMessage == null}">
+				<h3 style="color: white">#{transferPassMBean.hallOfficerErrorMessage}</h3>
+			</p:outputPanel>
+			<p:outputPanel id="reminder"
+				rendered="#{transferPassMBean.selectedLicenseID != 0}">
+				<h3 style="color: white">#{transferPassMBean.message}</h3>
+			</p:outputPanel>
+			<p:outputPanel rendered="#{transferPassMBean.accessLevel == 0 or transferPassMBean.errorMessage != null}">
+				<p:fieldset style="background-color: white">
+					<p>
+						#{transferPassMBean.errorMessage}
+					</p>
+				</p:fieldset>
+			</p:outputPanel>
+			<p:dataTable id="table" widgetVar="list" var="transferPass"
+				value="#{transferPassMBean.transferPasses}" reflow="true"
+				emptyMessage="Tiada pas memindah direkodkan."
+				paginator="#{transferPassMBean.transferPasses.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single"
+				rendered="#{transferPassMBean.accessLevel != 0}">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+								<p:selectOneMenu id="licenseID"
+									value="#{transferPassMBean.selectedLicenseID}" required="true"
+									requiredMessage="Sila pilih lesen." filter="true"
+									filterMatchMode="contains" styleClass="table-filter" rendered="#{transferPassMBean.licenses != null and transferPassMBean.errorMessage == null}">
+									<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+									<f:selectItems value="#{transferPassMBean.licenses}"
+										var="license" itemLabel="#{license}"
+										itemValue="#{license.licenseID}" />
+									<p:ajax update="frmManager" event="change"
+										listener="#{transferPassMBean.handleLicenseIDChange}" />
+								</p:selectOneMenu>
+							</td>
+							<td
+								style="border: 0px; text-align: right; padding: 8px 0px; width: 550px;">
+								<p:menuButton value="Tambah pas memindah" iconPos="right"
+									styleClass="secondary flat"
+									rendered="#{transferPassMBean.selectedLicenseID != 0 and transferPassMBean.barLicense == false and transferPassBean.license.endDate != 'E' }">
+									<p:menuitem value="Hasil utama" update=":frmEntry"
+										action="#{transferPassMBean.handleOpen}"
+										icon="ui-icon-filter-1" oncomplete="PF('popup').show()"
+										process="@this" styleClass="secondary flat"
+										rendered="#{transferPassMBean.logSizeExist == true and transferPassMBean.taggings.size() != 0}">
+										<f:setPropertyActionListener value="true"
+											target="#{transferPassMBean.addOperation}" />
+										<f:setPropertyActionListener value="0"
+											target="#{transferPassMBean.code}" />
+										<p:resetInput target=":frmEntry :frmEntryLog" />
+									</p:menuitem>
+									<p:menuitem value="Keluaran kecil" update=":frmEntry"
+										action="#{transferPassMBean.handleOpen}"
+										icon="ui-icon-filter-2" oncomplete="PF('popup').show()"
+										process="@this" styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{transferPassMBean.addOperation}" />
+										<f:setPropertyActionListener value="1"
+											target="#{transferPassMBean.code}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Projek" update=":frmEntry"
+										action="#{transferPassMBean.handleOpen}"
+										icon="ui-icon-filter-3" oncomplete="PF('popup').show()"
+										process="@this" styleClass="secondary flat"
+										rendered="#{transferPassMBean.logSizeExist == true}">
+										<f:setPropertyActionListener value="true"
+											target="#{transferPassMBean.addOperation}" />
+										<f:setPropertyActionListener value="2"
+											target="#{transferPassMBean.code}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+								</p:menuButton> <p:spacer width="5" /> <p:menuButton
+									value="Muat turun laporan" iconPos="right"
+									styleClass="secondary flat">
+									<p:menuitem value="Laporan Shuttle(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownload"
+										action="#{transferPassMBean.prepareDownload}"
+										oncomplete="PF('popupDownload').show()" process="@this">
+									</p:menuitem>
+									<p:menuitem value="Buku kawalan pengeluaran(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadBukuKawalan"
+										action="#{transferPassMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadBukuKawalan').show()"
+										rendered="#{transferPassMBean.selectedLicenseID != 0}"
+										process="@this">
+									</p:menuitem>
+									<p:menuitem value="Ringkasan pas memindah(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{transferPassMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										rendered="#{transferPassMBean.selectedLicenseID != 0}"
+										process="@this">
+										<f:setPropertyActionListener value="1"
+											target="#{transferPassMBean.reportTypeID}" />
+									</p:menuitem>
+									<p:menuitem value="Pengeluaran kayu balak(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{transferPassMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										rendered="#{transferPassMBean.selectedLicenseID != 0}"
+										process="@this">
+										<f:setPropertyActionListener value="2"
+											target="#{transferPassMBean.reportTypeID}" />
+									</p:menuitem>
+									<p:menuitem value="Ringkasan pengeluaran hasil hutan(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportMonthAndYear"
+										action="#{transferPassMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportMonthAndYear').show()"
+										rendered="#{transferPassMBean.selectedLicenseID != 0}"
+										process="@this">
+									</p:menuitem>
+								</p:menuButton> <p:spacer width="5" /> <p:menuButton value="Import/eksport"
+									iconPos="right" styleClass="secondary flat">
+									<p:menuitem value="Muat turun prasyarat"
+										icon="ui-icon-file-download" ajax="false"
+										rendered="#{transferPassMBean.accessLevel == 1}">
+										<p:fileDownload
+											value="#{transferPassMBean.downloadPrerequisites()}" />
+									</p:menuitem>
+									<p:menuitem value="Muat naik prasyarat"
+										icon="ui-icon-file-upload"
+										oncomplete="PF('popupUpload1').show()" process="@this"
+										rendered="#{transferPassMBean.accessLevel == 2}">
+										<p:resetInput target=":frmUpload1" />
+									</p:menuitem>
+									<p:menuitem value="Muat turun pas memindah"
+										icon="ui-icon-file-download" ajax="false"
+										rendered="#{transferPassMBean.selectedLicenseID != 0 and transferPassMBean.accessLevel == 2}">
+										<p:fileDownload
+											value="#{transferPassMBean.downloadTransferPasses()}" />
+									</p:menuitem>
+									<p:menuitem value="Muat naik pas memindah"
+										icon="ui-icon-file-upload"
+										oncomplete="PF('popupUpload2').show()" process="@this"
+										rendered="#{transferPassMBean.selectedLicenseID != 0 and transferPassMBean.accessLevel == 1}">
+										<p:resetInput target=":frmUpload2" />
+									</p:menuitem>
+								</p:menuButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="No. pas memindah"
+					sortBy="#{transferPass.transferPassNo}"
+					filterBy="#{transferPass.transferPassNo}"
+					filterMatchMode="contains" style="vertical-align: top">
+					<h:outputText value="#{transferPass.transferPassNo}" />
+				</p:column>
+				<p:column headerText="Maklumat Pelesen"
+					sortBy="#{transferPass.licenseNo}"
+					filterBy="#{transferPass.licenseNo}" filterMatchMode="contains"
+					style="vertical-align: top">
+					<h:outputText
+						value="#{transferPass.licenseNo}-#{transferPass.companyName}" />
+				</p:column>
+				<p:column headerText="Status" sortBy="#{transferPass.status}"
+					filterBy="#{transferPass.status}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('sublist').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Sudah proses" itemValue="A" />
+							<f:selectItem itemLabel="Sudah jurnal" itemValue="P" />
+							<f:selectItem itemLabel="Dibatalkan" itemValue="I" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{transferPass.status == 'A' ? 'Sudah proses' : (transferPass.status == 'P' ? 'Sudah jurnal' : (transferPass.status == 'I' ? 'Dibatalkan' : 'Ralat' ))}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right"
+						rendered="#{transferPass.status != 'I'}">
+						<p:menuitem value="Cetak pas #{transferPass.transferPassNo}"
+							icon="ui-icon-file-download" ajax="false" update="frmManager"
+							rendered="#{transferPass.status != 'I'}">
+							<p:fileDownload
+								value="#{transferPassMBean.downloadTransferPass(transferPass)}" />
+						</p:menuitem>
+						<p:menuitem value="Batal" icon="ui-icon-cancel"
+							update=":frmProcess" oncomplete="PF('popupProcess').show()"
+							process="@this"
+							rendered="#{transferPass.status == 'A' and transferPassMBean.license.status != 'E'}">
+							<f:setPropertyActionListener value="batal"
+								target="#{transferPassMBean.message}" />
+							<p:resetInput target=":frmProcess" />
+							<f:setPropertyActionListener value="#{transferPass}"
+								target="#{transferPassMBean.transferPass}" />
+							<p:resetInput target=":frmProcess" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini" update=":frmEntry"
+							action="#{transferPassMBean.handleOpen}" icon="ui-icon-edit"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat"
+							rendered="#{transferPass.status == 'A' and transferPassMBean.license.status != 'E'}">
+							<f:setPropertyActionListener value="false"
+								target="#{transferPassMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+							<f:setPropertyActionListener value="#{transferPass}"
+								target="#{transferPassMBean.transferPass}" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. pas memindah:" />
+								<p:outputLabel value="#{transferPass.transferPassNo}" />
+								<p:outputLabel value="Tarikh:" />
+								<p:outputLabel value="#{transferPass.date}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Pegawai balai:" />
+								<p:outputLabel
+									value="#{transferPass.hallOfficerHammerNo}-#{transferPass.hallOfficerName}" />
+								<p:outputLabel value="Balai:" />
+								<p:outputLabel value="#{transferPass.hallName}" />
+								<p:outputLabel value="Gandaan royalti, ses dan premium:" />
+								<p:outputLabel
+									value="#{transferPass.royaltyRate}, #{transferPass.cessRate} dan #{transferPass.premiumRate}" />
+								<p:outputLabel value="Pelesen:" />
+								<p:outputLabel
+									value="#{transferPass.licenseNo} - #{transferPass.companyName}" />
+								<p:outputLabel value="Destinasi:" />
+								<p:outputLabel value="#{transferPass.destinationAddress}" />
+								<p:outputLabel value="Nama pemandu:" />
+								<p:outputLabel value="#{transferPass.driverName}" />
+								<p:outputLabel value="No. kenderaan:" />
+								<p:outputLabel value="#{transferPass.vehicleNo}" />
+								<p:outputLabel value="Muatan kenderaan:" />
+								<p:outputLabel value="#{transferPass.grossVehicleWeight} kg" />
+								<p:outputLabel value="Jumlah royalti:" />
+								<p:outputLabel value="#{transferPass.royaltyAmount}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<p:outputLabel value="Jumlah ses:" />
+								<p:outputLabel value="#{transferPass.cessAmount}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<p:outputLabel value="Jumlah premium:" />
+								<p:outputLabel value="#{transferPass.premiumAmount}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<p:outputLabel value="Nama pegawai merekod:" />
+								<p:outputLabel value="#{transferPass.recorderName}" />
+								<p:outputLabel value="Masa rekod:" />
+								<p:outputLabel value="#{transferPass.recordTime}">
+									<f:convertDateTime pattern="HH:mm" />
+								</p:outputLabel>
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist"
+							var="mainRevenueTransferPassRecord"
+							value="#{transferPass.mainRevenueTransferPassRecords}"
+							reflow="true" emptyMessage="Tiada tual balak direkodkan."
+							paginator="#{transferPass.mainRevenueTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPass.code == 0}">
+							<f:facet name="header">
+
+								<h:outputText value="Senarai Tual Balak" />
+							</f:facet>
+							<p:column headerText="Maklumat Tual"
+								sortBy="#{mainRevenueTransferPassRecord.logSerialNo}"
+								filterBy="#{mainRevenueTransferPassRecord.logSerialNo}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="No. siri tual : #{mainRevenueTransferPassRecord.logSerialNo}" />
+								<br />
+								<h:outputText
+									value="Spesis : #{mainRevenueTransferPassRecord.speciesCode}-#{mainRevenueTransferPassRecord.speciesName}" />
+							</p:column>
+							<p:column headerText="Maklumat Isipadu"
+								sortBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Panjang : " />
+								<h:outputText value="#{mainRevenueTransferPassRecord.length}">
+									<f:convertNumber minFractionDigits="1" />
+								</h:outputText>
+								<h:outputText value=" m" />
+								<br />
+								<h:outputText value="Diameter : " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.diameter} cm">
+									<f:convertNumber minFractionDigits="0" />
+								</h:outputText>
+								<br />
+								<h:outputText value="Diameter lubang : " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.holeDiameter}">
+									<f:convertNumber minFractionDigits="0" />
+								</h:outputText>
+								<h:outputText value=" cm" />
+								<br />
+								<h:outputText value="Isipadu: " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.grossVolume}">
+									<f:convertNumber minFractionDigits="2" />
+								</h:outputText>
+								<h:outputText value=" m&#x00B3;" />
+								<br />
+								<h:outputText value="Isipadu bersih: " />
+								<h:outputText value="#{mainRevenueTransferPassRecord.netVolume}">
+									<f:convertNumber minFractionDigits="2" />
+								</h:outputText>
+								<h:outputText value=" m&#x00B3;" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterMatchMode="contains" style="vertical-align: top">
+
+								<h:outputText value="Royalti : " />
+								<p:outputLabel value="#{mainRevenueTransferPassRecord.royalty}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<br />
+								<h:outputText value="Ses : " />
+								<p:outputLabel value="#{mainRevenueTransferPassRecord.cess}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+							</p:column>
+							<f:facet name="footer">#{transferPass.mainRevenueTransferPassRecords.size()} tual balak direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable1" widgetVar="sublist1"
+							var="smallProductTransferPassRecord"
+							value="#{transferPass.smallProductTransferPassRecords}"
+							reflow="true" emptyMessage="Tiada keluaran kecil direkodkan."
+							paginator="#{transferPass.smallProductTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPass.code == 1}">
+							<f:facet name="header">
+								<h:outputText value="Senarai keluaran kecil" />
+							</f:facet>
+							<p:column headerText="Maklumat keluaran kecil"
+								sortBy="#{smallProductTransferPassRecord.smallProductName}"
+								filterBy="#{smallProductTransferPassRecord.smallProductName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{smallProductTransferPassRecord.smallProductName}" />
+							</p:column>
+							<p:column headerText="Maklumat Unit"
+								sortBy="#{smallProductTransferPassRecord.unitName}"
+								filterBy="#{smallProductTransferPassRecord.unitName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{smallProductTransferPassRecord.unitName}" />
+							</p:column>
+							<p:column headerText="Maklumat Kuantiti"
+								sortBy="#{smallProductTransferPassRecord.kadar}"
+								filterBy="#{smallProductTransferPassRecord.kadar}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="Kuantiti : #{smallProductTransferPassRecord.quantity}" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{smallProductTransferPassRecord.royalty}"
+								filterBy="#{smallProductTransferPassRecord.royalty}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Kadar Royalti : " />
+								<h:outputText
+									value="#{smallProductTransferPassRecord.royaltyRate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+
+								<br />
+								<h:outputText value="Royalti : " />
+								<h:outputText value="#{smallProductTransferPassRecord.royalty}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+
+								<br />
+								<h:outputText value="Kadar Ses : " />
+								<h:outputText value="#{smallProductTransferPassRecord.cessRate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Ses : " />
+								<h:outputText value="#{smallProductTransferPassRecord.cess}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">#{transferPass.smallProductTransferPassRecords.size()} keluaran kecil direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable2" widgetVar="sublist2"
+							var="specialTransferPassRecord"
+							value="#{transferPass.specialTransferPassRecords}" reflow="true"
+							emptyMessage="Tiada tual direkodkan."
+							paginator="#{transferPass.specialTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPass.code == 2}">
+							<f:facet name="header">
+
+								<h:outputText value="Senarai tual balak" />
+							</f:facet>
+							<p:column headerText="Maklumat Spesis"
+								sortBy="#{specialTransferPassRecord.speciesName}"
+								filterBy="#{specialTransferPassRecord.speciesName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{specialTransferPassRecord.speciesCode} -  #{specialTransferPassRecord.speciesName}" />
+							</p:column>
+							<p:column headerText="Maklumat Panjang"
+								sortBy="#{specialTransferPassRecord.length}"
+								filterBy="#{specialTransferPassRecord.length}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{specialTransferPassRecord.length}">
+									<f:convertNumber minFractionDigits="1" />
+								</h:outputText>
+								<h:outputText value=" m" />
+							</p:column>
+							<p:column headerText="Maklumat Diameter"
+								sortBy="#{specialTransferPassRecord.diameter}"
+								filterBy="#{specialTransferPassRecord.diameter}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{specialTransferPassRecord.diameter} cm" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{specialTransferPassRecord.royalty}"
+								filterBy="#{specialTransferPassRecord.royalty}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Royalti : " />
+								<h:outputText value="#{specialTransferPassRecord.royalty}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Ses : " />
+								<h:outputText value="#{specialTransferPassRecord.cess}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">#{transferPass.specialTransferPassRecords.size()} tual balak direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{transferPassMBean.transferPasses == null ? 0 : transferPassMBean.transferPasses.size()} pas memindah direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:accordionPanel id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Asas">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="taggingID" value="Sesi penandaan:"
+									rendered="#{transferPassMBean.transferPass.code == 0}" />
+								<p:selectOneMenu id="taggingID"
+									value="#{transferPassMBean.selectedTaggingID}" required="true"
+									requiredMessage="Sila pilih sesi penandaan." filter="true"
+									filterMatchMode="contains"
+									rendered="#{transferPassMBean.transferPass.code == 0}"
+									disabled="#{not transferPassMBean.addOperation}">
+									<f:selectItem itemLabel="- pilih sesi penandaan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{transferPassMBean.taggings}"
+										var="tagging" itemLabel="#{tagging}"
+										itemValue="#{tagging.taggingID}" />
+									<p:ajax update="frmManager" event="change"
+										listener="#{transferPassMBean.handleTaggingIDChange}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="transferPassNo" value="No. pas memindah:" />
+								<p:inputText id="transferPassNo"
+									value="#{transferPassMBean.transferPass.transferPassNo}"
+									required="true" requiredMessage="No. pas memindah diperlukan."
+									validatorMessage="No. pas memindah mestilah 20 karakter dan ke bawah."
+									disabled="#{not transferPassMBean.addOperation}">
+									<f:validateLength maximum="20" />
+									<p:clientValidator />
+								</p:inputText>
+								<p:outputLabel for="date" value="Tarikh:" />
+								<p:calendar id="date" pattern="dd/MM/yyyy"
+									value="#{transferPassMBean.transferPass.date}" required="true"
+									requiredMessage="Tarikh diperlukan" readonlyInput="true"
+									disabled="#{not transferPassMBean.addOperation}">
+									<p:ajax event="dateSelect"
+										listener="#{transferPassMBean.doNothing}" />
+								</p:calendar>
+								<p:outputLabel for="hallOfficerID" value="Pegawai balai:" />
+								<p:selectOneMenu id="hallOfficerID"
+									value="#{transferPassMBean.transferPass.hallOfficerID}"
+									required="true" requiredMessage="pegawai balai diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{transferPassMBean.transferPass != null}">
+									<f:selectItem itemLabel="- pilih pegawai balai -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{transferPassMBean.hallOfficers}"
+										var="hallOfficer"
+										itemLabel="#{hallOfficer.hallOfficerName} - #{hallOfficer.hammerNo}"
+										itemValue="#{hallOfficer.hallOfficerID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="royaltyRate" value="Gandaan royalti:" />
+								<p:inputNumber id="royaltyRate"
+									value="#{transferPassMBean.transferPass.royaltyRate}"
+									required="true" requiredMessage="Gandaan royalti diperlukan."
+									decimalPlaces="0"
+									disabled="#{not transferPassMBean.addOperation}">
+									<f:validateDoubleRange minimum="1" maximum="10" />
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="cessRate" value="Gandaan ses:" />
+								<p:inputNumber id="cessRate"
+									value="#{transferPassMBean.transferPass.cessRate}"
+									required="true" requiredMessage="Gandaan royalti diperlukan."
+									decimalPlaces="0"
+									disabled="#{not transferPassMBean.addOperation}">
+									<f:validateDoubleRange minimum="1" maximum="10" />
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="premiumRate" value="Gandaan premium:" />
+								<p:inputNumber id="premiumRate"
+									value="#{transferPassMBean.transferPass.premiumRate}"
+									required="true" requiredMessage="Gandaan premium diperlukan."
+									decimalPlaces="0"
+									disabled="#{not transferPassMBean.addOperation}">
+									<f:validateDoubleRange minimum="0" maximum="10" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+					<p:tab title="Maklumat Pelesen">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="destinationAddress"
+									value="Alamat destinasi:" />
+								<p:inputText id="destinationAddress"
+									value="#{transferPassMBean.transferPass.destinationAddress}"
+									required="true" requiredMessage="Alamat destinasi diperlukan."
+									validatorMessage="Alamat destinasi mestilah 100 karakter dan ke bawah.">
+									<f:validateLength maximum="100" />
+									<p:clientValidator />
+								</p:inputText>
+
+								<p:outputLabel for="destinationStateID"
+									value="Negeri destinasi:" />
+								<p:selectOneMenu id="destinationStateID"
+									value="#{transferPassMBean.transferPass.destinationStateID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()" required="true"
+									requiredMessage="Negeri destinasi diperlukan."
+									rendered="#{transferPassMBean.transferPass != null}">
+									<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+									<f:selectItems value="#{transferPassMBean.destinationStates}"
+										var="state" itemLabel="#{state.name}"
+										itemValue="#{state.stateID}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="driverName" value="Nama pemandu:" />
+								<p:inputText id="driverName"
+									value="#{transferPassMBean.transferPass.driverName}"
+									required="true" requiredMessage="Nama pemandu diperlukan."
+									validatorMessage="Nama pemandu mestilah 100 karakter dan ke bawah.">
+									<f:validateLength maximum="100" />
+									<p:clientValidator />
+								</p:inputText>
+
+								<p:outputLabel for="driverICNo" value="No. KP pemandu:" />
+								<p:inputText id="driverICNo"
+									value="#{transferPassMBean.transferPass.driverICNo}"
+									required="true" requiredMessage="No. KP pemandu diperlukan."
+									validatorMessage="No. KP pemandu mestilah 14 karakter dan ke bawah.">
+									<f:validateLength maximum="14" />
+									<p:clientValidator />
+								</p:inputText>
+
+								<p:outputLabel for="driverAddress" value="Alamat pemandu:" />
+								<p:inputText id="driverAddress"
+									value="#{transferPassMBean.transferPass.driverAddress}"
+									required="true" requiredMessage="Alamat pemandu diperlukan."
+									validatorMessage="Alamat pemandu mestilah 100 karakter dan ke bawah.">
+									<f:validateLength maximum="100" />
+									<p:clientValidator />
+								</p:inputText>
+
+								<p:outputLabel for="vehicleNo" value="No. kenderaan:" />
+								<p:inputText id="vehicleNo"
+									value="#{transferPassMBean.transferPass.vehicleNo}"
+									required="true" requiredMessage="No. kenderaan diperlukan."
+									validatorMessage="No. kenderaan mestilah 10 karakter dan ke bawah.">
+									<f:validateLength maximum="10" />
+									<p:clientValidator />
+								</p:inputText>
+
+								<p:outputLabel for="grossVehicleWeight" value="Muatan:" />
+								<p:inputNumber id="grossVehicleWeight"
+									value="#{transferPassMBean.transferPass.grossVehicleWeight}"
+									required="true" requiredMessage="Muatan diperlukan."
+									validatorMessage="Muatan mestilah di antara 3,000 kg dan 60,000 kg."
+									symbol=" kg" symbolPosition="s" decimalPlaces="2">
+									<f:validateDoubleRange minimum="3000" maximum="60000" />
+									<p:clientValidator />
+								</p:inputNumber>
+
+								<p:outputLabel for="remarks" value="Catatan:" />
+								<p:inputText id="remarks"
+									value="#{transferPassMBean.transferPass.remarks}"
+									validatorMessage="Catatan mestilah 100 karakter dan ke bawah.">
+									<f:validateLength maximum="100" />
+									<p:clientValidator />
+								</p:inputText>
+
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Teruskan1" icon="ui-icon-arrow-forward"
+							action="#{transferPassMBean.transferPassRecordSelection}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn"
+							rendered="#{transferPassMBean.addOperation}" />
+						<!-- TODO -->
+						<p:commandButton value="Teruskan2" icon="ui-icon-save"
+							action="#{transferPassMBean.transferPassEntry}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn"
+							rendered="#{transferPassMBean.addOperation == false}" />
+						<p:commandButton value="Teruskan3" icon="ui-icon-save"
+							action="#{transferPassMBean.smallProductTransferPassRecordEntry}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn"
+							rendered="#{transferPassMBean.addOperation == false and transferPassMBean.transferPass.code == 1}" />
+						<p:commandButton value="Teruskan4" icon="ui-icon-save"
+							action="#{transferPassMBean.specialTransferPassRecordEntry}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn"
+							rendered="#{transferPassMBean.addOperation == false and transferPassMBean.transferPass.code == 2}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popup').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryLog">
+			<p:dialog id="popupLog" widgetVar="popupLog" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesLog" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:dataTable var="log" value="#{transferPassMBean.logs}"
+					sortBy="#{log.summaryTaggingRecord}"
+					selection="#{transferPassMBean.selectedLogs}" rowKey="#{log.logID}"
+					scrollable="true" scrollHeight="300" expandableRowGroups="true"
+					emptyMessage="Tiada tual direkodkan.">
+					<f:facet name="header">
+						<p:outputPanel style="text-align: right; margin: 8px 0px;">
+						</p:outputPanel>
+						<h:outputText value="Senarai Tual Balak" />
+					</f:facet>
+					<p:headerRow>
+						<p:column colspan="5">
+							<h:outputText value="#{log.summaryTaggingRecord}" />
+						</p:column>
+					</p:headerRow>
+					<p:column selectionMode="multiple"
+						style="width:40px;text-align:center" />
+					<p:column headerText="No. siri tual" sortBy="#{log.logSerialNo}"
+						filterBy="#{log.logSerialNo}" filterMatchMode="contains"
+						style="vertical-align: top">
+						<h:outputText value="No. tual: #{log.logNo}" />
+						<br />
+						<h:outputText value="No. siri tual: #{log.logSerialNo}" />
+					</p:column>
+					<p:column headerText="Maklumat asas tual"
+						style="vertical-align: top">
+						<h:outputText value="Panjang: #{log.length} m" />
+						<br />
+						<h:outputText value="Diameter: #{log.diameter} cm" />
+						<br />
+						<h:outputText value="Isipadu: #{log.grossVolume} m&#x00B3;" />
+					</p:column>
+					<p:column headerText="Maklumat lubang tual"
+						style="vertical-align: top">
+						<h:outputText value="Diameter lubang: #{log.holeDiameter} cm" />
+						<br />
+						<h:outputText value="Isipadu bersih: #{log.netVolume} m&#x00B3;" />
+					</p:column>
+
+					<f:facet name="footer">#{transferPassMBean.logs.size()} tual balak direkodkan.</f:facet>
+
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{transferPassMBean.backButtonTransferPass}"
+							update=":frmManager messagesLog"
+							oncomplete="PF('popupLog').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Teruskan" icon="ui-icon-arrow-forward"
+							action="#{transferPassMBean.confirmationPage}"
+							update=":frmManager :frmManager:reminder :frmManager:growl messagesLog"
+							oncomplete="PF('popupLog').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupLog').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntrySmallProductTransferPassRecord">
+			<p:dialog id="popupSmallProductTransferPassRecord"
+				widgetVar="popupSmallProductTransferPassRecord" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesSmallProduct" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:dataTable id="bulk1" rowIndexVar="ri"
+					var="smallProductTransferPassRecord"
+					value="#{transferPassMBean.smallProductTransferPassRecords}"
+					scrollable="true" scrollHeight="200">
+					<p:column headerText="Keluaran kecil">
+						<p:selectOneMenu
+							value="#{smallProductTransferPassRecord.smallProductID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupSmallProductTransferPassRecord').initPosition()"
+							rendered="#{smallProductTransferPassRecord != null}">
+							<f:selectItem itemLabel="- pilih keluaran kecil -"
+								itemValue="#{null}" />
+							<f:selectItems value="#{transferPassMBean.smallProducts}"
+								var="smallProduct" itemLabel="#{smallProduct}"
+								itemValue="#{smallProduct.smallProductID}" />
+							<p:ajax update="bulk1:@row(#{ri})"
+								listener="#{transferPassMBean.handleSmallProductIDChange(smallProductTransferPassRecord)}"
+								event="change" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Unit">
+						<p:selectOneMenu value="#{smallProductTransferPassRecord.unitID}"
+							required="true" requiredMessage="Unit diperlukan." filter="true"
+							filterMatchMode="contains"
+							onchange="PF('popupSmallProductTransferPassRecord').initPosition()"
+							disabled="#{smallProductTransferPassRecord.smallProductID == 0}">
+							<f:selectItem itemLabel="- pilih unit -" itemValue="#{null}" />
+							<f:selectItems value="#{transferPassMBean.units}" var="unit"
+								itemLabel="#{unit}" itemValue="#{unit.unitID}" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Kuantiti">
+						<p:inputNumber value="#{smallProductTransferPassRecord.quantity}"
+							required="true" requiredMessage="Kuantiti diperlukan."
+							validatorMessage="Kuantiti mestilah di antara 0.1 dan 10,000."
+							disabled="#{smallProductTransferPassRecord.smallProductID == 0}">
+							<f:validateDoubleRange minimum="0.1" maximum="10000" />
+							<p:clientValidator />
+						</p:inputNumber>
+					</p:column>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{transferPassMBean.backButtonTransferPass}"
+							update=":frmManager messagesSmallProduct"
+							oncomplete="PF('popupLog').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Teruskan" icon="ui-icon-arrow-forward"
+							action="#{transferPassMBean.confirmationPage}"
+							update=":frmManager :frmManager:growl :frmManager:reminder messagesSmallProduct "
+							oncomplete="PF('popupSmallProductTransferPassRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupSmallProductTransferPassRecord').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntrySpecialTransferPassRecord">
+			<p:dialog id="popupSpecialTransferPassRecord"
+				widgetVar="popupSpecialTransferPassRecord" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesSpecial" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:dataTable id="bulk2" rowIndexVar="ri"
+					var="specialTransferPassRecord"
+					value="#{transferPassMBean.specialTransferPassRecords}"
+					scrollable="true" scrollHeight="200">
+					<p:column headerText="Spesis">
+						<p:selectOneMenu value="#{specialTransferPassRecord.speciesID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupSpecialTransferPassRecord').initPosition()"
+							rendered="#{specialTransferPassRecord != null}">
+							<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+							<f:selectItems value="#{transferPassMBean.specieses}"
+								var="species" itemLabel="#{species}"
+								itemValue="#{species.speciesID}" />
+							<p:ajax update="bulk2:@row(#{ri})" event="change" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Panjang">
+						<p:inputNumber value="#{specialTransferPassRecord.length}"
+							required="true" requiredMessage="Panjang diperlukan."
+							validatorMessage="Panjang mestilah di antara 1 dan 20."
+							disabled="#{specialTransferPassRecord.speciesID == 0}"
+							symbol=" m" symbolPosition="s" decimalPlaces="1">
+							<f:validateDoubleRange minimum="1" maximum="20" />
+							<p:clientValidator />
+						</p:inputNumber>
+					</p:column>
+					<p:column headerText="Diameter">
+						<p:inputNumber value="#{specialTransferPassRecord.diameter}"
+							required="true" requiredMessage="Diameter diperlukan."
+							validatorMessage="Diameter mestilah di antara #{transferPassMBean.logSize.minSmallSize} dan 300."
+							disabled="#{specialTransferPassRecord.speciesID == 0}"
+							symbol=" cm" symbolPosition="s" decimalPlaces="0">
+							<f:validateDoubleRange
+								minimum="#{transferPassMBean.logSize.minSmallSize}"
+								maximum="300" />
+							<p:clientValidator />
+						</p:inputNumber>
+					</p:column>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{transferPassMBean.backButtonTransferPass}"
+							update=":frmManager messagesSpecial"
+							oncomplete="PF('popupLog').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Teruskan" icon="ui-icon-arrow-forward"
+							action="#{transferPassMBean.confirmationPage}"
+							update=":frmManager :frmManager:reminder :frmManager:growl messagesSpecial "
+							oncomplete="PF('popupSpecialTransferPassRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupSpecialTransferPassRecord').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownload">
+			<p:dialog id="popupDownload" widgetVar="popupDownload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih bulan dan tahun
+					bagi laporan shuttle.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="month" value="Bulan:" />
+					<p:selectOneMenu id="month" value="#{transferPassMBean.month}"
+						required="true" requiredMessage="Bulan diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.months}" />
+					</p:selectOneMenu>
+					<p:spacer width="20" />
+					<p:outputLabel for="year" value="Tahun:" />
+					<p:selectOneMenu id="year" value="#{transferPassMBean.year}"
+						required="true" requiredMessage="Tahun diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih tahun -" itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.years}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownload').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{transferPassMBean.download()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadBukuKawalan">
+			<p:dialog id="popupDownloadBukuKawalan"
+				widgetVar="popupDownloadBukuKawalan" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih sesi penandaan
+					bagi buku kawalan pengeluaran.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:selectOneMenu id="taggingID1"
+						value="#{transferPassMBean.selectedTaggingID1}" required="true"
+						requiredMessage="Sila pilih sesi penandaan." filter="true"
+						filterMatchMode="contains">
+						<f:selectItem itemLabel="- pilih sesi penandaan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.taggings}" var="tagging"
+							itemLabel="#{tagging}" itemValue="#{tagging.taggingID}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadBukuKawalan').hide();"
+							styleClass="save-btn">
+							<p:fileDownload
+								value="#{transferPassMBean.downloadBukuKawalanPengeluaran(transferPassMBean.selectedTaggingID1)}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadBukuKawalan').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadRangeDate">
+			<p:dialog id="popupDownloadRangeDate"
+				widgetVar="popupDownloadRangeDate" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih tarikh awal dan
+					tarikh akhir.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="startDate" value="Tarikh awal:" />
+					<p:calendar id="startDate" pattern="dd/MM/yyyy"
+						value="#{transferPassMBean.startDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect"
+							listener="#{transferPassMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="endDate" value="Tarikh akhir:" />
+					<p:calendar id="endDate" pattern="dd/MM/yyyy"
+						value="#{transferPassMBean.endDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect"
+							listener="#{transferPassMBean.doNothing}" />
+					</p:calendar>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadRangeDate').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{transferPassMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadRangeDate').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin #{transferPassMBean.message} pas memindah ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="No. pas memindah : #{transferPassMBean.transferPass.transferPassNo}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-save"
+							action="#{transferPassMBean.deleteTransferPass}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{transferPassMBean.transferPass.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmExceedMaximumRecords">
+			<p:dialog id="popupExceedMaximumRecords"
+				widgetVar="popupExceedMaximumRecords" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Tiada tual balak dipilih, sila buat pemilihan semula."
+						rendered="#{transferPassMBean.selectedRecords == 0 and transferPassMBean.transferPass.code != 1}" />
+					<!-- TODO -->
+					<p:outputLabel
+						value="Jumlah tual balak melebihi #{transferPassMBean.maximumRecords} tual."
+						rendered="#{transferPassMBean.selectedRecords gt transferPassMBean.maximumRecords and transferPassMBean.transferPass.code != 1}" />
+					<p:outputLabel
+						value="Tiada keluaran kecil dipilih, sila buat pemilihan semula."
+						rendered="#{transferPassMBean.selectedRecords == 0 and transferPassMBean.transferPass.code == 1}" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupExceedMaximumRecords').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportMonthAndYear">
+			<p:dialog id="popupDownloadReportMonthAndYear"
+				widgetVar="popupDownloadReportMonthAndYear" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportMonthAndYear"
+					showDetail="true" showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih awal serta akhir
+					bulan dan tahun bagi laporan yang ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="startMonth" value="Bulan Awal:" />
+					<p:selectOneMenu id="startMonth"
+						value="#{transferPassMBean.startMonth}" required="true"
+						requiredMessage="Bulan awal diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.months}" />
+					</p:selectOneMenu>
+					<br></br>
+					<p:outputLabel for="endMonth" value="Bulan Akhir:" />
+					<p:selectOneMenu id="endMonth"
+						value="#{transferPassMBean.endMonth}" required="true"
+						requiredMessage="Bulan akhir diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.months}" />
+					</p:selectOneMenu>
+					<br></br>
+					<p:outputLabel for="year" value="Tahun:" />
+					<p:selectOneMenu id="year" value="#{transferPassMBean.year}"
+						required="true" requiredMessage="Tahun diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih tahun -" itemValue="#{null}" />
+						<f:selectItems value="#{transferPassMBean.years}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportMonthAndYear').hide();"
+							styleClass="save-btn">
+							<p:fileDownload
+								value="#{transferPassMBean.downloadRingkasanPengeluaranHasilHutan()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportMonthAndYear').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload1" enctype="multipart/form-data">
+			<p:dialog id="popupUpload1" widgetVar="popupUpload1" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload1" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload
+					fileUploadListener="#{transferPassMBean.uploadPrerequisites}"
+					label="Pilih CTPD fail" uploadLabel="Muat naik" cancelLabel="Batal"
+					fileLimitMessage="Hanya 1 fail sahaja yang dibenarkan untuk dimuat naik"
+					invalidFileMessage="Sila hantar fail CTPD sahaja" fileLimit="1"
+					allowTypes="/(\.|\/)(ctpd)$/i" dragDropSupport="true"
+					update=":frmManager messagesUpload1 @this"
+					onstart="PF('popupUpload1').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload1').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload1').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload1').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload2" enctype="multipart/form-data">
+			<p:dialog id="popupUpload2" widgetVar="popupUpload2" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload2" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload
+					fileUploadListener="#{transferPassMBean.uploadTransferPasses}"
+					label="Pilih CTPO fail" uploadLabel="Muat naik" cancelLabel="Batal"
+					fileLimitMessage="Hanya 1 fail sahaja yang dibenarkan untuk dimuat naik"
+					invalidFileMessage="Sila hantar fail CTPO sahaja" fileLimit="1"
+					allowTypes="/(\.|\/)(ctpo)$/i" dragDropSupport="true"
+					update=":frmManager messagesUpload2 @this"
+					onstart="PF('popupUpload2').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload2').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload2').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload2').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmConfirmation">
+			<p:dialog id="popupConfirmation" widgetVar="popupConfirmation"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesConfirmation" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<f:facet name="header">
+					<h:outputText value="Pengesahan" />
+				</f:facet>
+				<h3 style="color: red">#{transferPassMBean.confirmationPageMessages}</h3>
+				<p:scrollPanel style="max-height: 300px; border: none;">
+					<div class="ui-g-12 ui-md-12">
+
+						<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel value="No. pas memindah:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.transferPassNo}" />
+							<p:outputLabel value="Tarikh:" />
+							<p:outputLabel value="#{transferPassMBean.transferPass.date}">
+								<f:converter converterId="dateConverter" />
+							</p:outputLabel>
+							<p:outputLabel value="Pegawai balai:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.hallOfficerHammerNo}-#{transferPassMBean.transferPass.hallOfficerName}" />
+							<p:outputLabel value="Balai:" />
+							<p:outputLabel value="#{transferPassMBean.transferPass.hallName}" />
+							<p:outputLabel value="Gandaan royalti, ses dan premium:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.royaltyRate}, #{transferPassMBean.transferPass.cessRate} dan #{transferPassMBean.transferPass.premiumRate}" />
+							<p:outputLabel value="Pelesen:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.licenseNo} - #{transferPassMBean.transferPass.companyName}" />
+							<p:outputLabel value="Destinasi:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.destinationAddress}" />
+							<p:outputLabel value="Negeri destinasi:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.destinationStateName}" />
+							<p:outputLabel value="Nama pemandu:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.driverName}" />
+							<p:outputLabel value="No. kenderaan:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.vehicleNo}" />
+							<p:outputLabel value="Muatan kenderaan:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.grossVehicleWeight} kg" />
+							<p:outputLabel value="Jumlah royalti:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.royaltyAmount}"
+								decimalSeparator="." thousandSeparator=",">
+								<f:convertNumber type="currency" currencySymbol="RM " />
+							</p:outputLabel>
+							<p:outputLabel value="Jumlah ses:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.cessAmount}"
+								decimalSeparator="." thousandSeparator=",">
+								<f:convertNumber type="currency" currencySymbol="RM " />
+							</p:outputLabel>
+							<p:outputLabel value="Jumlah premium:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.premiumAmount}"
+								decimalSeparator="." thousandSeparator=",">
+								<f:convertNumber type="currency" currencySymbol="RM " />
+							</p:outputLabel>
+							<p:outputLabel value="Nama pegawai merekod:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.recorderName}" />
+							<p:outputLabel value="Masa rekod:" />
+							<p:outputLabel
+								value="#{transferPassMBean.transferPass.recordTime}">
+								<f:convertDateTime pattern="HH:mm" />
+							</p:outputLabel>
+						</p:panelGrid>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist"
+							var="mainRevenueTransferPassRecord"
+							value="#{transferPassMBean.transferPass.mainRevenueTransferPassRecords}"
+							reflow="true" emptyMessage="Tiada tual balak direkodkan."
+							paginator="#{transferPass.mainRevenueTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPassMBean.transferPass.code == 0}">
+							<f:facet name="header">
+								<h:outputText value="Senarai Tual Balak" />
+							</f:facet>
+							<p:column headerText="Maklumat Tual"
+								sortBy="#{mainRevenueTransferPassRecord.logSerialNo}"
+								filterBy="#{mainRevenueTransferPassRecord.logSerialNo}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="No. siri tual : #{mainRevenueTransferPassRecord.logSerialNo}" />
+								<br />
+								<h:outputText
+									value="Spesis : #{mainRevenueTransferPassRecord.speciesCode}-#{mainRevenueTransferPassRecord.speciesName}" />
+							</p:column>
+							<p:column headerText="Maklumat Isipadu"
+								sortBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Panjang : " />
+								<h:outputText value="#{mainRevenueTransferPassRecord.length}">
+									<f:convertNumber minFractionDigits="1" />
+								</h:outputText>
+								<h:outputText value=" m" />
+								<br />
+								<h:outputText value="Diameter : " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.diameter} cm">
+									<f:convertNumber minFractionDigits="0" />
+								</h:outputText>
+								<br />
+								<h:outputText value="Diameter lubang : " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.holeDiameter}">
+									<f:convertNumber minFractionDigits="0" />
+								</h:outputText>
+								<h:outputText value=" cm" />
+								<br />
+								<h:outputText value="Isipadu: " />
+								<h:outputText
+									value="#{mainRevenueTransferPassRecord.grossVolume}">
+									<f:convertNumber minFractionDigits="2" />
+								</h:outputText>
+								<h:outputText value=" m&#x00B3;" />
+								<br />
+								<h:outputText value="Isipadu bersih: " />
+								<h:outputText value="#{mainRevenueTransferPassRecord.netVolume}">
+									<f:convertNumber minFractionDigits="2" />
+								</h:outputText>
+								<h:outputText value=" m&#x00B3;" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterBy="#{mainRevenueTransferPassRecord.netVolume}"
+								filterMatchMode="contains" style="vertical-align: top">
+
+								<h:outputText value="Royalti : " />
+								<p:outputLabel value="#{mainRevenueTransferPassRecord.royalty}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<br />
+								<h:outputText value="Ses : " />
+								<p:outputLabel value="#{mainRevenueTransferPassRecord.cess}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+							</p:column>
+							<f:facet name="footer">#{transferPassMBean.transferPass.mainRevenueTransferPassRecords.size()} tual balak direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable1" widgetVar="sublist1"
+							var="smallProductTransferPassRecord"
+							value="#{transferPassMBean.transferPass.smallProductTransferPassRecords}"
+							reflow="true" emptyMessage="Tiada keluaran kecil direkodkan."
+							paginator="#{transferPass.smallProductTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPassMBean.transferPass.code == 1}">
+							<f:facet name="header">
+								<h:outputText value="Senarai keluaran kecil" />
+							</f:facet>
+							<p:column headerText="Maklumat keluaran kecil"
+								sortBy="#{smallProductTransferPassRecord.smallProductName}"
+								filterBy="#{smallProductTransferPassRecord.smallProductName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{smallProductTransferPassRecord.smallProductName}" />
+							</p:column>
+							<p:column headerText="Maklumat Unit"
+								sortBy="#{smallProductTransferPassRecord.unitName}"
+								filterBy="#{smallProductTransferPassRecord.unitName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{smallProductTransferPassRecord.unitName}" />
+							</p:column>
+							<p:column headerText="Maklumat Kuantiti"
+								sortBy="#{smallProductTransferPassRecord.kadar}"
+								filterBy="#{smallProductTransferPassRecord.kadar}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="Kuantiti : #{smallProductTransferPassRecord.quantity}" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{smallProductTransferPassRecord.royalty}"
+								filterBy="#{smallProductTransferPassRecord.royalty}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Kadar Royalti : " />
+								<h:outputText
+									value="#{smallProductTransferPassRecord.royaltyRate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+
+								<br />
+								<h:outputText value="Royalti : " />
+								<h:outputText value="#{smallProductTransferPassRecord.royalty}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+
+								<br />
+								<h:outputText value="Kadar Ses : " />
+								<h:outputText value="#{smallProductTransferPassRecord.cessRate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Ses : " />
+								<h:outputText value="#{smallProductTransferPassRecord.cess}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">#{transferPassMBean.transferPass.smallProductTransferPassRecords.size()} keluaran kecil direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable2" widgetVar="sublist2"
+							var="specialTransferPassRecord"
+							value="#{transferPassMBean.transferPass.specialTransferPassRecords}"
+							reflow="true" emptyMessage="Tiada tual direkodkan."
+							paginator="#{transferPass.specialTransferPassRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{transferPassMBean.transferPass.code == 2}">
+							<f:facet name="header">
+
+								<h:outputText value="Senarai tual balak" />
+							</f:facet>
+							<p:column headerText="Maklumat Spesis"
+								sortBy="#{specialTransferPassRecord.speciesName}"
+								filterBy="#{specialTransferPassRecord.speciesName}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{specialTransferPassRecord.speciesCode} -  #{specialTransferPassRecord.speciesName}" />
+							</p:column>
+							<p:column headerText="Maklumat Panjang"
+								sortBy="#{specialTransferPassRecord.length}"
+								filterBy="#{specialTransferPassRecord.length}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{specialTransferPassRecord.length}">
+									<f:convertNumber minFractionDigits="1" />
+								</h:outputText>
+								<h:outputText value=" m" />
+							</p:column>
+							<p:column headerText="Maklumat Diameter"
+								sortBy="#{specialTransferPassRecord.diameter}"
+								filterBy="#{specialTransferPassRecord.diameter}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{specialTransferPassRecord.diameter} cm" />
+							</p:column>
+							<p:column headerText="Maklumat Royalti dan Ses"
+								sortBy="#{specialTransferPassRecord.royalty}"
+								filterBy="#{specialTransferPassRecord.royalty}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="Royalti : " />
+								<h:outputText value="#{specialTransferPassRecord.royalty}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Ses : " />
+								<h:outputText value="#{specialTransferPassRecord.cess}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+							</p:column>
+							<f:facet name="footer">#{transferPassMBean.transferPass.specialTransferPassRecords.size()} tual balak direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{transferPassMBean.backButtonTransferPassRecord}"
+							update=":frmManager messagesConfirmation"
+							oncomplete="PF('popupConfirmation').initPosition()"
+							validateClient="true" styleClass="save-btn">
+							<p:resetInput target=":frmConfirmation" />
+						</p:commandButton>
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{transferPassMBean.transferPassEntry}"
+							update=":frmManager messagesConfirmation"
+							oncomplete="PF('popupConfirmation').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{transferPassMBean.exceedResinLimit == false and transferPassMBean.exceedNonResinLimit == false and transferPassMBean.exceedChengalLimit == false and transferPassMBean.royaltyAndCessRateExist == true and transferPassMBean.license.woodWorkFund ge transferPassMBean.transferPass.royaltyAmount and transferPassMBean.transferPassNoExist == false}">
+							<p:resetInput target=":frmEntryLog" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupConfirmation').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+
+	</ui:define>
+</ui:composition>

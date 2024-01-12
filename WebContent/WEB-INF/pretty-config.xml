@@ -1,0 +1,406 @@
+<pretty-config
+	xmlns="http://ocpsoft.org/schema/rewrite-config-prettyfaces"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://ocpsoft.org/schema/rewrite-config-prettyfaces
+                      http://ocpsoft.org/xml/ns/prettyfaces/rewrite-config-prettyfaces.xsd">
+	<rewrite match="(?i)^(.*);jsessionid=w+(.*)" substitute="$1$2"
+		redirect="chain" />
+	<url-mapping id="login">
+		<pattern value="/login" />
+		<view-id value="/WEB-INF/facelets/login.xhtml" />
+	</url-mapping>
+	<url-mapping id="400">
+		<pattern value="/400" />
+		<view-id value="/WEB-INF/facelets/400.xhtml" />
+	</url-mapping>
+	<url-mapping id="invalid">
+		<pattern value="/invalid" />
+		<view-id value="/WEB-INF/facelets/invalid.xhtml" />
+	</url-mapping>
+	<url-mapping id="secured">
+		<pattern value="/utama" />
+		<view-id value="/WEB-INF/facelets/secured/home.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageProfile">
+		<pattern value="/profil" />
+		<view-id
+			value="/WEB-INF/facelets/secured/user/manageProfile.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTrailLogs">
+		<pattern value="/log" />
+		<view-id
+			value="/WEB-INF/facelets/secured/user/manageTrailLogs.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageModules">
+		<pattern value="/selenggara/modul" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageModules.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageDesignations">
+		<pattern value="/selenggara/jawatan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageDesignations.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageStaffs">
+		<pattern value="/selenggara/pekerja" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageStaffs.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageStates">
+		<pattern value="/selenggara/negeri" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageStates.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageDistricts">
+		<pattern value="/selenggara/daerahHutan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageDistricts.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageForests">
+		<pattern value="/selenggara/hutanSimpan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageForests.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageForestTypes">
+		<pattern value="/selenggara/jenisHutan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageForestTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSoilTypes">
+		<pattern value="/selenggara/jenisTanah" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSoilTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageGeologies">
+		<pattern value="/selenggara/geologi" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageGeologies.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageAreaStatuses">
+		<pattern value="/selenggara/keadaanKawasan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageAreaStatuses.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSoilStatuses">
+		<pattern value="/selenggara/keadaanTanah" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSoilStatuses.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageAspects">
+		<pattern value="/selenggara/aspek" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageAspects.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSlopeLocations">
+		<pattern value="/selenggara/tempatCerun" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSlopeLocations.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageElevations">
+		<pattern value="/selenggara/dongakan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageElevations.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageResams">
+		<pattern value="/selenggara/resam" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageResams.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageGingers">
+		<pattern value="/selenggara/halia" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageGingers.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageBananas">
+		<pattern value="/selenggara/pisang" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageBananas.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTimberGroups">
+		<pattern value="/selenggara/kumpulanJenisKayuKayan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTimberGroups.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTimberTypes">
+		<pattern value="/selenggara/jenisKayuKayan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTimberTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSpeciesTypes">
+		<pattern value="/selenggara/jenisSpesis" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSpeciesTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSpeciesList">
+		<pattern value="/selenggara/spesis" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSpeciesList.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageRegenerationTypes">
+		<pattern value="/selenggara/daftarPemulihan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageRegenerationTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageProtectedTypes">
+		<pattern value="/selenggara/jenisPerlindungan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageProtectedTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageVolumeGroups">
+		<pattern value="/selenggara/sifirIsipadu" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageVolumeGroups.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePlotTypes">
+		<pattern value="/selenggara/jenisPetak" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/managePlotTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTreeLimits">
+		<pattern value="/selenggara/hadPokok" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTreeLimits.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLogQualities">
+		<pattern value="/selenggara/kualitiBalak" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageLogQualities.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageFertilities">
+		<pattern value="/selenggara/kesuburan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageFertilities.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageVineSpreadths">
+		<pattern value="/selenggara/melingkari" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageVineSpreadths.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTreeStatuses">
+		<pattern value="/selenggara/keadaanPokok" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTreeStatuses.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSilaras">
+		<pattern value="/selenggara/silara" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSilaras.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageDominances">
+		<pattern value="/selenggara/keunggulan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageDominances.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageCuttingOptions">
+		<pattern value="/selenggara/opsyenHadTebangan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageCuttingOptions.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageHammerTypes">
+		<pattern value="/selenggara/jenisTukul" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageHammerTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageHammers">
+		<pattern value="/selenggara/tukul" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageHammers.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTaggingTypes">
+		<pattern value="/selenggara/jenisPenandaan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTaggingTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTreeTypes">
+		<pattern value="/selenggara/jenisPokok" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTreeTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageContractors">
+		<pattern value="/selenggara/kontraktor" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageContractors.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTenders">
+		<pattern value="/selenggara/sebutHarga" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTenders.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageBursaryVots">
+		<pattern value="/selenggara/kodObjek" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageBursaryVots.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageDepartmentVots">
+		<pattern value="/selenggara/kodObjekLanjut" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageDepartmentVots.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTrustFunds">
+		<pattern value="/selenggara/wangAmanah" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTrustFunds.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageProductGroups">
+		<pattern value="/selenggara/kumpulanKeluaran" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageProductGroups.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSmallProducts">
+		<pattern value="/selenggara/keluaranKecil" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSmallProducts.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTransactionFormMapDepartmentVots">
+		<pattern
+			value="/selenggara/pemetaanBorangTransaksiDanVotJabatan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTransactionFormMapDepartmentVots.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTransactionFormMapTrustFunds">
+		<pattern
+			value="/selenggara/pemetaanBorangTransaksiDanWangAmanah" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageTransactionFormMapTrustFunds.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePaymentTypes">
+		<pattern value="/selenggara/caraBayaran" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/managePaymentTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageBanks">
+		<pattern value="/selenggara/bank" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageBanks.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageUnits">
+		<pattern value="/selenggara/unit" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageUnits.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageChequeTypes">
+		<pattern value="/selenggara/jenisCek" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageChequeTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageForestCategories">
+		<pattern value="/selenggara/kategoriHutan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageForestCategories.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLicenseStatus">
+		<pattern value="/selenggara/statusLesen" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageLicenseStatus.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLicenseType">
+		<pattern value="/selenggara/jenisLesen" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageLicenseTypes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageMainRevenueRoyaltyRates">
+		<pattern value="/selenggara/kadarRoyaltiHasilUtama" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageMainRevenueRoyaltyRates.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageSmallProductRoyaltyRates">
+		<pattern value="/selenggara/kadarRoyaltiKeluaranKecil" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageSmallProductRoyaltyRates.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLogSizes">
+		<pattern value="/selenggara/saizBalak" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageLogSizes.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageHallOfficers">
+		<pattern value="/selenggara/pegawaiBalai" />
+		<view-id
+			value="/WEB-INF/facelets/secured/maintenance/manageHallOfficers.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePreFellingSurveys">
+		<pattern value="/pre-f/bancian" />
+		<view-id
+			value="/WEB-INF/facelets/secured/pre-f/managePreFellingSurveys.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePreFellingSurveyCards">
+		<pattern value="/pre-f/kadBancian" />
+		<view-id
+			value="/WEB-INF/facelets/secured/pre-f/managePreFellingSurveyCards.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTaggings">
+		<pattern value="/tagging/penandaan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/tagging/manageTaggings.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTaggingForms">
+		<pattern value="/tagging/borangPenandaan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/tagging/manageTaggingForms.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePostFellingSurveys">
+		<pattern value="/post-f/bancian" />
+		<view-id
+			value="/WEB-INF/facelets/secured/post-f/managePostFellingSurveys.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePostFellingSurveyCards">
+		<pattern value="/post-f/kadBancian" />
+		<view-id
+			value="/WEB-INF/facelets/secured/post-f/managePostFellingSurveyCards.xhtml" />
+	</url-mapping>
+	<url-mapping id="managePostFellingInspectionCards">
+		<pattern value="/post-f/kadSemakan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/post-f/managePostFellingInspectionCards.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageReceipts">
+		<pattern value="/hasil/resit" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageReceipts.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageForestDevelopmentContractors">
+		<pattern value="/hasil/kontraktorPembangunanHutan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageForestDevelopmentContractors.xhtml" />
+	</url-mapping>	
+	<url-mapping id="manageLoggingContractors">
+		<pattern value="/hasil/pengusahaKontraktorPembalakan" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageLoggingContractors.xhtml" />
+	</url-mapping>	
+			<url-mapping id="managePermits">
+		<pattern value="/hasil/permit" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/managePermits.xhtml" />
+	</url-mapping>	
+	<url-mapping id="manageAccounts">
+		<pattern value="/hasil/akaun" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageAccounts.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLicenses">
+		<pattern value="/hasil/lesen" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageLicenses.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageJournals">
+		<pattern value="/hasil/jurnal" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageJournals.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageVouchers">
+		<pattern value="/hasil/baucar" />
+		<view-id
+			value="/WEB-INF/facelets/secured/revenue/manageVouchers.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageLogs">
+		<pattern value="/balai/tualBalak" />
+		<view-id
+			value="/WEB-INF/facelets/secured/hall/manageLogs.xhtml" />
+	</url-mapping>
+	<url-mapping id="manageTransferPasses">
+		<pattern value="/balai/pasMemindah" />
+		<view-id
+			value="/WEB-INF/facelets/secured/hall/manageTransferPasses.xhtml" />
+	</url-mapping>
+</pretty-config>

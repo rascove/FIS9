@@ -1,0 +1,495 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="loggingContractor"
+				value="#{loggingContractorMBean.loggingContractors}" reflow="true"
+				emptyMessage="Tiada kontraktor pembalakan direkodkan."
+				paginator="#{loggingContractorMBean.loggingContractors.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:spacer width="5" /> <p:commandButton
+									value="Tambah pengusaha/kontraktor pembalakan"
+									icon="ui-icon-add" update=":frmEntry"
+									action="#{loggingContractorMBean.handleOpen}"
+									oncomplete="PF('popup').show()" process="@this"
+									styleClass="secondary flat">
+									<f:setPropertyActionListener value="true"
+										target="#{loggingContractorMBean.addOperation}" />
+									<p:resetInput target=":frmEntry" />
+								</p:commandButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Maklumat Pengusaha / Kontraktor Pembalakan"
+					sortBy="#{loggingContractor.companyName}"
+					filterBy="#{loggingContractor.companyName}"
+					filterMatchMode="contains">
+					<h:outputText
+						value="No. siri : #{loggingContractor.registrationSerialNo}" />
+					<br />
+					<h:outputText value="Syarikat : #{loggingContractor.companyName}" />
+					<br />
+					<h:outputText value="Alamat : #{loggingContractor.address}" />
+					<br />
+					<h:outputText
+						value="No. tel : #{loggingContractor.telNo == null ? 'Tiada' : loggingContractor.telNo}" />
+				</p:column>
+				<p:column headerText="Jenis" sortBy="#{loggingContractor.type}"
+					filterBy="#{loggingContractor.type}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih jenis -" itemValue="" />
+							<f:selectItem itemLabel="Pengusaha" itemValue="L" />
+							<f:selectItem itemLabel="Kontraktor pembalakan" itemValue="C" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Pengusaha"
+						rendered="#{loggingContractor.type == 'L'}" />
+					<h:outputText value="Kontraktor pembalakan"
+						rendered="#{loggingContractor.type == 'C'}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod"
+					sortBy="#{loggingContractor.recorderName}"
+					filterBy="#{loggingContractor.recorderName}"
+					filterMatchMode="contains">
+					<h:outputText value="#{loggingContractor.recorderName}" />
+				</p:column>
+				<p:column headerText="Tarikh"
+					sortBy="#{loggingContractor.registrationDate}"
+					filterBy="#{loggingContractor.registrationDate}"
+					filterMatchMode="contains">
+					<h:outputText value="Daftar : " />
+					<h:outputText value="#{loggingContractor.registrationDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Mula : " />
+					<h:outputText value="#{loggingContractor.startDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Tamat : " />
+					<h:outputText value="#{loggingContractor.endDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Status" sortBy="#{loggingContractor.status}"
+					filterBy="#{loggingContractor.status}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Aktif" itemValue="A" />
+							<f:selectItem itemLabel="Hampir tamat" itemValue="W" />
+							<f:selectItem itemLabel="Tamat tempoh" itemValue="E" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Aktif"
+						rendered="#{loggingContractor.status == 'A'}" />
+					<h:outputText value="Hampir tamat"
+						rendered="#{loggingContractor.status == 'W'}" />
+					<h:outputText value="Tamat tempoh"
+						rendered="#{loggingContractor.status == 'E'}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+							update=":frmEntry" oncomplete="PF('popup').show()"
+							process="@this" rendered="#{loggingContractor.status == 'A'}"
+							action="#{loggingContractorMBean.handleOpen}">
+							<f:setPropertyActionListener value="false"
+								target="#{loggingContractorMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{loggingContractor}"
+								target="#{loggingContractorMBean.loggingContractor}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. resit:" />
+								<p:outputLabel value="#{loggingContractor.receiptNo}" />								
+								<p:outputLabel value="No. Siri Pendaftaran : " />
+								<p:outputLabel value="#{loggingContractor.registrationSerialNo}" />
+								<p:outputLabel value="Nama : " />
+								<p:outputLabel value="#{loggingContractor.name}" />
+								<p:outputLabel value="Jenis : " />
+								<p:outputLabel
+									value="#{loggingContractor.type == 'C' ? 'Kontraktor Pembalakan' : (loggingContractor.type == 'L' ? 'Pengusaha' : 'Ralat' )}" />
+								<p:outputLabel value="Alamat : " />
+								<p:outputLabel value="#{loggingContractor.address}" />
+								<p:outputLabel value="No. Telefon : " />
+								<p:outputLabel
+									value="#{loggingContractor.telNo != null ? loggingContractor.telNo : 'Tiada'}" />
+								<p:outputLabel value="Nama Syarikat : " />
+								<p:outputLabel value="#{loggingContractor.companyName}" />
+								<p:outputLabel value="Alamat Perniagaan Berdaftar : " />
+								<p:outputLabel value="#{loggingContractor.registeredAddress}" />
+								<p:outputLabel value="No. Perakuan Pendaftaran Perniagaan : " />
+								<p:outputLabel
+									value="#{loggingContractor.businessRegistrationNo != null ? loggingContractor.businessRegistrationNo : 'Tiada'}" />
+								<p:outputLabel value="Tarikh Pendaftaran :" />
+								<p:outputLabel value="#{loggingContractor.registrationDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh Kuatkuasa :" />
+								<p:outputLabel value="#{loggingContractor.startDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh Tamat :" />
+								<p:outputLabel value="#{loggingContractor.endDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Pemegang-Pemegang Saham Dalam Syarikat : " />
+								<p:outputLabel value="" />
+								<p:outputLabel value="Pengurusan : " />
+								<p:outputLabel
+									value="#{loggingContractor.managementStaffNo} orang" />
+								<p:outputLabel value="Perkeranian : " />
+								<p:outputLabel
+									value="#{loggingContractor.clericalStaffNo} orang" />
+								<p:outputLabel value="Tenaga lain-lain : " />
+								<p:outputLabel value="#{loggingContractor.othersStaffNo} orang" />
+								<p:outputLabel value="Jentera Kepunyaan Syarikat : " />
+								<p:outputLabel value="" />
+								<p:outputLabel value="Jentolak : " />
+								<p:outputLabel value="#{loggingContractor.jcbNo} unit" />
+								<p:outputLabel value="Penyangga : " />
+								<p:outputLabel value="#{loggingContractor.penyanggaNo} unit" />
+								<p:outputLabel value="Penggered : " />
+								<p:outputLabel value="#{loggingContractor.penggeredNo} unit" />
+								<p:outputLabel value="Lori : " />
+								<p:outputLabel value="#{loggingContractor.lorryNo} unit" />
+								<p:outputLabel value="Pengalaman Membalak Terdahulu : " />
+								<p:outputLabel value="" />
+								<p:outputLabel value="Permit/Lesen No. : " />
+								<p:outputLabel
+									value="#{loggingContractor.previousLicensePermitNo != null ? loggingContractor.previousLicensePermitNo : 'Tiada'}" />
+								<p:outputLabel value="Kawasan (Hektar) : " />
+								<p:outputLabel
+									value="#{loggingContractor.area != null ? loggingContractor.area : 'Tiada'}" />
+								<p:outputLabel value="Negeri : " />
+								<p:outputLabel
+									value="#{loggingContractor.stateID != 0 ? loggingContractor.stateName : 'Tiada'}" />
+								<p:outputLabel value="Pegawai Rekod : " />
+								<p:outputLabel value="#{loggingContractor.recorderName}" />
+								<p:outputLabel value="Masa Rekod : " />
+								<p:outputLabel value="#{loggingContractor.recordTime}">
+									<f:convertDateTime type="time" dateStyle="full" />
+								</p:outputLabel>
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{loggingContractorMBean.loggingContractors == null ? 0 : loggingContractorMBean.loggingContractors.size()} kontraktor/pengusaha direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:scrollPanel style="max-height: 300px; border: none;">
+					<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+						styleClass="ui-fluid ui-panelgrid-blank form-group"
+						columnClasses="ui-grid-col-3,ui-grid-col-9">
+						<p:outputLabel for="receiptID" value="Resit:"
+							rendered="#{loggingContractorMBean.addOperation == true}" />
+						<p:selectOneMenu id="receiptID"
+							value="#{loggingContractorMBean.loggingContractor.receiptID}"
+							required="true" requiredMessage="Resit diperlukan." filter="true"
+							filterMatchMode="contains" onchange="PF('popup').initPosition()"
+							rendered="#{loggingContractorMBean.loggingContractor != null and loggingContractorMBean.addOperation == true}">
+							<f:selectItem itemLabel="- pilih resit -" itemValue="#{null}" />
+							<f:selectItems value="#{loggingContractorMBean.receipts}"
+								var="receipt" itemLabel="#{receipt}"
+								itemValue="#{receipt.receiptID}" />
+							<p:ajax event="change" update="name, type" listener="#{loggingContractorMBean.handleReceiptIDChange}" />
+						</p:selectOneMenu>
+						<p:outputLabel for="registrationSerialNo"
+							value="No. Siri Pendaftaran:" />
+						<p:inputText id="registrationSerialNo"
+							value="#{loggingContractorMBean.loggingContractor.registrationSerialNo}"
+							required="true"
+							requiredMessage="No. Siri Pendaftaran diperlukan."
+							validatorMessage="No. Siri Pendaftaran mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="name" value="Nama Pemohon:" />
+						<p:inputText id="name"
+							value="#{loggingContractorMBean.loggingContractor.name}"
+							required="true" requiredMessage="Nama diperlukan."
+							validatorMessage="Nama mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="icNo" value="No. Kad Pengenalan:" />
+						<p:inputText id="icNo"
+							value="#{loggingContractorMBean.loggingContractor.icNo}"
+							required="true" requiredMessage="No. Kad Pengenalan diperlukan."
+							validatorMessage="No. Kad Pengenalan mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="type" value="Jenis:" />
+						<p:selectOneRadio id="type"
+							value="#{loggingContractorMBean.loggingContractor.type}"
+							layout="responsive" columns="2" required="true"
+							requiredMessage="Jenis diperlukan.">
+							<f:selectItem itemLabel="Pengusaha#{receipt.status}" itemValue="L" itemDisabled="#{loggingContractorMBean.loggingContractor.receiptStatus == 'L'}" />
+							<f:selectItem itemLabel="Kontraktor Pembalakan#{receipt.status}" itemValue="C" itemDisabled="#{loggingContractorMBean.loggingContractor.receiptStatus == 'K'}" />
+						</p:selectOneRadio>
+						<p:outputLabel for="address" value="Alamat:" />
+						<p:inputText id="address"
+							value="#{loggingContractorMBean.loggingContractor.address}"
+							required="true" requiredMessage="Alamat diperlukan."
+							validatorMessage="Alamat mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="telNo" value="No. telefon :" />
+						<p:inputText id="telNo"
+							value="#{loggingContractorMBean.loggingContractor.telNo}"
+							validatorMessage="No. telefon mestilah 12 aksara dan ke bawah.">
+							<f:validateLength maximum="12" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="companyName" value="Nama / Nama syarikat :" />
+						<p:inputText id="companyName"
+							value="#{loggingContractorMBean.loggingContractor.companyName}"
+							required="true" requiredMessage="Nama syarikat diperlukan."
+							validatorMessage="Nama syarikat mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="registeredAddress"
+							value="Alamat Perniagaan Berdaftar : " />
+						<p:inputText id="registeredAddress"
+							value="#{loggingContractorMBean.loggingContractor.registeredAddress}"
+							required="true"
+							requiredMessage="Alamat perniagaan berdaftar diperlukan."
+							validatorMessage="Alamat perniagaan berdaftar mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="businessRegistrationNo"
+							value="No. Perakuan Pendaftaran Perniagaan/No. Kad Pengenalan :" />
+						<p:inputText id="businessRegistrationNo"
+							value="#{loggingContractorMBean.loggingContractor.businessRegistrationNo}"
+							required="true"
+							requiredMessage="No. perakuan pendaftaran perniagaan diperlukan."
+							validatorMessage="No. perakuan pendaftaran perniagaan mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="startDate" value="Tarikh Kuatkuasa:" rendered="#{forestDevelopmentContractorMBean.addOperation == true}"/>
+						<p:calendar id="startDate" pattern="dd/MM/yyyy"
+							value="#{loggingContractorMBean.loggingContractor.startDate}"
+							required="true" requiredMessage="Tarikh kuatkuasa diperlukan"
+							readonlyInput="true"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}">
+						</p:calendar>
+						<p:outputLabel for="duration" value="Jangkamasa:"
+							rendered="#{loggingContractorMBean.addOperation == true}" />
+						<p:selectOneMenu id="duration"
+							value="#{loggingContractorMBean.duration}" filter="true"
+							required="true" requiredMessage="Jangkamasa diperlukan."
+							filterMatchMode="contains" onchange="PF('popup').initPosition()"
+							rendered="#{loggingContractorMBean.addOperation == true}">
+							<f:selectItem itemLabel="- pilih tempoh -" itemValue="#{null}" />
+							<f:selectItem itemLabel="1 bulan" itemValue="1" />
+							<f:selectItem itemLabel="2 bulan" itemValue="2" />
+							<f:selectItem itemLabel="3 bulan" itemValue="3" />
+							<f:selectItem itemLabel="4 bulan" itemValue="4" />
+							<f:selectItem itemLabel="5 bulan" itemValue="5" />
+							<f:selectItem itemLabel="6 bulan" itemValue="6" />
+							<f:selectItem itemLabel="7 bulan" itemValue="7" />
+							<f:selectItem itemLabel="8 bulan" itemValue="8" />
+							<f:selectItem itemLabel="9 bulan" itemValue="9" />
+							<f:selectItem itemLabel="10 bulan" itemValue="10" />
+							<f:selectItem itemLabel="11 bulan" itemValue="11" />
+							<f:selectItem itemLabel="12 bulan" itemValue="12" />
+						</p:selectOneMenu>
+						<p:outputLabel for="licenseStatusID" value="Status lesen:" />
+						<p:selectOneMenu id="licenseStatusID"
+							value="#{loggingContractorMBean.loggingContractor.licenseStatusID}"
+							required="true" requiredMessage="Status lesen diperlukan."
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popup').initPosition()"
+							rendered="#{loggingContractorMBean.loggingContractor != null}">
+							<f:selectItem itemLabel="- pilih status lesen -"
+								itemValue="#{null}" />
+							<f:selectItems value="#{loggingContractorMBean.licenseStatuses}"
+								var="licenseStatus" itemLabel="#{licenseStatus}"
+								itemValue="#{licenseStatus.licenseStatusID}" />
+						</p:selectOneMenu>
+						<p:outputLabel value="Pemegang Saham Dalam Syarikat :" />
+						<p:outputLabel value="" />
+						<p:outputLabel for="managementStaffNo"
+							value="Bilangan Pekerja Pengurusan:" />
+						<p:inputNumber id="managementStaffNo"
+							value="#{loggingContractorMBean.loggingContractor.managementStaffNo}"
+							required="true"
+							requiredMessage="Bilangan pekerja pengurusan diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="clericalStaffNo"
+							value="Bil. Pekerja Perkeranian :" />
+						<p:inputNumber id="clericalStaffNo"
+							value="#{loggingContractorMBean.loggingContractor.clericalStaffNo}"
+							required="true"
+							requiredMessage="Bilangan pekerja perkeranian diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="othersStaffNo" value="Bil. Pekerja Lain-Lain:" />
+						<p:inputNumber id="othersStaffNo"
+							value="#{loggingContractorMBean.loggingContractor.othersStaffNo}"
+							required="true"
+							requiredMessage="Bilangan pekerja lain-lain diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel value="Jentera Kepunyaan Syarikat :" />
+						<p:outputLabel value="" />
+						<p:outputLabel for="jcbNo" value="Bilangan Jentolak :" />
+						<p:inputNumber id="jcbNo"
+							value="#{loggingContractorMBean.loggingContractor.jcbNo}"
+							required="true" requiredMessage="Bilangan jentolak diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="penyanggaNo" value="Bil. Penyangga :" />
+						<p:inputNumber id="penyanggaNo"
+							value="#{loggingContractorMBean.loggingContractor.penyanggaNo}"
+							required="true" requiredMessage="Bilangan penyangga diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="penggeredNo" value="Bil. Penggered :" />
+						<p:inputNumber id="penggeredNo"
+							value="#{loggingContractorMBean.loggingContractor.penggeredNo}"
+							required="true" requiredMessage="Bilangan penggered diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="lorryNo" value="Bil. Lori :" />
+						<p:inputNumber id="lorryNo"
+							value="#{loggingContractorMBean.loggingContractor.lorryNo}"
+							required="true" requiredMessage="Bilangan lori diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel value="Pengalaman Membalak Terdahulu (Jika Ada) :" />
+						<p:outputLabel value="" />
+						<p:outputLabel for="previousLicensePermitNo"
+							value="Permit/Lesen No.:" />
+						<p:inputText id="previousLicensePermitNo"
+							value="#{loggingContractorMBean.loggingContractor.previousLicensePermitNo}"
+							validatorMessage="Permit/Lesen no. mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="area" value="Kawasan (Hektar) :" />
+						<p:inputNumber id="area"
+							value="#{loggingContractorMBean.loggingContractor.area}"
+							decimalPlaces="2">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="stateID" value="Negeri :" />
+						<p:selectOneMenu id="stateID"
+							value="#{loggingContractorMBean.loggingContractor.stateID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popup').initPosition()"
+							rendered="#{loggingContractorMBean.loggingContractor != null}">
+							<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+							<f:selectItems value="#{loggingContractorMBean.states}"
+								var="state" itemLabel="#{state}" itemValue="#{state.stateID}" />
+						</p:selectOneMenu>
+
+					</p:panelGrid>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{loggingContractorMBean.loggingContractorEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide();" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin #{loggingContractorMBean.message} pengusaha/kontraktor pembalakan ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="No. pengusaha/kontraktor pembalakan : #{loggingContractorMBean.loggingContractor.registrationSerialNo}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-save"
+							action="#{loggingContractorMBean.cancelLoggingContractor}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{loggingContractorMBean.loggingContractor.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

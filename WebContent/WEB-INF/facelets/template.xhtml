@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<f:facet name="first">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="theme-color" content="#4CAF50" />
+	</f:facet>
+	<title>Negeri Sembilan Forestry Integrated System (FIS9)</title>
+	<h:outputScript name="js/nanoscroller.js" library="ultima-layout" />
+	<h:outputScript name="js/layout.js" library="ultima-layout" />
+	<h:outputScript name="js/ripple.js" library="ultima-layout" />
+	<h:outputScript name="js/swipe.js" library="ultima-layout" />
+	<h:outputStylesheet name="css/nanoscroller.css" library="ultima-layout" />
+	<h:outputStylesheet name="css/animate.css" library="ultima-layout" />
+	<h:outputStylesheet name="css/ripple.css" library="ultima-layout" />
+	<h:outputStylesheet name="css/layout-fis9.css" library="ultima-layout" />
+	<link rel="stylesheet" type="text/css"
+		href="#{request.contextPath}/resources/css/layout.css" media="screen" />
+	<link rel="shortcut icon"
+		href="#{request.contextPath}/resources/img/favicon.ico" />
+</h:head>
+<h:body styleClass="main-body layout-compact">
+	<div
+		class="layout-wrapper #{userMBean.user == null ? '' : 'menu-layout-static'}">
+		<div class="topbar clearfix">
+			<div class="topbar-left">
+				<div class="logo"></div>
+			</div>
+			<p:outputPanel styleClass="topbar-right"
+				rendered="#{userMBean.user != null}">
+				<a id="menu-button" href="#"> <i></i>
+				</a>
+				<p:commandButton value="Log Keluar"
+					icon="ui-icon-power-settings-new" action="#{userMBean.logout}"
+					onclick="PF('me').clearMenuState()"
+					styleClass="logout flat rightpanel-btn long-logout" />
+				<p:commandButton icon="ui-icon-power-settings-new"
+					action="#{userMBean.logout}" onclick="PF('me').clearMenuState()"
+					styleClass="logout flat rightpanel-btn short-logout" />
+			</p:outputPanel>
+		</div>
+		<ui:insert name="menu" />
+		<div class="layout-main">
+			<div class="ui-g">
+				<div class="ui-g-12 ui-lg-12">
+					<div
+						class="card card-w-title shadow-box ui-shadow-5 #{bg != null and bg != 'false' ? bg : ''}">
+						<ui:fragment rendered="#{userMBean.user != null and bg == null}">
+							<h1 style="color: white">
+								<i class="fa fa-#{userMBean.icons[view.viewId]}"></i>
+								#{userMBean.headers[view.viewId]}
+							</h1>
+						</ui:fragment>
+						<ui:insert name="content" />
+					</div>
+				</div>
+			</div>
+			<div class="footer">
+				<div class="card clearfix shadow-box ui-shadow-5"
+					style="color: white">
+					<span class="footer-text-left">Negeri Sembilan Forestry
+						Integrated System (FIS9)</span> <span class="footer-text-right"
+						style="color: white"><span
+						class="ui-icon ui-icon-copyright"></span> <span>2018 FTMK,
+							UTeM</span></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<ui:insert name="dialog" />
+	<p:dialog widgetVar="loading" draggable="false" closable="false"
+		resizable="false" showHeader="false">
+		<i class="fa fa-circle-o-notch fa-spin ajax-loader" aria-hidden="true"></i>
+	</p:dialog>
+	<p:ajaxStatus onstart="PF('loading').show()"
+		oncomplete="PF('loading').hide()" />
+</h:body>
+</html>

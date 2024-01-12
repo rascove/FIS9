@@ -1,0 +1,233 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="protectedType"
+				value="#{protectedTypeMBean.protectedTypes}" reflow="true"
+				emptyMessage="Tiada jenis perlindungan direkodkan."
+				paginator="#{protectedTypeMBean.protectedTypes.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah jenis perlindungan"
+							icon="ui-icon-add" update=":frmEntry"
+							action="#{protectedTypeMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{protectedTypeMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{protectedType.name}"
+					filterBy="#{protectedType.name}" filterMatchMode="contains">
+					<h:outputText value="#{protectedType.name}" />
+				</p:column>
+				<p:column headerText="Bidang Kuasa"
+					sortBy="#{protectedType.stateName}"
+					filterBy="#{protectedType.stateID}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua negeri" itemValue="" />
+							<f:selectItems value="#{protectedTypeMBean.states}" var="state"
+								itemLabel="#{state}" itemValue="#{state.stateID}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{protectedType.stateName == null ? 'Semua negeri' : protectedType.stateName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini jenis perlindungan"
+						icon="ui-icon-edit" update=":frmEntry"
+						action="#{protectedTypeMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this"
+						rendered="#{protectedType.stateID == userMBean.user.stateID or userMBean.user.stateID == 0}">
+						<f:setPropertyActionListener value="false"
+							target="#{protectedTypeMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{protectedType}"
+							target="#{protectedTypeMBean.protectedType}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+					<h:outputText value="Tiada pilihan tersedia"
+						rendered="#{protectedType.stateID != userMBean.user.stateID and userMBean.user.stateID != 0}" />
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" var="protectedSpecies"
+							value="#{protectedType.protectedSpeciesList}" reflow="true"
+							emptyMessage="Tiada spesis perlindungan direkodkan."
+							paginator="#{protectedType.protectedSpeciesList.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<p:outputPanel style="text-align: right; margin: 8px 0px;"
+									rendered="#{protectedType.stateID == userMBean.user.stateID or userMBean.user.stateID == 0}">
+									<p:commandButton value="Tambah spesis perlindungan"
+										icon="ui-icon-add" update=":frmEntryProtectedSpecies"
+										action="#{protectedTypeMBean.handleOpenProtectedSpecies}"
+										oncomplete="PF('popupProtectedSpecies').show()"
+										process="@this" styleClass="secondary flat">
+										<f:setPropertyActionListener value="#{protectedType}"
+											target="#{protectedTypeMBean.protectedType}" />
+										<f:setPropertyActionListener value="true"
+											target="#{protectedTypeMBean.addProtectedSpeciesOperation}" />
+										<p:resetInput target=":frmEntryProtectedSpecies" />
+									</p:commandButton>
+								</p:outputPanel>
+							</f:facet>
+							<p:column headerText="Kod" sortBy="#{protectedSpecies.code}"
+								filterBy="#{protectedSpecies.code}" filterMatchMode="contains">
+								<h:outputText
+									value="#{protectedSpecies.code == null ? 'Tiada kod' : protectedSpecies.code}" />
+							</p:column>
+							<p:column headerText="Nama" sortBy="#{protectedSpecies.name}"
+								filterBy="#{protectedSpecies.name}" filterMatchMode="contains">
+								<h:outputText value="#{protectedSpecies.name}" />
+							</p:column>
+							<p:column headerText="Nama Saintifik"
+								sortBy="#{protectedSpecies.scientificName}"
+								filterBy="#{protectedSpecies.scientificName}"
+								filterMatchMode="contains">
+								<h:outputText value="#{protectedSpecies.scientificName}" />
+							</p:column>
+							<p:column headerText="Pilihan"
+								rendered="#{protectedType.stateID == userMBean.user.stateID or userMBean.user.stateID == 0}"
+								style="text-align: center">
+								<p:menuButton value="Pilihan" iconPos="right">
+									<p:menuitem value="Kemaskini spesis perlindungan"
+										icon="ui-icon-edit" update=":frmEntryProtectedSpecies"
+										action="#{protectedTypeMBean.handleOpenProtectedSpecies}"
+										oncomplete="PF('popupProtectedSpecies').show()"
+										process="@this">
+										<f:setPropertyActionListener value="false"
+											target="#{protectedTypeMBean.addProtectedSpeciesOperation}" />
+										<f:setPropertyActionListener value="#{protectedType}"
+											target="#{protectedTypeMBean.protectedType}" />
+										<f:setPropertyActionListener value="#{protectedSpecies}"
+											target="#{protectedTypeMBean.protectedSpecies}" />
+										<p:resetInput target=":frmEntryProtectedSpecies" />
+									</p:menuitem>
+									<p:menuitem value="Padam spesis perlindungan"
+										icon="ui-icon-delete"
+										action="#{protectedTypeMBean.protectedSpeciesDelete}"
+										update="subtable" process="@this">
+										<f:setPropertyActionListener value="#{protectedType}"
+											target="#{protectedTypeMBean.protectedType}" />
+										<f:setPropertyActionListener value="#{protectedSpecies}"
+											target="#{protectedTypeMBean.protectedSpecies}" />
+										<p:confirm header="Pengesahan" message="Apakah anda yakin?"
+											icon="ui-icon-alert" />
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+							<f:facet name="footer">#{protectedType.protectedSpeciesList.size()} spesis perlindungan direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{protectedTypeMBean.protectedTypes.size()} jenis perlindungan direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name"
+						value="#{protectedTypeMBean.protectedType.name}"
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="stateID" value="Bidang kuasa:"
+						rendered="#{userMBean.user.stateID == 0 and protectedTypeMBean.protectedType != null}" />
+					<p:selectOneMenu id="stateID"
+						value="#{protectedTypeMBean.protectedType.stateID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{userMBean.user.stateID == 0 and protectedTypeMBean.protectedType != null}">
+						<f:selectItem itemLabel="Semua negeri" itemValue="#{null}" />
+						<f:selectItems value="#{protectedTypeMBean.states}" var="state"
+							itemLabel="#{state}" itemValue="#{state.stateID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{protectedTypeMBean.protectedTypeEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryProtectedSpecies">
+			<p:dialog id="popupProtectedSpecies"
+				widgetVar="popupProtectedSpecies" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesProtectedSpecies" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="speciesID" value="Spesis:" />
+					<p:selectOneMenu id="speciesID"
+						value="#{protectedTypeMBean.protectedSpecies.speciesID}"
+						required="true" requiredMessage="Sila pilih spesis." filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupProtectedSpecies').initPosition()"
+						rendered="#{protectedTypeMBean.protectedSpecies != null}">
+						<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+						<f:selectItems value="#{protectedTypeMBean.speciesList}"
+							var="species" itemLabel="#{species}"
+							itemValue="#{species.speciesID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{protectedTypeMBean.protectedSpeciesEntry}"
+							update=":frmManager:growl messagesProtectedSpecies #{protectedTypeMBean.component}"
+							oncomplete="PF('popupProtectedSpecies').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProtectedSpecies').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

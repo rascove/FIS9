@@ -1,0 +1,247 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="mainRevenueRoyaltyRate"
+				value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRates}"
+				reflow="true"
+				emptyMessage="Tiada kadar royalti hasil utama direkodkan."
+				paginator="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRates.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah kadar royalti hasil utama"
+							icon="ui-icon-add" update=":frmEntry"
+							action="#{mainRevenueRoyaltyRateMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{mainRevenueRoyaltyRateMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Spesis"
+					sortBy="#{mainRevenueRoyaltyRate.speciesCode}"
+					filterBy="#{mainRevenueRoyaltyRate.speciesCode}"
+					filterMatchMode="contains">
+					<h:outputText
+						value="#{mainRevenueRoyaltyRate.speciesCode} - #{mainRevenueRoyaltyRate.speciesName}" />
+				</p:column>
+				<p:column headerText="Negeri"
+					sortBy="#{mainRevenueRoyaltyRate.stateCode}"
+					filterBy="#{mainRevenueRoyaltyRate.stateCode}"
+					filterMatchMode="contains">
+					<h:outputText
+						value="#{mainRevenueRoyaltyRate.stateCode} - #{mainRevenueRoyaltyRate.stateName}" />
+				</p:column>
+				<p:column headerText="Kadar royalti dan ses balak"
+					sortBy="#{mainRevenueRoyaltyRate.bigSizeRoyaltyRate}"
+					filterBy="#{mainRevenueRoyaltyRate.bigSizeRoyaltyRate}"
+					filterMatchMode="contains">
+					<h:outputText value="Royalti besar : RM "></h:outputText>
+					<h:outputText value="#{mainRevenueRoyaltyRate.bigSizeRoyaltyRate}">
+						<f:convertNumber minFractionDigits="2" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Royalti kecil : RM "></h:outputText>
+					<h:outputText
+						value="#{mainRevenueRoyaltyRate.smallSizeRoyaltyRate}">
+						<f:convertNumber minFractionDigits="2" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Ses : RM ">
+					</h:outputText>
+					<h:outputText value="#{mainRevenueRoyaltyRate.cessRate}">
+						<f:convertNumber minFractionDigits="2" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Kadar royalti dan ses jaras"
+					sortBy="#{mainRevenueRoyaltyRate.jarasRoyaltyRate}"
+					filterBy="#{mainRevenueRoyaltyRate.jarasRoyaltyRate}"
+					filterMatchMode="contains">
+					<h:outputText value="Royalti : RM "></h:outputText>
+					<h:outputText value="#{mainRevenueRoyaltyRate.jarasRoyaltyRate}">
+						<f:convertNumber minFractionDigits="2" />
+					</h:outputText>
+					<br />
+
+					<h:outputText value="Ses : RM ">
+					</h:outputText>
+					<h:outputText value="#{mainRevenueRoyaltyRate.jarasCessRate}">
+						<f:convertNumber minFractionDigits="2" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Padam" icon="ui-icon-delete"
+						update=":frmDelete" oncomplete="PF('popupDelete').show()"
+						process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{mainRevenueRoyaltyRateMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{mainRevenueRoyaltyRate}"
+							target="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate}" />
+						<p:resetInput target=":frmDelete" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRates.size()} kadar royalti dan ses direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="speciesID" value="Spesis:" />
+					<p:selectOneMenu id="speciesID"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.speciesID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate != null}"
+						required="true" requiredMessage="Spesis diperlukan.">
+						<f:selectItem itemLabel="-pilih spesis-" itemValue="#{null}" />
+						<f:selectItems value="#{mainRevenueRoyaltyRateMBean.speciesList}"
+							var="species" itemLabel="#{species.code} - #{species.name}"
+							itemValue="#{species.speciesID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="stateID" value="Negeri:" />
+					<p:selectOneMenu id="stateID"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.stateID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate != null}"
+						required="true" requiredMessage="Negeri diperlukan.">
+						<f:selectItem itemLabel="-pilih negeri-" itemValue="#{null}" />
+						<f:selectItems value="#{mainRevenueRoyaltyRateMBean.states}"
+							var="state" itemLabel="#{state.code} - #{state.name}"
+							itemValue="#{state.stateID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="bigSizeRoyaltyRate"
+						value="Kadar royalti balak saiz besar:" />
+					<p:inputNumber id="bigSizeRoyaltyRate"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.bigSizeRoyaltyRate}"
+						required="true"
+						requiredMessage="Kadar royalti balak saiz besar diperlukan."
+						validatorMessage="Kadar royalti balak saiz besar mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="smallSizeRoyaltyRate"
+						value="Kadar royalti balak saiz kecil:" />
+					<p:inputNumber id="smallSizeRoyaltyRate"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.smallSizeRoyaltyRate}"
+						required="true"
+						requiredMessage="Kadar royalti balak saiz kecil diperlukan."
+						validatorMessage="Kadar royalti balak saiz kecil mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="cessRate" value="Kadar ses:" />
+					<p:inputNumber id="cessRate"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.cessRate}"
+						required="true" requiredMessage="Kadar ses diperlukan."
+						validatorMessage="Kadar ses mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="jarasRoyaltyRate" value="Kadar royalti jaras:" />
+					<p:inputNumber id="jarasRoyaltyRate"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.jarasRoyaltyRate}"
+						required="true" requiredMessage="Kadar royalti jaras diperlukan."
+						validatorMessage="Kadar royalti jaras mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="jarasCessRate" value="Kadar ses jaras:" />
+					<p:inputNumber id="jarasCessRate"
+						value="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.jarasCessRate}"
+						required="true" requiredMessage="Kadar ses jaras diperlukan."
+						validatorMessage="Kadar ses jaras mestilah di antara RM 0.01 dan RM 1,000.00."
+						symbol="RM " symbolPosition="p">
+						<f:validateDoubleRange minimum="0.01" maximum="1000" />
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRateEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDelete">
+			<p:dialog id="popupDelete" widgetVar="popupDelete" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Adakah anda pasti ingin memadam rekod ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="Spesis : #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.speciesCode} - #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.speciesName}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Negeri : #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.stateCode} - #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.stateName}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar royalti besar : RM #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.bigSizeRoyaltyRate}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar royalti kecil : RM #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.smallSizeRoyaltyRate}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar ses : RM #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.cessRate}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar royalti jaras : RM #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.jarasRoyaltyRate}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kadar ses jaras : RM #{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRate.jarasCessRate}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Padam" icon="ui-icon-save"
+							action="#{mainRevenueRoyaltyRateMBean.mainRevenueRoyaltyRateDelete}"
+							update=":frmManager messages"
+							oncomplete="PF('popupDelete').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Batal" icon="ui-icon-block" type="button"
+							onclick="PF('popupDelete').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,440 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="journal"
+				value="#{journalMBean.journals}" reflow="true"
+				emptyMessage="Tiada jurnal direkodkan."
+				paginator="#{journalMBean.journals.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:menuButton value="Tambah jurnal" iconPos="right"
+									styleClass="secondary flat">
+									<p:menuitem value="Royalti dan Ses" icon="ui-icon-payment"
+										update=":frmEntry" action="#{journalMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="0"
+											target="#{journalMBean.category}" />
+										<f:setPropertyActionListener value="Jurnal Royalti dan Ses"
+											target="#{journalMBean.transactionFormName}" />
+									</p:menuitem>
+									<p:menuitem value="Dendaan" icon="ui-icon-payment"
+										update=":frmEntry" action="#{journalMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="1"
+											target="#{journalMBean.category}" />
+										<f:setPropertyActionListener value="Jurnal Dendaan"
+											target="#{journalMBean.transactionFormName}" />
+									</p:menuitem>
+								</p:menuButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Maklumat jurnal" sortBy="#{journal.journalNo}"
+					filterBy="#{journal.journalNo}" filterMatchMode="contains"
+					style="vertical-align: top">
+					<h:outputText value="#{journal.journalNo}" />
+				</p:column>
+				<p:column headerText="Maklumat Lesen/Permit"
+					sortBy="#{journal.licenseeCompanyName}"
+					filterBy="#{journal.licenseeCompanyName}"
+					filterMatchMode="contains" style="vertical-align: top">
+					<p:outputPanel rendered="#{journal.category == 0}">
+						<h:outputText
+							value="#{journal.licenseNo}-#{journal.licenseeCompanyName}" />
+						<br />
+						<h:outputText value="Baki Wang Amanah Cukai : " />
+						<h:outputText value="#{journal.woodWorkFund}">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+						<br />
+						<h:outputText value="Baki Wang Amanah Lesen : " />
+
+						<h:outputText value="#{journal.licenseFund}">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+					</p:outputPanel>
+					<p:outputPanel rendered="#{journal.category == 1}">
+						<h:outputText
+							value="#{journal.permitNo}-#{journal.licenseeCompanyName}" />
+						<br />
+						<h:outputText
+							value="#{journal.permitTypeID == 1 ? 'Baki Wang Amanah Matau : ' : (journal.permitTypeID == 2 ? 'Baki Wang Amanah Kongsi : ' : (journal.permitTypeID == 3 ? 'Baki Wang Amanah Jalan : ' : '' ))}" />
+						<h:outputText value="#{journal.permitFund}">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+					</p:outputPanel>
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Batal" icon="ui-icon-cancel"
+							update=":frmProcess" oncomplete="PF('popup').show()"
+							process="@this" rendered="#{receipt.status == 'A'}">
+							<f:setPropertyActionListener value="batal"
+								target="#{journalMBean.message}" />
+							<p:resetInput target=":frmProcess" />
+							<f:setPropertyActionListener value="#{receipt}"
+								target="#{journalMBean.journal}" />
+							<p:resetInput target=":frmProcess" />
+						</p:menuitem>
+						<p:menuitem value="Cetak" icon="ui-icon-print" ajax="false"
+							process="@this">
+							<p:fileDownload value="#{journalMBean.download(journal)}"></p:fileDownload>
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. jurnal:" />
+								<p:outputLabel value="#{journal.journalNo}" />
+								<p:outputLabel value="Tarikh:" />
+								<p:outputLabel value="#{journal.date}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Perihal:" />
+								<p:outputLabel value="#{journal.remarks}" />
+								<p:outputLabel value="Lesen:"
+									rendered="#{journal.category == 0}" />
+								<p:outputLabel
+									value="#{journal.licenseNo} - #{journal.licenseeCompanyName}"
+									rendered="#{journal.category == 0}" />
+								<p:outputLabel value="Permit:"
+									rendered="#{journal.category == 1}" />
+								<p:outputLabel
+									value="#{journal.permitNo} - #{journal.licenseeCompanyName}"
+									rendered="#{journal.category == 1}" />
+								<p:outputLabel value="Nama pegawai merekod:" />
+								<p:outputLabel value="#{journal.recorderName}" />
+								<p:outputLabel value="Masa rekod:" />
+								<p:outputLabel value="#{journal.recordTime}">
+									<f:convertDateTime type="time" dateStyle="full" />
+								</p:outputLabel>
+								<p:outputLabel value="Jumlah:" />
+								<p:outputLabel value="#{journal.total}" decimalSeparator="."
+									thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable1" widgetVar="sublist"
+							var="journalRecord" value="#{journal.journalRecords}"
+							reflow="true" emptyMessage="Tiada rekod jurnal direkodkan."
+							paginator="#{journal.journalRecords.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<h:outputText value="Senarai rekod jurnal" />
+							</f:facet>
+							<p:column headerText="Kod objek lanjut"
+								sortBy="#{journalRecord.departmentVotCode}"
+								filterBy="#{journalRecord.departmentVotCode}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{journalRecord.departmentVotCode}-#{journalRecord.departmentVotName}" />
+							</p:column>
+							<p:column headerText="Wang amanah"
+								sortBy="#{journalRecord.trustFundDepartmentVotCode}"
+								filterBy="#{journalRecord.trustFundDepartmentVotCode}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText
+									value="#{journalRecord.trustFundDepartmentVotCode}-#{journalRecord.trustFundDepartmentVotName}" />
+							</p:column>
+							<p:column headerText="Penerangan"
+								sortBy="#{journalRecord.description}"
+								filterBy="#{journalRecord.description}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{journalRecord.description}" />
+							</p:column>
+							<p:column headerText="Jumlah" sortBy="#{journalRecord.total}"
+								filterBy="#{journalRecord.total}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<p:outputLabel value="#{journalRecord.total}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+							</p:column>
+							<f:facet name="footer">#{journal.journalRecords.size()} rekod jurnal direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable2" widgetVar="sublist" var="transferPass"
+							value="#{journal.transferPasses}" reflow="true"
+							emptyMessage="Tiada pas memindah direkodkan."
+							paginator="#{journal.transferPasses.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							rendered="#{journal.category == 0}">
+							<f:facet name="header">
+								<h:outputText value="Senarai pas memindah" />
+							</f:facet>
+							<p:column headerText="Maklumat pas memindah"
+								sortBy="#{transferPass.transferPassNo}"
+								filterBy="#{transferPass.transferPassNo}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<h:outputText value="#{transferPass.transferPassNo}" />
+							</p:column>
+							<p:column headerText="Maklumat Lesen"
+								sortBy="#{transferPass.licenseNo}"
+								filterBy="#{transferPass.licenseNo}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<h:outputText
+									value="#{transferPass.licenseNo}-#{transferPass.companyName}" />
+							</p:column>
+							<p:column headerText="Jumlah royalti"
+								sortBy="#{transferPass.royaltyAmount}"
+								filterBy="#{transferPass.royaltyAmount}"
+								filterMatchMode="contains" style="vertical-align: top">
+								<p:outputLabel value="#{transferPass.royaltyAmount}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+
+							</p:column>
+							<p:column headerText="Jumlah ses"
+								sortBy="#{transferPass.cessAmount}"
+								filterBy="#{transferPass.cessAmount}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<p:outputLabel value="#{transferPass.cessAmount}"
+									decimalSeparator="." thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+							</p:column>
+							<f:facet name="footer">#{journal.transferPasses.size()} pas memindah direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{journalMBean.journals == null ? 0 : journalMBean.journals.size()} jurnal direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:accordionPanel id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Asas">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="journalNo" value="No. jurnal:" />
+								<p:inputText id="journalNo"
+									value="#{journalMBean.journal.journalNo}" required="true"
+									requiredMessage="No. jurnal diperlukan."
+									validatorMessage="No. jurnal mestilah 20 aksara dan ke bawah.">
+									<f:validateLength maximum="20" />
+									<p:clientValidator />
+								</p:inputText>
+								<p:outputLabel for="remarks" value="Perihal:" />
+								<p:inputText id="remarks"
+									value="#{journalMBean.journal.remarks}">
+								</p:inputText>
+								<p:outputLabel for="date" value="Tarikh:" />
+								<p:calendar id="date" pattern="dd/MM/yyyy"
+									value="#{journalMBean.journal.date}" required="true"
+									requiredMessage="Tarikh diperlukan" readonlyInput="true">
+									<p:ajax event="dateSelect" listener="#{journalMBean.doNothing}" />
+								</p:calendar>
+								<p:outputLabel for="licenseID" value="Lesen:"
+									rendered="#{journalMBean.category == 0}" />
+								<p:selectOneMenu id="licenseID"
+									value="#{journalMBean.journal.licenseID}" filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()" required="true"
+									requiredMessage="Lesen diperlukan"
+									rendered="#{journalMBean.journal != null and journalMBean.category == 0}">
+									<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+									<f:selectItems value="#{journalMBean.licenses}" var="license"
+										itemLabel="#{license.licenseNo} - #{license.licenseeCompanyName}"
+										itemValue="#{license.licenseID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="permitID" value="Permit:"
+									rendered="#{journalMBean.category == 1}" />
+								<p:selectOneMenu id="permitID"
+									value="#{journalMBean.journal.permitID}" filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()" required="true"
+									requiredMessage="Permit diperlukan"
+									rendered="#{journalMBean.journal != null  and journalMBean.category == 1}">
+									<f:selectItem itemLabel="- pilih permit -" itemValue="#{null}" />
+									<f:selectItems value="#{journalMBean.permits}" var="permit"
+										itemLabel="#{permit.permitNo} - #{permit.licenseeCompanyName}"
+										itemValue="#{permit.permitID}" />
+								</p:selectOneMenu>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{journalMBean.journalEntryPreparation}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryTransferPass">
+			<p:dialog id="popupTransferPass" widgetVar="popupTransferPass"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesTransferPass" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:dataTable var="transferPass"
+					value="#{journalMBean.transferPasses}"
+					sortBy="#{transferPass.transferPassNo}"
+					selection="#{journalMBean.selectedTransferPasses}"
+					rowKey="#{transferPass.transferPassID}" scrollable="true"
+					scrollHeight="300" expandableRowGroups="true"
+					emptyMessage="Tiada pas memindah yang belum dijurnalkan.">
+					<f:facet name="header">
+						<p:outputPanel style="text-align: right; margin: 8px 0px;">
+						</p:outputPanel>
+						<h:outputText value="Senarai pas memindah" />
+					</f:facet>
+					<p:column selectionMode="multiple"
+						style="width:16px;text-align:center" />
+					<p:column headerText="No. pas memindah"
+						sortBy="#{transferPass.transferPassNo}"
+						filterBy="#{transferPass.transferPassNo}"
+						filterMatchMode="contains" style="vertical-align: top">
+						<h:outputText value="#{transferPass.transferPassNo}" />
+					</p:column>
+					<p:column headerText="Jumlah Royalti" style="vertical-align: top">
+						<h:outputText value="#{transferPass.royaltyAmount}"
+							decimalSeparator="." thousandSeparator=",">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Jumlah Ses" style="vertical-align: top">
+						<h:outputText value="#{transferPass.cessAmount}"
+							decimalSeparator="." thousandSeparator=",">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+					</p:column>
+					<f:facet name="footer">#{journalMBean.transferPasses.size()} pas memindah yang belum dijurnalkan.</f:facet>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{journalMBean.transferPassEntry}"
+							update=":frmManager:growl messagesTransferPass"
+							oncomplete="PF('popupTransferPass').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupTransferPass').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryJournalRecord">
+			<p:dialog id="popupJournalRecord" widgetVar="popupJournalRecord"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesJournalRecord" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:dataTable id="bulk1" rowIndexVar="ri" var="journalRecord"
+					value="#{journalMBean.journalRecords}" scrollable="true"
+					scrollHeight="200">
+					<p:column headerText="Kod objek lanjut">
+						<p:selectOneMenu value="#{journalRecord.departmentVotID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupJournalRecord').initPosition()"
+							rendered="#{journalRecord != null and journalMBean.category == 1}" required="true" requiredMessage="kod objek lanjut diperlukan." >
+							<f:selectItem itemLabel="- pilih kod objek lanjut -"
+								itemValue="#{null}" />
+							<f:selectItems
+								value="#{journalMBean.transactionFormMapDepartmentVots}"
+								var="transactionFormMapDepartmentVot"
+								itemLabel="#{transactionFormMapDepartmentVot}"
+								itemValue="#{transactionFormMapDepartmentVot.departmentVotID}" />
+						</p:selectOneMenu>
+						<h:outputText
+							value="#{journalRecord.bursaryVotCode} - #{journalRecord.departmentVotCode} - #{journalRecord.departmentVotName}"
+							rendered="#{journalRecord != null and journalMBean.category == 0}" />
+					</p:column>
+					<p:column headerText="Wang Amanah">
+						<h:outputText
+							value="#{journalRecord.trustFundBursaryVotCode} - #{journalRecord.trustFundDepartmentVotCode} - #{journalRecord.trustFundDepartmentVotName}" />
+					</p:column>
+					<p:column headerText="Penerangan">
+						<p:inputText value="#{journalRecord.description}" required="true"
+							requiredMessage="Penerangan diperlukan.">
+						</p:inputText>
+					</p:column>
+					<p:column headerText="Jumlah">
+						<h:outputText id="jumlah1" value="#{journalRecord.total}"
+							decimalSeparator="." thousandSeparator=","
+							rendered="#{journalRecord != null and journalMBean.category == 0}">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+						<h:inputText id="jumlah2" value="#{journalRecord.total}"
+							rendered="#{journalRecord != null and journalMBean.category == 1}">
+						</h:inputText>
+					</p:column>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{journalMBean.journalEntry}"
+							update=":frmManager :frmManager:growl messagesJournalRecord"
+							oncomplete="PF('popupJournalRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupJournalRecord').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

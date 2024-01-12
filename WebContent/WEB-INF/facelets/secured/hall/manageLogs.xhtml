@@ -1,0 +1,447 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:outputPanel rendered="#{logManagedBean.selectedTaggingID != 0}">
+			</p:outputPanel>
+						<p:outputPanel rendered="#{logManagedBean.errorMessage != null}">
+				<p:fieldset style="background-color: white">
+					<p>#{logManagedBean.errorMessage} Sila tekan di <a
+							href="#{request.contextPath}">sini</a> untuk kembali ke muka
+						depan.
+					
+					</p>
+				</p:fieldset>
+			</p:outputPanel>
+			<p:dataTable id="table" widgetVar="list" var="taggingRecord"
+				value="#{logManagedBean.taggingRecords}" reflow="true"
+				emptyMessage="Tiada rekod penandaan direkodkan."
+				paginator="#{logManagedBean.taggingRecords.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single"
+				rendered="#{logManagedBean.errorMessage == null}">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+								<p:selectOneMenu id="taggingID"
+									value="#{logManagedBean.selectedTaggingID}" required="true"
+									requiredMessage="Sila pilih sesi penandaan." filter="true"
+									filterMatchMode="contains" styleClass="table-filter">
+									<f:selectItem itemLabel="- pilih sesi penandaan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{logManagedBean.taggings}" var="tagging"
+										itemLabel="#{tagging}" itemValue="#{tagging.taggingID}" />
+									<p:ajax update="frmManager" event="change"
+										listener="#{logManagedBean.handleTaggingIDChange}" />
+								</p:selectOneMenu>
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="No. Siri Pokok"
+					sortBy="#{taggingRecord.serialNo}"
+					filterBy="#{taggingRecord.serialNo}" filterMatchMode="contains"
+					style="vertical-align: top">
+					<h:outputText value="#{taggingRecord.serialNo}" />
+				</p:column>
+				<p:column headerText="Spesis" sortBy="#{taggingRecord.speciesCode}"
+					filterBy="#{taggingRecord.speciesCode} #{taggingRecord.speciesName}"
+					filterMatchMode="contains" style="vertical-align: top">
+					<h:outputText
+						value="#{taggingRecord.speciesCode == null ? '' : (taggingRecord.correctedSpeciesID == 0 ? taggingRecord.speciesCode.concat(' - ').concat(taggingRecord.speciesName) : taggingRecord.correctedSpeciesCode.concat(' - ').concat(taggingRecord.correctedSpeciesName))}" />
+				</p:column>
+				<p:column headerText="Diameter" sortBy="#{taggingRecord.diameter}"
+					filterBy="#{taggingRecord.diameter}" filterMatchMode="contains"
+					style="vertical-align: top">
+					<h:outputText value="#{taggingRecord.diameter.intValue()} cm" />
+				</p:column>
+				<p:column headerText="Bilangan Tual Balak"
+					sortBy="#{taggingRecord.estimation}"
+					filterBy="#{taggingRecord.estimation}" filterMatchMode="contains"
+					style="vertical-align: top">
+					<h:outputText
+						value="#{taggingRecord.estimation == 0 ? '-' : (taggingRecord.correctedEstimation == 0 ? taggingRecord.estimation : taggingRecord.correctedEstimation)}" />
+				</p:column>
+				<p:column headerText="Status" sortBy="#{taggingRecord.status}"
+					filterBy="#{taggingRecord.status}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Belum rekod" itemValue="O" />
+							<f:selectItem itemLabel="Separa proses" itemValue="P" />
+							<f:selectItem itemLabel="Sudah proses" itemValue="C" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Belum Rekod"
+						rendered="#{taggingRecord.status == 'O'}" />
+					<h:outputText value="Separa proses"
+						rendered="#{taggingRecord.status == 'P'}" />
+					<h:outputText value="Sudah proses"
+						rendered="#{taggingRecord.status == 'C'}" />
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist" var="log"
+							value="#{taggingRecord.logs}" reflow="true"
+							emptyMessage="Tiada tual balak direkodkan."
+							paginator="#{taggingRecord.logs.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<p:outputPanel style="text-align: right; margin: 8px 0px;">
+									<p:commandButton value="Jana tual" icon="ui-icon-add"
+										update=":frmConfirmation"
+										oncomplete="PF('popupConfirmation').show()"
+										rendered="#{taggingRecord.status == 'O'}" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{logManagedBean.addOperation}" />
+										<f:setPropertyActionListener value="false"
+											target="#{logManagedBean.addTaggingRecordOperation}" />
+										<f:setPropertyActionListener value="#{taggingRecord}"
+											target="#{logManagedBean.taggingRecord}" />
+										<p:resetInput target=":frmConfirmation" />
+									</p:commandButton><p:spacer width="5" />
+									<p:commandButton value="Ubah bil. tual" icon="ui-icon-edit"
+										update=":frmCorrectedEstimation"
+										oncomplete="PF('popupCorrectedEstimation').show()"
+										action="#{logManagedBean.handleCorrectedEstimation}"
+										rendered="#{taggingRecord.status == 'O' and logManagedBean.accessLevel == 1}"
+										process="@this" styleClass="secondary flat">
+										<f:setPropertyActionListener value="false"
+											target="#{logManagedBean.addOperation}" />
+										<f:setPropertyActionListener value="#{taggingRecord}"
+											target="#{logManagedBean.taggingRecord}" />
+										<p:resetInput target=":frmCorrectedEstimation" />
+									</p:commandButton>
+									<p:spacer width="5" />
+									<p:commandButton value="Ubah spesis" icon="ui-icon-edit"
+										update=":frmCorrectedSpecies"
+										oncomplete="PF('popupCorrectedSpecies').show()"
+										action="#{logManagedBean.handleCorrectedSpecies}"
+										rendered="#{taggingRecord.status == 'O' and logManagedBean.accessLevel == 1}"
+										process="@this" styleClass="secondary flat">
+										<f:setPropertyActionListener value="false"
+											target="#{logManagedBean.addOperation}" />
+										<f:setPropertyActionListener value="#{taggingRecord}"
+											target="#{logManagedBean.taggingRecord}" />
+										<p:resetInput target=":frmCorrectedSpecies" />
+									</p:commandButton>
+								</p:outputPanel>
+								<h:outputText value="Senarai Tual Balak" />
+							</f:facet>
+							<p:column headerText="No. Tual" sortBy="#{log.logNo}"
+								filterBy="#{log.logNo}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<h:outputText value="#{log.logNo}" />
+							</p:column>
+							<p:column headerText="No. Siri Tual" sortBy="#{log.logSerialNo}"
+								filterBy="#{log.logSerialNo}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<h:outputText value="#{log.logSerialNo}" />
+							</p:column>
+							<p:column headerText="Maklumat Tual" sortBy="#{log.diameter}"
+								filterBy="#{log.diameter}" filterMatchMode="contains"
+								style="vertical-align: top">
+								<h:outputText value="Panjang : " />
+								<h:outputText value="#{log.length}">
+									<f:convertNumber pattern="#0.0" />
+								</h:outputText>
+								<h:outputText value=" m" />
+								<br />
+								<h:outputText value="Diameter : " />
+								<h:outputText value="#{log.diameter.intValue()}" />
+								<h:outputText value=" cm" />
+								<br />
+								<h:outputText value="Diameter lubang : " />
+								<h:outputText value="#{log.holeDiameter.intValue()}" />
+								<h:outputText value=" cm" />
+								<br />
+								<ui:fragment rendered="#{log.status != 'O'}">
+									<h:outputText value="Isipadu: " />
+									<h:outputText value="#{log.grossVolume}">
+										<f:convertNumber pattern="#0.00" />
+									</h:outputText>
+									<h:outputText value=" m&#x00B3;" />
+									<br />
+									<h:outputText value="Isipadu bersih: " />
+									<h:outputText value="#{log.netVolume}">
+										<f:convertNumber pattern="#0.00" />
+									</h:outputText>
+									<h:outputText value=" m&#x00B3;" />
+								</ui:fragment>
+							</p:column>
+
+							<p:column headerText="Status" sortBy="#{log.status}"
+								filterBy="#{log.status}" filterMatchMode="contains">
+								<f:facet name="filter">
+									<p:selectOneMenu onchange="PF('sublist').filter()">
+										<f:selectItem itemLabel="- pilih status -" itemValue="" />
+										<f:selectItem itemLabel="Belum rekod" itemValue="O" />
+										<f:selectItem itemLabel="Sudah rekod" itemValue="C" />
+										<f:selectItem itemLabel="Sudah proses" itemValue="P" />
+									</p:selectOneMenu>
+								</f:facet>
+								<h:outputText
+									value="#{log.status == 'O' ? 'Belum Rekod' : (log.status == 'C' ? 'Sudah Rekod' : (log.status == 'P' ? 'Sudah Proses' : 'Ralat'))}" />
+							</p:column>
+							<p:column headerText="Pilihan" style="text-align: center"
+								rendered="#{taggingRecord.status != 'C'}">
+								<p:menuButton value="Pilihan" iconPos="right"
+									rendered="#{log.status != 'P'}">
+									<p:menuitem value="Batal" icon="ui-icon-cancel"
+										update=":frmProcess" oncomplete="PF('popupProcess').show()"
+										process="@this" rendered="#{log.status == 'C'}">
+										<p:resetInput target=":frmProcess" />
+										<f:setPropertyActionListener value="#{log}"
+											target="#{logManagedBean.log}" />
+										<p:resetInput target=":frmProcess" />
+									</p:menuitem>
+									<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+										update=":frmEntry" action="#{logManagedBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										rendered="#{log.status == 'O' || log.status == 'C'}">
+										<f:setPropertyActionListener value="false"
+											target="#{logManagedBean.addOperation}" />
+										<f:setPropertyActionListener value="#{log}"
+											target="#{logManagedBean.log}" />
+										<f:setPropertyActionListener value="#{taggingRecord}"
+											target="#{logManagedBean.taggingRecord}" />
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+
+
+
+							<f:facet name="footer">#{taggingRecord.logs.size()} tual balak direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{logManagedBean.taggingRecords == null ? 0 : logManagedBean.taggingRecords.size()} rekod penandaan direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesLog" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. Siri Tual:" />
+					<p:outputLabel value="#{logManagedBean.log.logSerialNo}" />
+					<p:outputLabel value="Diameter Penandaan:" />
+					<h:outputText
+						value="#{logManagedBean.taggingRecord.diameter.intValue()} cm">
+					</h:outputText>
+					<p:outputLabel for="length" value="Panjang:" />
+					<p:inputNumber id="length" value="#{logManagedBean.log.length}"
+						required="true" requiredMessage="Panjang diperlukan."
+						validatorMessage="Panjang mestilah di antara 1 m dan 20 m."
+						symbol=" m" symbolPosition="s" decimalPlaces="1">
+						<f:validateDoubleRange minimum="1" maximum="20" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel value="Diameter:" />
+					<p:inputNumber id="diameter1"
+						value="#{logManagedBean.log.diameter}" required="true"
+						requiredMessage="Diameter diperlukan."
+						validatorMessage="Diameter mestilah diantara #{logManagedBean.minDiameter} cm hingga #{logManagedBean.maxDiameter} cm."
+						symbol=" cm" symbolPosition="s" decimalPlaces="0">
+						<f:validateDoubleRange minimum="#{logManagedBean.minDiameter}"
+							maximum="#{logManagedBean.maxDiameter}" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="holeDiameter" value="Diameter Lubang:" />
+					<p:inputNumber id="holeDiameter"
+						value="#{logManagedBean.log.holeDiameter}" symbol=" cm"
+						validatorMessage="Diameter lubang mestilah diantara 0 cm hingga #{logManagedBean.minDiameter.intValue()} cm."
+						symbolPosition="s" decimalPlaces="0">
+						<f:validateDoubleRange maximum="#{logManagedBean.minDiameter}"
+							minimum="0" />
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{logManagedBean.logEntry}"
+							update=":frmManager messagesLog"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmCorrectedEstimation">
+			<p:dialog id="popupCorrectedEstimation"
+				widgetVar="popupCorrectedEstimation" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesCorrectedEstimation" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. Siri Pokok:" />
+					<h:outputText value="#{logManagedBean.taggingRecord.serialNo}" />
+					<p:outputLabel value="Anggaran Tual (Penandaan):" />
+					<h:outputText value="#{logManagedBean.taggingRecord.estimation}">
+					</h:outputText>
+					<p:outputLabel value="Bil. Tual Sebenar:" />
+					<p:inputNumber id="correctedEstimation"
+						value="#{logManagedBean.taggingRecord.correctedEstimation}"
+						required="true" requiredMessage="Bil. tual diperlukan."
+						validatorMessage="Bil. tual mestilah di antara 1 hingga 5 tual."
+						decimalPlaces="0">
+						<f:validateLongRange minimum="1" maximum="5" />
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{logManagedBean.correctedEstimationEntry}"
+							update=":frmManager messagesCorrectedEstimation"
+							oncomplete="PF('popupCorrectedEstimation').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupCorrectedEstimation').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmCorrectedSpecies">
+			<p:dialog id="popupCorrectedSpecies"
+				widgetVar="popupCorrectedSpecies" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesCorrectedSpecies" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. Siri Pokok:" />
+					<h:outputText value="#{logManagedBean.taggingRecord.serialNo}" />
+					<p:outputLabel value="Spesis penandaan:" />
+					<h:outputText
+						value="#{logManagedBean.taggingRecord.speciesCode} - #{logManagedBean.taggingRecord.speciesName}" />
+					<p:outputLabel value="Spesis sebenar:" />
+					<p:selectOneMenu id="speciesID"
+						value="#{logManagedBean.taggingRecord.correctedSpeciesID}"
+						required="true" requiredMessage="spesis diperlukan." filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupCorrectedSpecies').initPosition()"
+						rendered="#{logManagedBean.taggingRecord != null}">
+						<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+						<f:selectItems value="#{logManagedBean.speciesList}" var="species"
+							itemLabel="#{species.code} - #{species.name}"
+							itemValue="#{species.speciesID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{logManagedBean.correctedSpeciesEntry}"
+							update=":frmManager messagesCorrectedSpecies"
+							oncomplete="PF('popupCorrectedSpecies').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupCorrectedSpecies').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin batalkan tual balak ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. tual : #{logManagedBean.log.logSerialNo}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-save"
+							action="#{logManagedBean.logDelete}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmConfirmation">
+			<p:dialog id="popupConfirmation" widgetVar="popupConfirmation"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin menjana sebanyak #{logManagedBean.taggingRecord.correctedEstimation} tual bagi no. siri pokok #{logManagedBean.taggingRecord.serialNo}?" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Ya" icon="ui-icon-save"
+							action="#{logManagedBean.handleCreateLogs}"
+							update=":frmManager messages"
+							oncomplete="PF('popupConfirmation').initPosition()"
+							validateClient="true" styleClass="save-btn">
+						</p:commandButton>
+						<p:commandButton value="Batal" icon="ui-icon-cancel" type="button"
+							onclick="PF('popupConfirmation').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

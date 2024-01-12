@@ -1,0 +1,172 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="departmentVot"
+				value="#{departmentVotMBean.departmentVots}" reflow="true"
+				emptyMessage="Tiada kod objek lanjut direkodkan."
+				paginator="#{departmentVotMBean.departmentVots.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah kod objek lanjut" icon="ui-icon-add"
+							update=":frmEntry" action="#{departmentVotMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{departmentVotMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+								<p:column headerText="Kod objek"
+					sortBy="#{departmentVot.bursaryVotName}"
+					filterBy="#{departmentVot.bursaryVotName}"
+					filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua" itemValue="" />
+							<f:selectItems value="#{departmentVotMBean.bursaryVots}"
+								var="bursaryVot"
+								itemLabel="#{bursaryVot.name}"
+								itemValue="#{bursaryVot.name}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{departmentVot.bursaryVotCode} - #{departmentVot.bursaryVotName}" />
+				</p:column>
+				<p:column headerText="Kod" sortBy="#{departmentVot.code}"
+					filterBy="#{departmentVot.code}" filterMatchMode="contains">
+					<h:outputText value="#{departmentVot.code}" />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{departmentVot.name}"
+					filterBy="#{departmentVot.name}" filterMatchMode="contains">
+					<h:outputText value="#{departmentVot.name}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+							update=":frmEntry" action="#{departmentVotMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{departmentVotMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{departmentVot}"
+								target="#{departmentVotMBean.departmentVot}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Padam" icon="ui-icon-delete"
+							update=":frmDelete" action="#{departmentVotMBean.handleOpen}"
+							oncomplete="PF('popupDelete').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{departmentVotMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{departmentVot}"
+								target="#{departmentVotMBean.departmentVot}" />
+							<p:resetInput target=":frmDelete" />
+							</p:menuitem>
+							</p:menuButton>				
+				</p:column>
+				<f:facet name="footer">#{departmentVotMBean.departmentVots.size()} kod objek lanjut direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="bursaryVotID" value="Kod objek:" />
+					<p:selectOneMenu id="bursaryVotID"
+						value="#{departmentVotMBean.departmentVot.bursaryVotID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{departmentVotMBean.departmentVot != null}"
+						required="true" requiredMessage="kod objek diperlukan.">
+						<f:selectItem itemLabel="-pilih kod objek-" itemValue="#{null}" />
+						<f:selectItems value="#{departmentVotMBean.bursaryVots}"
+							var="bursaryVot" itemLabel="#{bursaryVot}"
+							itemValue="#{bursaryVot.bursaryVotID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="code" value="Kod:" />
+					<p:inputText id="code"
+						value="#{departmentVotMBean.departmentVot.code}" required="true"
+						requiredMessage="Kod diperlukan."
+						validatorMessage="Kod mestilah 5 aksara dan ke bawah.">
+						<f:validateLength maximum="5" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name"
+						value="#{departmentVotMBean.departmentVot.name}" required="true"
+						requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 200 aksara dan ke bawah.">
+						<f:validateLength maximum="200" />
+						<p:clientValidator />
+					</p:inputText>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{departmentVotMBean.departmentVotEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDelete">
+			<p:dialog id="popupDelete" widgetVar="popupDelete" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Adakah anda pasti ingin memadam rekod ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="Kod : #{departmentVotMBean.departmentVot.code}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Nama : #{departmentVotMBean.departmentVot.name}" />
+					<p:outputLabel value="" />
+					<p:outputLabel
+						value="Kod objek : #{departmentVotMBean.departmentVot.bursaryVotCode}-#{departmentVotMBean.departmentVot.bursaryVotName}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Padam" icon="ui-icon-save"
+							action="#{departmentVotMBean.departmentVotDelete}"
+							update=":frmManager messages"
+							oncomplete="PF('popupDelete').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Batal" icon="ui-icon-block" type="button"
+							onclick="PF('popupDelete').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,179 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list"
+				var="transactionFormMapDepartmentVot"
+				value="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVots}"
+				reflow="true" emptyMessage="Tiada pemetaan direkodkan."
+				paginator="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVots.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah pemetaan" icon="ui-icon-add"
+							update=":frmEntry"
+							action="#{transactionFormMapDepartmentVotMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{transactionFormMapDepartmentVotMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Borang Transaksi"
+					sortBy="#{transactionFormMapDepartmentVot.transactionFormName}"
+					filterBy="#{transactionFormMapDepartmentVot.transactionFormName}"
+					filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua" itemValue="" />
+							<f:selectItems
+								value="#{transactionFormMapDepartmentVotMBean.transactionForms}"
+								var="transactionForm"
+								itemLabel="#{transactionForm.name}"
+								itemValue="#{transactionForm.name}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{transactionFormMapDepartmentVot.transactionFormCode}-#{transactionFormMapDepartmentVot.transactionFormName}" />
+				</p:column>
+				<p:column headerText="Kod objek lanjut"
+					sortBy="#{transactionFormMapDepartmentVot.departmentVotName}"
+					filterBy="#{transactionFormMapDepartmentVot.departmentVotName}"
+					filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua" itemValue="" />
+							<f:selectItems
+								value="#{transactionFormMapDepartmentVotMBean.departmentVots}"
+								var="departmentVot"
+								itemLabel="#{departmentVot.name}"
+								itemValue="#{departmentVot.name}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText
+						value="#{transactionFormMapDepartmentVot.departmentVotCode}-#{transactionFormMapDepartmentVot.departmentVotName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+							update=":frmEntry" action="#{transactionFormMapDepartmentVotMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{transactionFormMapDepartmentVotMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{transactionFormMapDepartmentVot}"
+								target="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Padam" icon="ui-icon-delete"
+							update=":frmDelete" action="#{transactionFormMapDepartmentVotMBean.handleOpen}"
+							oncomplete="PF('popupDelete').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{transactionFormMapDepartmentVotMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{transactionFormMapDepartmentVot}"
+								target="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot}" />
+							<p:resetInput target=":frmDelete" />
+						</p:menuitem>
+					</p:menuButton>					
+				</p:column>
+				<f:facet name="footer">#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVots.size()} pemetaan borang transaksi-kod objek lanjut direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="transactionFormID" value="Borang transaksi:" />
+					<p:selectOneMenu id="transactionFormID"
+						value="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.transactionFormID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot != null}"
+						required="true" requiredMessage="Borang transaksi diperlukan.">
+						<f:selectItem itemLabel="-pilih borang transaksi-" itemValue="#{null}" />
+						<f:selectItems
+							value="#{transactionFormMapDepartmentVotMBean.transactionForms}"
+							var="transactionForm"
+							itemLabel="#{transactionForm.code}-#{transactionForm.name}"
+							itemValue="#{transactionForm.transactionFormID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="departmentVotID" value="Kod objek lanjut:" />
+					<p:selectOneMenu id="departmentVotID"
+						value="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.departmentVotID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot != null}"
+						required="true" requiredMessage="kod objek lanjut diperlukan.">
+						<f:selectItem itemLabel="-pilih kod objek lanjut-" itemValue="#{null}" />
+						<f:selectItems
+							value="#{transactionFormMapDepartmentVotMBean.departmentVots}"
+							var="departmentVot"
+							itemLabel="#{departmentVot.code}-#{departmentVot.name}"
+							itemValue="#{departmentVot.departmentVotID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVotEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDelete">
+			<p:dialog id="popupDelete" widgetVar="popupDelete" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Adakah anda pasti ingin memadam rekod ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="Kod objek lanjut : #{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.transactionFormCode}-#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.transactionFormName}" />
+					<p:outputLabel
+						value="Kod objek lanjut : #{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.departmentVotCode}-#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVot.departmentVotName}" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Padam" icon="ui-icon-save"
+							action="#{transactionFormMapDepartmentVotMBean.transactionFormMapDepartmentVotDelete}"
+							update=":frmManager messages"
+							oncomplete="PF('popupDelete').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Batal" icon="ui-icon-block" type="button"
+							onclick="PF('popupDelete').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,122 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="designation"
+				value="#{designationMBean.designations}" reflow="true"
+				emptyMessage="Tiada jawatan direkodkan."
+				paginator="#{designationMBean.designations.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah jawatan" icon="ui-icon-add"
+							update=":frmEntry" action="#{designationMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{designationMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Nama" sortBy="#{designation.name}"
+					filterBy="#{designation.name}" filterMatchMode="contains">
+					<h:outputText value="#{designation.name}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini jawatan" icon="ui-icon-edit"
+							update=":frmEntry" action="#{designationMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{designationMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{designation}"
+								target="#{designationMBean.designation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Selenggara akses" icon="ui-icon-settings"
+							update=":frmConfigure"
+							action="#{designationMBean.handleOpenConfig}"
+							oncomplete="PF('popupConfig').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{designationMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{designation}"
+								target="#{designationMBean.designation}" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<f:facet name="footer">#{designationMBean.designations.size()} jawatan direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{designationMBean.designation.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{designationMBean.designationEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmConfigure">
+			<p:dialog id="popupConfig" widgetVar="popupConfig" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesConfig" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:selectManyCheckbox id="formList"
+						value="#{designationMBean.selectedForms}" layout="pageDirection"
+						columns="1" required="true" requiredMessage="Sila pilih borang.">
+						<f:selectItems value="#{designationMBean.formList}" var="form"
+							itemLabel="#{form}" itemValue="#{form}" />
+					</p:selectManyCheckbox>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{designationMBean.designationEntry}"
+							update=":frmManager messagesConfig"
+							oncomplete="PF('popupConfig').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupConfig').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

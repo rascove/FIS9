@@ -1,0 +1,166 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="contractor"
+				value="#{contractorMBean.contractors}" reflow="true"
+				emptyMessage="Tiada kontraktor direkodkan."
+				paginator="#{contractorMBean.contractors.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah kontraktor" icon="ui-icon-add"
+							update=":frmEntry" action="#{contractorMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{contractorMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Jenis" sortBy="#{contractor.type}"
+					filterBy="#{contractor.type}" filterMatchMode="contains">
+					<h:outputText
+						value="#{contractor.type == 'L' ? 'Pembalak' : (contractor.type == 'K' ? 'Kontraktor' : 'Lain-lain')}" />
+				</p:column>
+				<p:column headerText="No. Pendaftaran" sortBy="#{contractor.registrationNo}"
+					filterBy="#{contractor.registrationNo}" filterMatchMode="contains">
+					<h:outputText value="#{contractor.registrationNo}" />
+				</p:column>				
+				<p:column headerText="Nama" sortBy="#{contractor.name}"
+					filterBy="#{contractor.name}" filterMatchMode="contains">
+					<h:outputText value="#{contractor.name}" />
+				</p:column>
+				<p:column headerText="Nama Syarikat"
+					sortBy="#{contractor.companyName}"
+					filterBy="#{contractor.companyName}" filterMatchMode="contains">
+					<h:outputText value="#{contractor.companyName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini kontraktor" icon="ui-icon-edit"
+						update=":frmEntry" action="#{contractorMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{contractorMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{contractor}"
+							target="#{contractorMBean.contractor}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{contractorMBean.contractors.size()} kontraktor direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="contractorID" value="No. pendaftaran syarikat:" />
+					<p:inputText id="contractorID"
+						value="#{contractorMBean.contractor.contractorID}" required="true"
+						requiredMessage="No. pendaftaran syarikat diperlukan."
+						validatorMessage="No. pendaftaran syarikat mestilah 20 aksara dan ke bawah.">
+						<f:validateLength maximum="20" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{contractorMBean.contractor.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="companyName" value="Nama syarikat:" />
+					<p:inputText id="companyName"
+						value="#{contractorMBean.contractor.companyName}" required="true"
+						requiredMessage="Nama diperlukan."
+						validatorMessage="Nama syarikat mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="registrationNo" value="No. pendaftaran:" />
+					<p:inputText id="registrationNo"
+						value="#{contractorMBean.contractor.registrationNo}" required="true"
+						requiredMessage="No. pendaftaran diperlukan."
+						validatorMessage="No. pendaftaran mestilah 20 aksara dan ke bawah.">
+						<f:validateLength maximum="20" />
+						<p:clientValidator />
+					</p:inputText>					
+					<p:outputLabel for="address" value="Alamat:" />
+					<p:inputTextarea id="address"
+						value="#{contractorMBean.contractor.address}" required="true"
+						requiredMessage="Alamat diperlukan."
+						validatorMessage="Alamat mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputTextarea>
+					<p:outputLabel for="postcode" value="Poskod:" />
+					<p:inputText id="postcode"
+						value="#{contractorMBean.contractor.postcode}" required="true"
+						requiredMessage="Poskod diperlukan."
+						validatorMessage="Poskod mestilah 5 aksara dan ke bawah.">
+						<p:clientValidator />
+						<f:validateLength maximum="5" />
+					</p:inputText>
+					<p:outputLabel for="regionID" value="Daerah:" />
+					<p:selectOneMenu id="regionID"
+						value="#{contractorMBean.contractor.regionID}" required="true"
+						requiredMessage="Daerah diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{contractorMBean.contractor != null}">
+						<f:selectItem itemLabel="- pilih daerah -" itemValue="#{null}" />
+						<f:selectItems value="#{contractorMBean.stateList}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="telNo" value="No. tel.:" />
+					<p:inputText id="telNo" value="#{contractorMBean.contractor.telNo}"
+						required="true" requiredMessage="No. telefon diperlukan."
+						validatorMessage="No. telefon mestilah 15 aksara dan ke bawah.">
+						<f:validateLength maximum="15" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="faxNo" value="No. fax:" />
+					<p:inputText id="faxNo" value="#{contractorMBean.contractor.faxNo}"
+						validatorMessage="No. fax mestilah 15 aksara dan ke bawah.">
+						<f:validateLength maximum="15" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="type" value="Jenis: " />
+					<p:selectOneRadio id="type"
+						value="#{contractorMBean.contractor.type}" layout="responsive"
+						columns="2" required="true" requiredMessage="Input diperlukan.">
+						<f:selectItem itemLabel="Pembalak" itemValue="L" />
+						<f:selectItem itemLabel="Kontraktor" itemValue="K" />
+					</p:selectOneRadio>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{contractorMBean.contractorEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

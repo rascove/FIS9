@@ -1,0 +1,219 @@
+.card
+{
+	background-color: #C78426 !important;
+}
+
+.header-icon
+{
+	vertical-align: bottom;
+	margin-bottom: -3px;
+}
+
+.ui-expanded-row-content
+{
+	background-color: #DEBB30 !important;
+}
+
+.save-btn, .save-btn span, .ui-confirmdialog-yes, .ui-confirmdialog-yes span
+{
+	color: #50C41A !important;
+}
+
+.close-btn, .close-btn span, .ui-confirmdialog-no, .ui-confirmdialog-no span
+{
+	color: #FF0000 !important;
+}
+
+.recommended
+{
+	background-color: #DEBB30 !important;
+}
+
+.logout
+{
+	background-color: #FF0000 !important;
+	margin-top: 8px !important;
+}
+
+.secondary button
+{
+	background-color: #C78426 !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	box-shadow: none !important;
+}
+
+.login
+{
+	background-size: cover;
+}
+
+.admin, .department, .district, .range, .hall, .finance, .mobile, .contract
+{
+	padding-top: 0px !important;
+	background-size: contain !important;
+}
+
+.selection-column
+{
+	width: 40px !important;
+}
+
+.selection-peer-column
+{
+	width: calc(calc(100% - 40px) / 15) !important;
+}
+
+.table-filter label
+{
+	color: white !important;
+}
+
+.ultima-menu li a span, .ui-menuitem-text
+{
+	display: inline !important;
+}
+
+.ultima-menu i.fa
+{
+	width: 24px !important;
+	text-align: center !important;
+}
+
+@media (max-width: 1440px)
+{
+	.login
+	{
+		background-image: url('../img/background.png') !important;
+	}
+	
+	.admin, .department, .district, .range, .hall, .finance, .mobile, .contract
+	{
+		padding-bottom: 75% !important;
+	}
+	
+	.admin
+	{
+		background-image: url('../img/background-admin.png') !important;
+	}
+	
+	.department
+	{
+		background-image: url('../img/background-department.png') !important;
+	}
+	
+	.district
+	{
+		background-image: url('../img/background-district.png') !important;
+	}
+	
+	.range
+	{
+		background-image: url('../img/background-range.png') !important;
+	}
+	
+	.hall
+	{
+		background-image: url('../img/background-hall.png') !important;
+	}
+	
+	.finance
+	{
+		background-image: url('../img/background-finance.png') !important;
+	}
+	
+	.mobile
+	{
+		background-image: url('../img/background-mobile.png') !important;
+	}
+	
+	.contract
+	{
+		background-image: url('../img/background-contract.png') !important;
+	}
+}
+
+@media (min-width: 1441px)
+{
+	.login
+	{
+		background-image: url('../img/background.svg') !important;
+	}
+	
+	.admin, .department, .district, .range, .hall, .finance, .mobile, .contract
+	{
+		padding-bottom: 75.9% !important;
+	}
+	
+	.admin
+	{
+		background-image: url('../img/background-admin.svg') !important;
+	}
+	
+	.department
+	{
+		background-image: url('../img/background-department.svg') !important;
+	}
+	
+	.district
+	{
+		background-image: url('../img/background-district.svg') !important;
+	}
+	
+	.range
+	{
+		background-image: url('../img/background-range.svg') !important;
+	}
+	
+	.hall
+	{
+		background-image: url('../img/background-hall.svg') !important;
+	}
+	
+	.finance
+	{
+		background-image: url('../img/background-finance.svg') !important;
+	}
+	
+	.mobile
+	{
+		background-image: url('../img/background-mobile.svg') !important;
+	}
+	
+	.contract
+	{
+		background-image: url('../img/background-contract.svg') !important;
+	}
+}
+
+@media (max-width: 640px)
+{
+	.row-toggler-column
+	{
+		display: none !important;
+	}
+}
+
+@media (min-width: 641px)
+{
+	.row-toggler-column
+	{
+		width: 32px !important;
+	}
+}
+
+@media (max-width: 480px)
+{
+	.long-logout
+	{
+		display: none !important;
+	}
+}
+
+@media (min-width: 481px)
+{
+	.short-logout
+	{
+		display: none !important;
+	}
+}

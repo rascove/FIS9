@@ -1,0 +1,1525 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="receipt"
+				value="#{receiptMBean.receipts}" reflow="true"
+				emptyMessage="Tiada resit direkodkan."
+				paginator="#{receiptMBean.receipts.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:menuButton value="Tambah Resit" iconPos="right"
+									styleClass="secondary flat">
+									<p:menuitem value="Persendirian" icon="ui-icon-add"
+										update=":frmEntry" action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="1"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener value="Resit Persendirian"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Daftar Kontraktor Pembangunan Hutan"
+										icon="ui-icon-add" update=":frmEntry"
+										action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="2"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener
+											value="Resit Daftar Kontraktor Pembangunan Hutan"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Daftar Pengusaha/Kontraktor Pembalakan"
+										icon="ui-icon-add" update=":frmEntry"
+										action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="3"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener
+											value="Resit Daftar Pengusaha/Kontraktor Pembalakan"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Daftar Lesen" icon="ui-icon-add"
+										update=":frmEntry" action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="6"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener value="Resit Daftar Lesen"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Daftar Permit" icon="ui-icon-add"
+										update=":frmEntry" action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="7"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener value="Resit Daftar Permit"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem
+										value="Bayaran Berkaitan Kontraktor Pembangunan Hutan"
+										icon="ui-icon-add" update=":frmEntry"
+										action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="4"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener
+											value="Resit Bayaran Kontraktor Pembangunan Hutan"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem
+										value="Bayaran Berkaitan Pengusaha/Kontraktor Pembalakan"
+										icon="ui-icon-add" update=":frmEntry"
+										action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="8"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener
+											value="Resit Bayaran Pengusaha/Kontraktor Pembalakan"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Bayaran Berkaitan Lesen" icon="ui-icon-add"
+										update=":frmEntry" action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="10"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener value="Resit Bayaran Lesen"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Bayaran Berkaitan Permit" icon="ui-icon-add"
+										update=":frmEntry" action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="12"
+											target="#{receiptMBean.receiptCategory}" />
+										<f:setPropertyActionListener value="Resit Bayaran Permit"
+											target="#{receiptMBean.receiptType}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+									<p:menuitem value="Perbaharui Lesen/Permit/Kontraktor"
+										icon="ui-icon-add" update=":frmEntry"
+										action="#{receiptMBean.handleOpen}"
+										oncomplete="PF('popup').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{receiptMBean.addOperation}" />
+										<f:setPropertyActionListener value="5"
+											target="#{receiptMBean.receiptCategory}" />
+										<p:resetInput target=":frmEntry" />
+									</p:menuitem>
+								</p:menuButton> <p:spacer width="5" /> <p:menuButton
+									value="Muat turun laporan" iconPos="right"
+									styleClass="secondary flat">
+									<p:menuitem value="Kutipan Harian Resit(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="1"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Senarai Resit Batal(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="2"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Buku Tunai Pungutan(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="3"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Kutipan Harian Mengikut Bentuk Bayaran(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportSpecificDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportSpecificDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="4"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Kutipan Harian Mengikut Jenis(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="5"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Laporan Kutipan Harian(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportSpecificDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportSpecificDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="6"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Laporan Urusniaga Akaun Amanah(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportMonthAndYear"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportMonthAndYear').show()"
+										process="@this">
+										<f:setPropertyActionListener value="7"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Laporan Urusniaga Akaun Hasil(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportMonthAndYear"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportMonthAndYear').show()"
+										process="@this">
+										<f:setPropertyActionListener value="8"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Penyata Akaun Amanah(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportMonthAndYear"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportMonthAndYear').show()"
+										process="@this">
+										<f:setPropertyActionListener value="9"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Penyata Akaun Hasil(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportMonthAndYear"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportMonthAndYear').show()"
+										process="@this">
+										<f:setPropertyActionListener value="10"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Pembatalan Hasil(PDF)"
+										icon="ui-icon-picture-as-pdf" update=":frmDownloadRangeDate"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadRangeDate').show()"
+										process="@this">
+										<f:setPropertyActionListener value="11"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+									<p:menuitem value="Kutipan Resit Mengikut Operator(PDF)"
+										icon="ui-icon-picture-as-pdf"
+										update=":frmDownloadReportSpecificDateWithStaffs"
+										action="#{receiptMBean.prepareDownload}"
+										oncomplete="PF('popupDownloadReportSpecificDateWithStaffs').show()"
+										process="@this">
+										<f:setPropertyActionListener value="12"
+											target="#{receiptMBean.reportType}" />
+									</p:menuitem>
+								</p:menuButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="No. Resit" sortBy="#{receipt.receiptNo}"
+					filterBy="#{receipt.receiptNo}" filterMatchMode="contains">
+					<h:outputText value="#{receipt.receiptNo}" />
+				</p:column>
+				<p:column headerText="Jumlah" sortBy="#{receipt.grandTotal}"
+					filterBy="#{receipt.grandTotal}" filterMatchMode="contains">
+					<h:outputText value="#{receipt.grandTotal}">
+						<f:convertNumber type="currency" currencySymbol="RM " />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Kategori" sortBy="#{receipt.category}"
+					filterBy="#{receipt.category}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih kategori -" itemValue="" />
+							<f:selectItem itemLabel="Resit persendirian" itemValue="1" />
+							<f:selectItem
+								itemLabel="Resit daftar kontraktor pembangunan hutan"
+								itemValue="2" />
+							<f:selectItem
+								itemLabel="Resit daftar pengusaha/kontraktor pembalakan"
+								itemValue="3" />
+							<f:selectItem itemLabel="Resit daftar lesen" itemValue="6" />
+							<f:selectItem itemLabel="Resit daftar permit" itemValue="7" />
+							<f:selectItem
+								itemLabel="Resit bayaran kontraktor pembangunan hutan"
+								itemValue="4" />
+							<f:selectItem
+								itemLabel="Resit bayaran pengusaha/kontraktor pembalakan"
+								itemValue="8" />
+							<f:selectItem itemLabel="Resit bayaran lesen" itemValue="10" />
+							<f:selectItem itemLabel="Resit bayaran permit" itemValue="12" />
+							<f:selectItem
+								itemLabel="Resit perbaharui kontraktor pembangunan hutan"
+								itemValue="5" />
+							<f:selectItem
+								itemLabel="Resit perbaharui pengusaha/kontraktor pembalakan"
+								itemValue="9" />
+							<f:selectItem itemLabel="Resit perbaharui lesen" itemValue="11" />
+							<f:selectItem itemLabel="Resit perbaharui permit" itemValue="13" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Persendirian"
+						rendered="#{receipt.category == 1}" />
+					<h:outputText value="Daftar kontraktor pembangunan hutan"
+						rendered="#{receipt.category == 2}" />
+					<h:outputText value="Daftar pengusaha/kontraktor pembalakan"
+						rendered="#{receipt.category == 3}" />
+					<h:outputText value="Daftar lesen"
+						rendered="#{receipt.category == 6}" />
+					<h:outputText value="Daftar permit"
+						rendered="#{receipt.category == 7}" />
+					<h:outputText value="Bayaran kontraktor pembangunan hutan"
+						rendered="#{receipt.category == 4}" />
+					<h:outputText value="Bayaran pengusaha/kontraktor pembalakan"
+						rendered="#{receipt.category == 8}" />
+					<h:outputText value="Bayaran lesen"
+						rendered="#{receipt.category == 10}" />
+					<h:outputText value="Bayaran permit"
+						rendered="#{receipt.category == 12}" />
+					<h:outputText value="Perbaharui kontraktor pembangunan hutan"
+						rendered="#{receipt.category == 5}" />
+					<h:outputText value="Perbaharui pengusaha/kontraktor pembalakan"
+						rendered="#{receipt.category == 9}" />
+					<h:outputText value="Perbaharui lesen"
+						rendered="#{receipt.category == 11}" />
+					<h:outputText value="Perbaharui permit"
+						rendered="#{receipt.category == 13}" />
+				</p:column>
+				<p:column headerText="Pembayar" sortBy="#{receipt.name}"
+					filterBy="#{receipt.name}" filterMatchMode="contains">
+					<h:outputText value="#{receipt.name}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod"
+					sortBy="#{receipt.recorderName}" filterBy="#{receipt.recorderName}"
+					filterMatchMode="contains">
+					<h:outputText value="#{receipt.recorderName}" />
+				</p:column>
+				<p:column headerText="Tarikh" sortBy="#{receipt.date}"
+					filterBy="#{receipt.date}" filterMatchMode="contains">
+					<h:outputText value="#{receipt.date}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Status" sortBy="#{receipt.status}"
+					filterBy="#{receipt.status}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Belum daftar" itemValue="I" />
+							<f:selectItem itemLabel="Sudah proses" itemValue="A" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Belum daftar"
+						rendered="#{receipt.status == 'I'}" />
+					<h:outputText value="Sudah proses"
+						rendered="#{receipt.status == 'A'}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Batal" icon="ui-icon-cancel"
+							update=":frmProcess" oncomplete="PF('popupProcess').show()"
+							process="@this"
+							rendered="#{receipt.status == 'A' and receiptMBean.accessLevel le 2}">
+							<f:setPropertyActionListener value="batal"
+								target="#{receiptMBean.message}" />
+							<p:resetInput target=":frmProcess" />
+							<f:setPropertyActionListener value="#{receipt}"
+								target="#{receiptMBean.receipt}" />
+							<p:resetInput target=":frmProcess" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini kategori" icon="ui-icon-edit"
+							update=":frmUpdateReceiptCategory"
+							oncomplete="PF('popupUpdateReceiptCategory').show()"
+							process="@this">
+							<f:setPropertyActionListener value="#{receipt}"
+								target="#{receiptMBean.receipt}" />
+							<p:resetInput target=":frmUpdateReceiptCategory" />
+						</p:menuitem>
+						<p:menuitem value="Penyata Pemungut" icon="ui-icon-collections"
+							update=":frmCollectorStatement"
+							oncomplete="PF('popupCollectorStatement').show()" process="@this"
+							rendered="#{receipt.status == 'A'}">
+							<p:resetInput target=":frmCollectorStatement" />
+							<f:setPropertyActionListener value="#{receipt}"
+								target="#{receiptMBean.receipt}" />
+							<p:resetInput target=":frmCollectorStatement" />
+						</p:menuitem>
+						<p:menuitem value="Cetak" icon="ui-icon-print" ajax="false"
+							process="@this">
+							<p:fileDownload value="#{receiptMBean.download(receipt)}" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid1" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. resit:" />
+								<p:outputLabel value="#{receipt.receiptNo}" />
+								<p:outputLabel value="Nama:" />
+								<p:outputLabel value="#{receipt.name}" />
+								<p:outputLabel value="Kontraktor pembangunan hutan:"
+									rendered="#{receipt.category ge 4 and receipt.category le 5}" />
+								<p:outputLabel value="Pengusaha:"
+									rendered="#{receipt.category ge 6 and receipt.category le 9 and (receipt.loggingContractorType == 'L' or receipt.loggingContractorType == null)}" />
+								<p:outputLabel value="Kontraktor pembalakan"
+									rendered="#{receipt.category ge 6 and receipt.category le 9 and receipt.loggingContractorType == 'C'}" />
+								<p:outputLabel value="Lesen pengambilan hasil hutan:"
+									rendered="#{receipt.category ge 10 and receipt.category le 11 and receipt.licenseTypeID == 1}" />
+								<p:outputLabel value="Lesen kecil hutan:"
+									rendered="#{receipt.category ge 10 and receipt.category le 11 and receipt.licenseTypeID == 2}" />
+								<p:outputLabel value="Lesen pemindah:"
+									rendered="#{receipt.category ge 10 and receipt.category le 11 and receipt.licenseTypeID == 3}" />
+								<p:outputLabel value="Permit kongsi matau:"
+									rendered="#{receipt.category ge 12 and receipt.category le 13 and receipt.permitTypeID == 1}" />
+								<p:outputLabel value="Permit penggunaan kongsi:"
+									rendered="#{receipt.category ge 12 and receipt.category le 13 and receipt.permitTypeID == 2}" />
+								<p:outputLabel value="Permit jalan:"
+									rendered="#{receipt.category ge 12 and receipt.category le 13 and receipt.permitTypeID == 3}" />
+								<p:outputLabel value="#{receipt.companyName}"
+									rendered="#{receipt.category ge 4 and receipt.category le 5}" />
+								<p:outputLabel
+									value="#{receipt.loggingContractorRegistrationSerialNo} - #{receipt.companyName}"
+									rendered="#{receipt.category ge 6 and receipt.category le 9}" />
+								<p:outputLabel
+									value="#{receipt.licenseNo} - #{receipt.companyName}"
+									rendered="#{receipt.category ge 10 and receipt.category le 11}" />
+								<p:outputLabel
+									value="#{receipt.permitNo} - #{receipt.companyName}"
+									rendered="#{receipt.category ge 12 and receipt.category le 13}" />
+								<p:outputLabel value="Bayaran untuk:" />
+								<p:outputLabel value="#{receipt.notes}" />
+								<p:outputLabel value="Cara bayaran:" />
+								<p:outputLabel value="#{receipt.paymentTypeName}" />
+								<p:outputLabel value="Bank:" rendered="#{receipt.bankID != 0}" />
+								<p:outputLabel value="#{receipt.bankName}"
+									rendered="#{receipt.bankID != 0}" />
+								<p:outputLabel value="Jenis cek:"
+									rendered="#{receipt.chequeTypeID != 0}" />
+								<p:outputLabel value="#{receipt.chequeTypeName}"
+									rendered="#{receipt.chequeTypeID != 0}" />
+								<p:outputLabel
+									value="No. Cek/W. Pos/B. Draft/K. Wang/No. Kad Kredit/Debit/MEPS:"
+									rendered="#{receipt.paymentTypeID != 1}" />
+								<p:outputLabel value="#{receipt.chequeNo}"
+									rendered="#{receipt.paymentTypeID != 1}" />
+								<p:outputLabel value="Tarikh cek:"
+									rendered="#{receipt.paymentTypeID == 2}" />
+								<p:outputLabel value="#{receipt.date}"
+									rendered="#{receipt.paymentTypeID == 2}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh:" />
+								<p:outputLabel value="#{receipt.date}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Masa:" />
+								<p:outputLabel value="#{receipt.recordTime}">
+									<f:convertDateTime type="time" dateStyle="full" />
+								</p:outputLabel>
+								<p:outputLabel value="Pegawai rekod:" />
+								<p:outputLabel value="#{receipt.recorderName}" />
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist" var="receiptRecord"
+							value="#{receipt.receiptRecords}" reflow="true"
+							emptyMessage="Tiada rekod resit direkodkan."
+							paginator="#{receipt.receiptRecords.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<h:outputText value="Senarai Rekod Resit" />
+							</f:facet>
+							<p:column headerText="Vot Jabatan"
+								sortBy="#{receiptRecord.departmentCode}"
+								filterBy="#{receiptRecord.departmentVotID}"
+								filterMatchMode="contains" groupRow="true"
+								style="vertical-align: top">
+								<f:facet name="filter">
+									<p:selectOneMenu onchange="PF('sublist').filter()"
+										filter="true">
+										<f:selectItem itemLabel="Semua jenis vot" itemValue="" />
+										<f:selectItems value="#{receiptMBean.departmentVots}"
+											var="departmentVot" itemLabel="#{departmentVot}"
+											itemValue="#{departmentVot.departmentVotID}" />
+									</p:selectOneMenu>
+								</f:facet>
+								<h:outputText
+									value="#{receiptRecord.departmentVotCode} - #{receiptRecord.departmentVotName}" />
+								<br />
+							</p:column>
+							<p:column headerText="Keterangan" style="vertical-align: top">
+								<h:outputText value="#{receiptRecord.description}" />
+							</p:column>
+							<p:column headerText="Harga" style="vertical-align: top">
+								<h:outputText value="Kadar: " />
+								<h:outputText value="#{receiptRecord.rate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Kuantiti: #{receiptRecord.quantity}" />
+								<br />
+								<h:outputText value="Harga: " />
+								<h:outputText value="#{receiptRecord.total}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+							</p:column>
+							<f:facet name="footer">#{receipt.receiptRecords.size()} rekod resit direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{receiptMBean.receipts == null ? 0 : receiptMBean.receipts.size()} resit direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid id="grid2" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="paymentTypeID" value="Cara Bayaran:" />
+					<p:selectOneMenu id="paymentTypeID"
+						value="#{receiptMBean.receipt.paymentTypeID}" required="true"
+						requiredMessage="Cara bayaran diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receipt != null}">
+						<f:selectItem itemLabel="- pilih cara bayaran -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.paymentTypes}"
+							var="paymentType" itemLabel="#{paymentType}"
+							itemValue="#{paymentType.paymentTypeID}" />
+						<p:ajax event="change" update="grid2" />
+					</p:selectOneMenu>
+					<p:outputLabel for="receiptNo" value="No. Resit:" />
+					<p:inputText id="receiptNo"
+						value="#{receiptMBean.receipt.receiptNo}" required="true"
+						requiredMessage="No. resit diperlukan."
+						validatorMessage="No. resit mestilah 9 aksara.">
+						<f:validateLength maximum="9" minimum="9" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="forestDevelopmentContractorID"
+						value="Kontraktor pembangunan hutan:"
+						rendered="#{receiptMBean.receiptCategory == 4}" />
+					<p:selectOneMenu id="forestDevelopmentContractorID"
+						value="#{receiptMBean.receipt.forestDevelopmentContractorID}"
+						required="true"
+						requiredMessage="Kontraktor pembangunan hutan diperlukan."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receiptCategory == 4}">
+						<f:selectItem itemLabel="- pilih kontraktor pembangunan hutan -"
+							itemValue="#{null}" />
+						<f:selectItems
+							value="#{receiptMBean.forestDevelopmentContractors}"
+							var="forestDevelopmentContractor"
+							itemLabel="#{forestDevelopmentContractor}"
+							itemValue="#{forestDevelopmentContractor.forestDevelopmentContractorID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="loggingContractorID1"
+						value="Pengusaha/kontraktor pembalakan:"
+						rendered="#{receiptMBean.receiptCategory == 6}" />
+					<p:selectOneMenu id="loggingContractorID1"
+						value="#{receiptMBean.receipt.loggingContractorID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receiptCategory == 6}">
+						<f:selectItem
+							itemLabel="- pilih pengusaha/kontraktor pembalakan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.loggingContractors}"
+							var="loggingContractor" itemLabel="#{loggingContractor}"
+							itemValue="#{loggingContractor.loggingContractorID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="loggingContractorID2"
+						value="Pengusaha/kontraktor pembalakan:"
+						rendered="#{receiptMBean.receiptCategory ge 7 and receiptMBean.receiptCategory le 8}" />
+					<p:selectOneMenu id="loggingContractorID2"
+						value="#{receiptMBean.receipt.loggingContractorID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						required="true"
+						requiredMessage="Pengusaha/kontraktor pembalakan diperlukan."
+						rendered="#{receiptMBean.receiptCategory ge 7 and receiptMBean.receiptCategory le 8}">
+						<f:selectItem
+							itemLabel="- pilih pengusaha/kontraktor pembalakan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.loggingContractors}"
+							var="loggingContractor" itemLabel="#{loggingContractor}"
+							itemValue="#{loggingContractor.loggingContractorID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="licenseID1" value="Lesen:"
+						rendered="#{receiptMBean.receiptCategory == 9}" />
+					<p:selectOneMenu id="licenseID1"
+						value="#{receiptMBean.receipt.licenseID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receiptCategory == 9}">
+						<f:selectItem itemLabel="- pilih Lesen -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.licenses}" var="license"
+							itemLabel="#{license}" itemValue="#{license.licenseID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="licenseID2" value="Lesen:"
+						rendered="#{receiptMBean.receiptCategory ge 10 and receiptMBean.receiptCategory le 11}" />
+					<p:selectOneMenu id="licenseID2"
+						value="#{receiptMBean.receipt.licenseID}" required="true"
+						requiredMessage="Lesen diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receiptCategory ge 10 and receiptMBean.receiptCategory le 11}">
+						<f:selectItem itemLabel="- pilih Lesen -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.licenses}" var="license"
+							itemLabel="#{license}" itemValue="#{license.licenseID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="permitID" value="Permit:"
+						rendered="#{receiptMBean.receiptCategory ge 12 and receiptMBean.receiptCategory le 13}" />
+					<p:selectOneMenu id="permitID"
+						value="#{receiptMBean.receipt.permitID}" required="true"
+						requiredMessage="Permit diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receiptCategory ge 12 and receiptMBean.receiptCategory le 13}">
+						<f:selectItem itemLabel="- pilih permit -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.permits}" var="permit"
+							itemLabel="#{permit}" itemValue="#{permit.permitID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{receiptMBean.receipt.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Maksimum aksara nama mestilah 100 dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="notes" value="Bayaran untuk:" />
+					<p:inputText id="notes" value="#{receiptMBean.receipt.notes}"
+						validatorMessage="Maksimum aksara catatan mestilah 100 dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="bankID" value="Bank:"
+						rendered="#{not (receiptMBean.receipt.paymentTypeID == 1 or receiptMBean.receipt.paymentTypeID == 3 or receiptMBean.receipt.paymentTypeID == 4 or receiptMBean.receipt.paymentTypeID == 9)}" />
+					<p:selectOneMenu id="bankID" value="#{receiptMBean.receipt.bankID}"
+						filter="true" filterMatchMode="contains" required="true"
+						requiredMessage="Bank diperlukan."
+						onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receipt != null and not(receiptMBean.receipt.paymentTypeID == 1 or receiptMBean.receipt.paymentTypeID == 3 or receiptMBean.receipt.paymentTypeID == 4 or receiptMBean.receipt.paymentTypeID == 9)}">
+						<f:selectItem itemLabel="- pilih bank -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.banks}" var="bank"
+							itemLabel="#{bank}" itemValue="#{bank.bankID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="chequeTypeID" value="Jenis cek:"
+						rendered="#{receiptMBean.receipt.paymentTypeID == 2}" />
+					<p:selectOneMenu id="chequeTypeID"
+						value="#{receiptMBean.receipt.chequeTypeID}" filter="true"
+						filterMatchMode="contains" required="true"
+						requiredMessage="Jenis cek diperlukan." onchange="PF('popup').initPosition()"
+						rendered="#{receiptMBean.receipt != null and receiptMBean.receipt.paymentTypeID == 2}">
+						<f:selectItem itemLabel="- pilih jenis cek -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.chequeTypes}"
+							var="chequeType" itemLabel="#{chequeType}"
+							itemValue="#{chequeType.chequeTypeID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="chequeNo"
+						value="No. Cek/W. Pos/B. Draft/K. Wang/No. Kad Kredit/Debit/MEPS:"
+						rendered="#{receiptMBean.receipt.paymentTypeID != 1 and receiptMBean.receipt.paymentTypeID != 9}" />
+					<p:inputText id="chequeNo" value="#{receiptMBean.receipt.chequeNo}"
+						validatorMessage="No. Cek/W. Pos/B. Draft/K. Wang/No. Kad Kredit/Debit/MEPS mestilah dari 6 hingga 20 aksara."
+						required="true"
+						requiredMessage="No. Cek/W. Pos/B. Draft/K. Wang/No. Kad Kredit/Debit/MEPS diperlukan."
+						rendered="#{receiptMBean.receipt != null and receiptMBean.receipt.paymentTypeID != 1 and receiptMBean.receipt.paymentTypeID != 9}">
+						<f:validateLength minimum="6" maximum="20" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="chequeDate" value="Tarikh cek:"
+						rendered="#{receiptMBean.receipt.paymentTypeID == 2}" />
+					<p:calendar id="chequeDate" pattern="dd/MM/yyyy"
+						value="#{receiptMBean.receipt.chequeDate}" required="true"
+						requiredMessage="Tarikh cek diperlukan" readonlyInput="true"
+						rendered="#{receiptMBean.receipt.paymentTypeID == 2}"
+						maxdate="#{receiptMBean.today}">
+						<p:ajax event="dateSelect" listener="#{receiptMBean.doNothing}" />
+					</p:calendar>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Seterusnya" icon="ui-icon-arrow-forward"
+							action="#{receiptMBean.receiptEntryPreparation}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+
+		<h:form id="frmConfirmation">
+			<p:dialog id="popupConfirmation" widgetVar="popupConfirmation"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesConfirmation" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:scrollPanel style="max-height: 300px; border: none;">
+					<div class="ui-g-12 ui-md-12">
+						<p:panelGrid id="grid1" columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="creceiptNo" value="No. resit:" />
+							<p:outputLabel id="creceiptNo"
+								value="#{receiptMBean.receipt.receiptNo}" />
+							<p:outputLabel for="cname" value="Nama:" />
+							<p:outputLabel id="cname" value="#{receiptMBean.receipt.name}" />
+							<p:outputLabel for="c45" value="Kontraktor pembangunan hutan:"
+								rendered="#{receiptMBean.receipt.category ge 4 and receiptMBean.receipt.category le 5}" />
+							<p:outputLabel id="c45"
+								value="#{receiptMBean.receipt.companyRegistrationNo} - #{receiptMBean.receipt.companyName}"
+								rendered="#{receiptMBean.receipt.category ge 4 and receiptMBean.receipt.category le 5}" />
+							<p:outputLabel for="c69" value="Pengusaha:"
+								rendered="#{receiptMBean.receipt.loggingContractorID != 0 and receiptMBean.receipt.category ge 6 and receiptMBean.receipt.category le 8 and receiptMBean.receipt.loggingContractorType == 'L'}" />
+							<p:outputLabel for="c69" value="Kontraktor pembalakan"
+								rendered="#{receiptMBean.receipt.loggingContractorID != 0 and receiptMBean.receipt.category ge 6 and receiptMBean.receipt.category le 8 and receiptMBean.receipt.loggingContractorType == 'C'}" />
+							<p:outputLabel id="c69"
+								value="#{receiptMBean.receipt.loggingContractorRegistrationSerialNo} - #{receiptMBean.receipt.companyName}"
+								rendered="#{receiptMBean.receipt.loggingContractorID != 0 and receiptMBean.receipt.category ge 6 and receiptMBean.receipt.category le 8}" />
+							<p:outputLabel for="c1011" value="Lesen pengambilan hasil hutan:"
+								rendered="#{receiptMBean.receipt.licenseID != 0 and receiptMBean.receipt.category ge 9 and receiptMBean.receipt.category le 11 and receiptMBean.receipt.licenseTypeID == 1}" />
+							<p:outputLabel for="c1011" value="Lesen kecil hutan:"
+								rendered="#{receiptMBean.receipt.licenseID != 0 and receiptMBean.receipt.category ge 9 and receiptMBean.receipt.category le 11 and receiptMBean.receipt.licenseTypeID == 2}" />
+							<p:outputLabel for="c1011" value="Lesen pemindah:"
+								rendered="#{receiptMBean.receipt.licenseID != 0 and receiptMBean.receipt.category ge 9 and receiptMBean.receipt.category le 11 and receiptMBean.receipt.licenseTypeID == 3}" />
+							<p:outputLabel id="c1011"
+								value="#{receiptMBean.receipt.licenseNo} - #{receiptMBean.receipt.companyName}"
+								rendered="#{receiptMBean.receipt.licenseID != 0  and receiptMBean.receipt.category ge 9 and receiptMBean.receipt.category le 11}" />
+							<p:outputLabel for="c1213" value="Permit kongsi matau:"
+								rendered="#{receiptMBean.receipt.category ge 12 and receiptMBean.receipt.category le 13 and receiptMBean.receipt.permitTypeID == 1}" />
+							<p:outputLabel for="c1213" value="Permit penggunaan kongsi:"
+								rendered="#{receiptMBean.receipt.category ge 12 and receiptMBean.receipt.category le 13 and receiptMBean.receipt.permitTypeID == 2}" />
+							<p:outputLabel for="c1213" value="Permit jalan:"
+								rendered="#{receiptMBean.receipt.category ge 12 and receiptMBean.receipt.category le 13 and receiptMBean.receipt.permitTypeID == 3}" />
+							<p:outputLabel id="c1213"
+								value="#{receiptMBean.receipt.permitNo} - #{receiptMBean.receipt.companyName}"
+								rendered="#{receiptMBean.receipt.category ge 12 and receiptMBean.receipt.category le 13}" />
+							<p:outputLabel for="duration"
+								value="Tempoh Perbaharui #{receiptMBean.receipt.category == 5 ? 'Kontraktor Pembangunan Hutan' : (receiptMBean.receipt.category == 8 ? 'Pengusaha/Kontraktor Pembalakan' : (receiptMBean.receipt.category == 11 ? 'Lesen' : (receiptMBean.receipt.category == 13 ? 'Permit' : 'Ralat')))}:" rendered="#{receiptMBean.renewTypeID != 0}"/>
+							<h:outputText id="duration"
+								value="#{receiptMBean.duration} bulan" rendered="#{receiptMBean.renewTypeID != 0}"/>
+							<p:outputLabel for="cnotes" value="Bayaran untuk:" />
+							<h:outputText id="cnotes" value="#{receiptMBean.receipt.notes}" />
+							<p:outputLabel for="cpaymentType" value="Cara bayaran:" />
+							<h:outputText id="cpaymentType"
+								value="#{receiptMBean.receipt.paymentTypeName}" />
+							<p:outputLabel for="cbank" value="Bank:"
+								rendered="#{receiptMBean.receipt.paymentTypeID != 1 and receiptMBean.receipt.paymentTypeID != 3 and receiptMBean.receipt.paymentTypeID != 4}" />
+							<h:outputText id="cbank" value="#{receiptMBean.receipt.bankName}"
+								rendered="#{receiptMBean.receipt.paymentTypeID != 1 and receiptMBean.receipt.paymentTypeID != 3 and receiptMBean.receipt.paymentTypeID != 4}" />
+							<p:outputLabel for="cchequetype" value="Jenis cek:"
+								rendered="#{receiptMBean.receipt.paymentTypeID == 2}" />
+							<h:outputText id="cchequetype"
+								value="#{receiptMBean.receipt.chequeTypeName}"
+								rendered="#{receiptMBean.receipt.paymentTypeID == 2}" />
+							<p:outputLabel for="cchequeNo"
+								value="No. Cek/W. Pos/B. Draft/K. Wang/No. Kad Kredit/Debit/MEPS:"
+								rendered="#{receiptMBean.receipt.paymentTypeID != 1}" />
+							<h:outputText id="cchequeNo"
+								value="#{receiptMBean.receipt.chequeNo}"
+								rendered="#{receiptMBean.receipt.paymentTypeID != 1}" />
+							<p:outputLabel for="cdate" value="Tarikh:" />
+							<h:outputText id="cdate" value="#{receiptMBean.receipt.date}">
+								<f:converter converterId="dateConverter" />
+							</h:outputText>
+							<p:outputLabel for="ctime" value="Masa:" />
+							<h:outputText id="ctime"
+								value="#{receiptMBean.receipt.recordTime}">
+								<f:convertDateTime type="time" dateStyle="full" />
+							</h:outputText>
+							<p:outputLabel for="ctotal" value="Jumlah besar:" />
+							<h:outputText id="ctotal"
+								value="#{receiptMBean.receipt.grandTotal}">
+								<f:convertNumber type="currency" currencySymbol="RM " />
+							</h:outputText>
+							<p:outputLabel for="crecorderName" value="Pegawai rekod:" />
+							<h:outputText id="crecorderName"
+								value="#{receiptMBean.receipt.recorderName}" />
+						</p:panelGrid>
+					</div>
+
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist" var="receiptRecord"
+							value="#{receiptMBean.receipt.receiptRecords}" reflow="true"
+							emptyMessage="Tiada rekod resit direkodkan."
+							paginator="#{receipt.receiptRecords.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})"
+							scrollable="true" scrollHeight="100">
+							<f:facet name="header">
+								<h:outputText value="Senarai Rekod Resit" />
+							</f:facet>
+							<p:column headerText="Kod objek lanjut"
+								sortBy="#{receiptRecord.departmentVotCode}"
+								filterBy="#{receiptRecord.departmentVotCode}"
+								filterMatchMode="contains" groupRow="true"
+								style="vertical-align: top">
+								<h:outputText
+									value="#{receiptRecord.departmentVotCode} - #{receiptRecord.departmentVotName}" />
+								<br />
+							</p:column>
+							<p:column headerText="Keterangan" style="vertical-align: top">
+								<h:outputText value="#{receiptRecord.description}" />
+							</p:column>
+							<p:column headerText="Harga" style="vertical-align: top">
+								<h:outputText value="Kadar: " />
+								<h:outputText value="#{receiptRecord.rate}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+								<h:outputText value="Kuantiti: #{receiptRecord.quantity}" />
+								<br />
+								<h:outputText value="Harga: " />
+								<h:outputText value="#{receiptRecord.total}">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</h:outputText>
+								<br />
+							</p:column>
+							<f:facet name="footer">#{receiptMBean.receipt.receiptRecords.size()} rekod resit direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:scrollPanel>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{receiptMBean.backButtonRecordReceipt}"
+							update=":frmManager messagesConfirmation"
+							oncomplete="PF('popupConfirmation').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{receiptMBean.receiptEntry}"
+							update=":frmManager messagesConfirmation"
+							oncomplete="PF('popupConfirmation').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupConfirmation').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+
+		<h:form id="frmEntryReceiptRecord">
+			<p:dialog id="popupReceiptRecord" widgetVar="popupReceiptRecord"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesReceiptRecord" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:dataTable id="bulk1" rowIndexVar="ri" var="receiptRecord"
+					value="#{receiptMBean.receiptRecords}" scrollable="true"
+					scrollHeight="200">
+					<p:column headerText="Kod objek lanjut">
+						<p:selectOneMenu value="#{receiptRecord.departmentVotID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}">
+							<f:selectItem itemLabel="- pilih kod objek lanjut -"
+								itemValue="#{null}" />
+							<f:selectItems value="#{receiptMBean.departmentVots}"
+								var="departmentVot" itemLabel="#{departmentVot}"
+								itemValue="#{departmentVot.departmentVotID}" />
+							<p:ajax update="bulk1:@row(#{ri})" event="change"
+								listener="#{receiptMBean.resetTotal()}" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Penerangan">
+						<p:inputText id="description" value="#{receiptRecord.description}"
+							required="true" requiredMessage="Penerangan diperlukan."
+							validatorMessage="Penerangan mestilah 100 aksara dan ke bawah."
+							disabled="#{receiptRecord.departmentVotID == 0}">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+					</p:column>
+					<p:column headerText="Kadar">
+						<p:inputNumber id="rate" value="#{receiptRecord.rate}"
+							required="true" requiredMessage="Kadar diperlukan."
+							validatorMessage="Kadar mestilah di antara RM 0.1 dan RM 100000."
+							symbol="RM " symbolPosition="p"
+							disabled="#{receiptRecord.departmentVotID == 0}">
+							<f:validateDoubleRange minimum="0.1" maximum="100000" />
+							<p:clientValidator />
+							<p:ajax event="blur" update="jumlah" />
+						</p:inputNumber>
+					</p:column>
+					<p:column headerText="Kuantiti">
+						<p:inputNumber id="kuantiti" value="#{receiptRecord.quantity}"
+							required="true" requiredMessage="Kuantiti diperlukan."
+							validatorMessage="Kuantiti mestilah di antara 0.1 dan 10,000."
+							disabled="#{receiptRecord.departmentVotID == 0}">
+							<f:validateDoubleRange minimum="0.1" maximum="10000" />
+							<p:clientValidator />
+							<p:ajax event="blur" update="jumlah" />
+						</p:inputNumber>
+					</p:column>
+					<p:column headerText="Jumlah">
+						<h:outputText id="jumlah"
+							value="#{receiptRecord.rate * receiptRecord.quantity}">
+							<f:convertNumber type="currency" currencySymbol="RM " />
+						</h:outputText>
+					</p:column>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{receiptMBean.backButtonReceipt}"
+							update=":frmManager messagesReceiptRecord"
+							oncomplete="PF('popupReceiptRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Seterusnya" icon="ui-icon-arrow-forward"
+							action="#{receiptMBean.confirmationPage}"
+							update=":frmManager messagesReceiptRecord"
+							oncomplete="PF('popupReceiptRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupReceiptRecord').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryRenewReceiptRecord">
+			<p:dialog id="popupRenewReceiptRecord"
+				widgetVar="popupRenewReceiptRecord" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesRenewReceiptRecord" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:dataTable id="bulkRenew" rowIndexVar="ri" var="receiptRecord"
+					value="#{receiptMBean.receiptRecords}" scrollable="true"
+					scrollHeight="200">
+					<p:column headerText="Jenis">
+						<p:selectOneMenu value="#{receiptMBean.renewTypeID}" filter="true"
+							filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							required="true" requiredMessage="Jenis diperlukan."
+							rendered="#{receiptRecord != null}">
+							<f:selectItem itemLabel="- pilih jenis -" itemValue="" />
+							<f:selectItem itemLabel="Kontraktor pembangunan hutan"
+								itemValue="5" />
+							<f:selectItem itemLabel="Pengusaha/kontraktor pembalakan"
+								itemValue="9" />
+							<f:selectItem itemLabel="Lesen" itemValue="11" />
+							<f:selectItem itemLabel="Permit" itemValue="13" />
+							<p:ajax update="bulkRenew:@row(#{ri})" event="change"
+								listener="#{receiptMBean.handleRenewReceiptRecord()}" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Jenis urusan">
+						<p:selectOneMenu
+							value="#{receiptMBean.receipt.forestDevelopmentContractorID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}"
+							required="true" requiredMessage="Kontraktor pembangunan hutan diperlukan."
+							disabled="#{receiptMBean.renewTypeID != 5}">
+							<f:selectItem itemLabel="- pilih kontraktor pembangunan hutan -"
+								itemValue="#{null}" />
+							<f:selectItems
+								value="#{receiptMBean.forestDevelopmentContractors}"
+								var="forestDevelopmentContractor"
+								itemLabel="#{forestDevelopmentContractor}"
+								itemValue="#{forestDevelopmentContractor.forestDevelopmentContractorID}" />
+						</p:selectOneMenu>
+						<p:selectOneMenu value="#{receiptMBean.receipt.loggingContractorID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}"
+							required="true" requiredMessage="Pengusaha/kontrak pembalakan diperlukan."
+							disabled="#{receiptMBean.renewTypeID != 9}">
+							<f:selectItem
+								itemLabel="- pilih pengusaha/kontraktor pembalakan -"
+								itemValue="#{null}" />
+							<f:selectItems value="#{receiptMBean.loggingContractors}"
+								var="loggingContractor" itemLabel="#{loggingContractor}"
+								itemValue="#{loggingContractor.loggingContractorID}" />
+						</p:selectOneMenu>
+						<p:selectOneMenu value="#{receiptMBean.receipt.licenseID}" filter="true"
+							filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}"
+							required="true" requiredMessage="Lesen diperlukan."
+							disabled="#{receiptMBean.renewTypeID != 11}">
+							<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+							<f:selectItems value="#{receiptMBean.licenses}" var="license"
+								itemLabel="#{license}" itemValue="#{license.licenseID}" />
+						</p:selectOneMenu>
+						<p:selectOneMenu value="#{receiptMBean.receipt.permitID}" filter="true"
+							filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}"
+							required="true" requiredMessage="Permit diperlukan."
+							disabled="#{receiptMBean.renewTypeID != 13}">
+							<f:selectItem itemLabel="- pilih permit -" itemValue="#{null}" />
+							<f:selectItems value="#{receiptMBean.permits}" var="permit"
+								itemLabel="#{permit}" itemValue="#{permit.permitID}" />
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Kod objek lanjut">
+						<p:selectOneMenu value="#{receiptRecord.departmentVotID}"
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							required="true" requiredMessage="Kod objek lanjut diperlukan."
+							rendered="#{receiptRecord != null}"
+							disabled="#{receiptMBean.renewTypeID == 0}">
+							<f:selectItem itemLabel="- pilih kod objek lanjut -"
+								itemValue="#{null}" />
+							<f:selectItems value="#{receiptMBean.departmentVots}"
+								var="departmentVot" itemLabel="#{departmentVot}"
+								itemValue="#{departmentVot.departmentVotID}" />
+
+						</p:selectOneMenu>
+					</p:column>
+					<p:column headerText="Penerangan">
+						<p:inputText id="description" value="#{receiptRecord.description}"
+							required="true" requiredMessage="Penerangan diperlukan."
+							validatorMessage="Penerangan mestilah 100 aksara dan ke bawah."
+							disabled="#{receiptMBean.renewTypeID == 0}">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+					</p:column>
+					<p:column headerText="Harga">
+						<p:inputNumber id="rate" value="#{receiptRecord.rate}"
+							required="true" requiredMessage="harga diperlukan."
+							validatorMessage="Harga mestilah di antara RM 0.1 dan RM 100000."
+							symbol="RM " symbolPosition="p"
+							disabled="#{receiptMBean.renewTypeID == 0}">
+							<f:validateDoubleRange minimum="0.1" maximum="100000" />
+							<p:clientValidator />
+						</p:inputNumber>
+					</p:column>
+					<p:column headerText="Tempoh">
+						<p:selectOneMenu value="#{receiptMBean.duration}" filter="true"
+							filterMatchMode="contains"
+							onchange="PF('popupRenewReceiptRecord').initPosition()"
+							rendered="#{receiptRecord != null}"
+							required="true" requiredMessage="Tempoh diperlukan."
+							disabled="#{receiptMBean.renewTypeID == 0}">
+							<f:selectItem itemLabel="- pilih tempoh -" itemValue="#{null}" />
+							<f:selectItem itemLabel="1 bulan" itemValue="1" />
+							<f:selectItem itemLabel="2 bulan" itemValue="2" />
+							<f:selectItem itemLabel="3 bulan" itemValue="3" />
+							<f:selectItem itemLabel="4 bulan" itemValue="4" />
+							<f:selectItem itemLabel="5 bulan" itemValue="5" />
+							<f:selectItem itemLabel="6 bulan" itemValue="6" />
+							<f:selectItem itemLabel="7 bulan" itemValue="7" />
+							<f:selectItem itemLabel="8 bulan" itemValue="8" />
+							<f:selectItem itemLabel="9 bulan" itemValue="9" />
+							<f:selectItem itemLabel="10 bulan" itemValue="10" />
+							<f:selectItem itemLabel="11 bulan" itemValue="11" />
+							<f:selectItem itemLabel="12 bulan" itemValue="12" />
+						</p:selectOneMenu>
+					</p:column>
+				</p:dataTable>
+
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Kembali" icon="ui-icon-arrow-back"
+							action="#{receiptMBean.backButtonReceipt}"
+							update=":frmManager messagesRenewReceiptRecord"
+							oncomplete="PF('popupReceiptRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Seterusnya" icon="ui-icon-arrow-forward"
+							action="#{receiptMBean.confirmationPage}"
+							update=":frmManager messagesRenewReceiptRecord"
+							oncomplete="PF('popupRenewReceiptRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupRenewReceiptRecord').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmNoReceiptRecords">
+			<p:dialog id="popupNoReceiptRecords"
+				widgetVar="popupNoReceiptRecords" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Tiada rekod resit dipilih, sila buat pemilihan semula." />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupNoReceiptRecords').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin #{receiptMBean.message} resit ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. resit :" />
+					<p:outputLabel value="#{receiptMBean.receipt.receiptNo}" />
+					<p:outputLabel value="Alasan :" />
+					<p:inputText id="notes" value="#{receiptMBean.receipt.notes}"
+						validatorMessage="Maksimum aksara catatan mestilah 100 dan ke bawah."
+						required="true" requiredMessage="alasan diperlukan.">
+						<f:validateLength maximum="100" />
+					</p:inputText>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-cancel"
+							action="#{receiptMBean.cancelReceipt}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmCollectorStatement">
+			<p:dialog id="popupCollectorStatement"
+				widgetVar="popupCollectorStatement" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Sila masukkan nombor penyata pemungut." />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. penyata pemungut :" />
+					<p:inputText id="collectorStatement"
+						value="#{receiptMBean.receipt.collectorStatement}"
+						validatorMessage="Maksimum aksara penyata pemungut mestilah 30 dan ke bawah."
+						required="true" requiredMessage="penyata pemungut diperlukan.">
+						<f:validateLength maximum="30" />
+					</p:inputText>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Simpan" icon="ui-icon-submit"
+							action="#{receiptMBean.updateCollectorStatement}"
+							update=":frmManager messages"
+							oncomplete="PF('popupCollectorStatement').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{receiptMBean.receipt.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupCollectorStatement').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpdateReceiptCategory">
+			<p:dialog id="popupUpdateReceiptCategory"
+				widgetVar="popupUpdateReceiptCategory" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel value="Sila pilih kategori resit." />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="Kategori resit:" />
+					<p:selectOneMenu id="receiptCategory"
+						value="#{receiptMBean.receiptCategory}" filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupUpdateReceiptCategory').initPosition()">
+						<f:selectItem itemLabel="- pilih kategori resit -"
+							itemValue="#{null}" />
+						<f:selectItem itemLabel="Resit persendirian" itemValue="1" />
+						<f:selectItem
+							itemLabel="Resit daftar kontraktor pembangunan hutan"
+							itemValue="2" />
+						<f:selectItem
+							itemLabel="Resit daftar pengusaha/kontraktor pembalakan"
+							itemValue="3" />
+						<f:selectItem itemLabel="Resit daftar lesen" itemValue="6" />
+						<f:selectItem itemLabel="Resit daftar permit" itemValue="7" />
+						<f:selectItem
+							itemLabel="Resit bayaran kontraktor pembangunan hutan"
+							itemValue="4" />
+						<f:selectItem
+							itemLabel="Resit bayaran pengusaha/kontraktor pembalakan"
+							itemValue="8" />
+						<f:selectItem itemLabel="Resit bayaran lesen" itemValue="10" />
+						<f:selectItem itemLabel="Resit bayaran permit" itemValue="12" />
+						<f:selectItem
+							itemLabel="Resit perbaharui kontraktor pembangunan hutan"
+							itemValue="5" />
+						<f:selectItem
+							itemLabel="Resit perbaharui pengusaha/kontraktor pembalakan"
+							itemValue="9" />
+						<f:selectItem itemLabel="Resit perbaharui lesen" itemValue="11" />
+						<f:selectItem itemLabel="Resit perbaharui permit" itemValue="13" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Simpan" icon="ui-icon-submit"
+							action="#{receiptMBean.updateReceiptCategory}"
+							update=":frmManager messages"
+							oncomplete="PF('popupUpdateReceiptCategory').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{receiptMBean.receipt.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpdateReceiptCategory').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadRangeDate">
+			<p:dialog id="popupDownloadRangeDate"
+				widgetVar="popupDownloadRangeDate" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih tarikh awal dan
+					tarikh akhir.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="startDate" value="Tarikh awal:" />
+					<p:calendar id="startDate" pattern="dd/MM/yyyy"
+						value="#{receiptMBean.startDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect" listener="#{receiptMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="endDate" value="Tarikh akhir:" />
+					<p:calendar id="endDate" pattern="dd/MM/yyyy"
+						value="#{receiptMBean.endDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect" listener="#{receiptMBean.doNothing}" />
+					</p:calendar>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadRangeDate').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{receiptMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadRangeDate').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportSpecificDate">
+			<p:dialog id="popupDownloadReportSpecificDate"
+				widgetVar="popupDownloadReportSpecificDate" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportSpecificDate"
+					showDetail="true" showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih tarikh bagi
+					laporan yang ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="date" value="Tarikh:" />
+					<p:calendar id="date" pattern="dd/MM/yyyy"
+						value="#{receiptMBean.specificDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect" listener="#{receiptMBean.doNothing}" />
+					</p:calendar>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportSpecificDate').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{receiptMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportSpecificDate').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportSpecificDateWithStaffs">
+			<p:dialog id="popupDownloadReportSpecificDateWithStaffs"
+				widgetVar="popupDownloadReportSpecificDateWithStaffs" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportSpecificDate"
+					showDetail="true" showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih tarikh bagi
+					laporan yang ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="date" value="Tarikh:" />
+					<p:calendar id="date" pattern="dd/MM/yyyy"
+						value="#{receiptMBean.specificDate}" required="true"
+						requiredMessage="Tarikh diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect" listener="#{receiptMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="operatorID" value="Operator:" />
+					<p:selectOneMenu id="operatorID" value="#{receiptMBean.operatorID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupDownloadReportSpecificDateWithStaffs').initPosition()">
+						<f:selectItem itemLabel="- pilih operator -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportSpecificDateWithStaffs').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{receiptMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportSpecificDateWithStaffs').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportMonthAndYear">
+			<p:dialog id="popupDownloadReportMonthAndYear"
+				widgetVar="popupDownloadReportMonthAndYear" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportMonthAndYear"
+					showDetail="true" showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih bulan dan tahun
+					bagi laporan yang ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="month" value="Bulan:" />
+					<p:selectOneMenu id="month" value="#{receiptMBean.month}"
+						required="true" requiredMessage="Bulan diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.months}" />
+					</p:selectOneMenu>
+					<br></br>
+					<p:outputLabel for="year" value="Tahun:" />
+					<p:selectOneMenu id="year" value="#{receiptMBean.year}"
+						required="true" requiredMessage="Tahun diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih tahun -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.years}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportMonthAndYear').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{receiptMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportMonthAndYear').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportByLicense">
+			<p:dialog id="popupDownloadReportByLicense"
+				widgetVar="popupDownloadReportByLicense" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportByLicense" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu lesen bagi laporan yang
+					ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="licenseID" value="Lesen:" />
+					<p:selectOneMenu id="licenseID" value="#{receiptMBean.licenseID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupDownloadReportByLicense').initPosition()">
+						<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.licenses}" var="license"
+							itemLabel="#{license}" itemValue="#{license.licenseID}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportByLicense').hide();"
+							styleClass="save-btn">
+							<p:fileDownload
+								value="#{receiptMBean.downloadReport(receiptMBean.reportType)}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportByLicense').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownloadReportMonthAndYearWithLicenses">
+			<p:dialog id="popupDownloadReportMonthAndYearWithLicenses"
+				widgetVar="popupDownloadReportMonthAndYearWithLicenses" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownloadReportMonthAndYear"
+					showDetail="true" showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">Anda perlu memilih awal serta akhir
+					bulan dan tahun bagi laporan yang ingin dijana.</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:outputLabel for="startMonth" value="Bulan Awal:" />
+					<p:selectOneMenu id="startMonth" value="#{receiptMBean.startMonth}"
+						required="true" requiredMessage="Bulan awal diperlukan."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.months}" />
+					</p:selectOneMenu>
+					<br></br>
+					<p:outputLabel for="endMonth" value="Bulan Akhir:" />
+					<p:selectOneMenu id="endMonth" value="#{receiptMBean.endMonth}"
+						required="true" requiredMessage="Bulan akhir diperlukan."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih bulan -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.months}" />
+					</p:selectOneMenu>
+					<br></br>
+					<p:outputLabel for="year" value="Tahun:" />
+					<p:selectOneMenu id="year" value="#{receiptMBean.year}"
+						required="true" requiredMessage="Tahun diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()">
+						<f:selectItem itemLabel="- pilih tahun -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.years}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="licenseID" value="Lesen:" />
+					<p:selectOneMenu id="licenseID" value="#{receiptMBean.licenseID}"
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupDownloadReportMonthAndYearWithLicenses').initPosition()">
+						<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+						<f:selectItems value="#{receiptMBean.licenses}" var="license"
+							itemLabel="#{license}" itemValue="#{license.licenseID}" />
+					</p:selectOneMenu>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownloadReportMonthAndYearWithLicenses').hide();"
+							styleClass="save-btn">
+							<p:fileDownload value="#{receiptMBean.downloadReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownloadReportMonthAndYearWithLicenses').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,455 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="state"
+				value="#{stateMBean.states}" reflow="true"
+				emptyMessage="Tiada negeri direkodkan."
+				paginator="#{stateMBean.states.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<p:outputPanel style="text-align: right; margin: 8px 0px;"
+						rendered="#{userMBean.user.stateID == 0}">
+						<p:commandButton value="Tambah negeri" icon="ui-icon-add"
+							update=":frmEntry" action="#{stateMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{stateMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</p:outputPanel>
+					<h:outputText value="Negeri Pentadbiran"
+						rendered="#{userMBean.user.stateID != 0}" />
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Kod" sortBy="#{state.code}"
+					filterBy="#{state.code}" filterMatchMode="contains">
+					<h:outputText value="#{state.code}" />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{state.name}"
+					filterBy="#{state.name}" filterMatchMode="contains">
+					<h:outputText value="#{state.name}" />
+				</p:column>
+				<p:column headerText="Pengarah" sortBy="#{state.directorName}"
+					filterBy="#{state.directorName}" filterMatchMode="contains">
+					<h:outputText value="#{state.directorName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini negeri" icon="ui-icon-edit"
+						update=":frmEntry" action="#{stateMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{stateMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{state}"
+							target="#{stateMBean.state}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="Timbalan Pengarah (Pembangunan Hutan):"
+									rendered="#{state.deputyDirector1ID != null}" />
+								<p:outputLabel value="#{state.deputyDirector1Name}"
+									rendered="#{state.deputyDirector1ID != null}" />
+								<p:outputLabel
+									value="Timbalan Pengarah (Operasi dan Penguatkuasaan):"
+									rendered="#{state.deputyDirector2ID != null}" />
+								<p:outputLabel value="#{state.deputyDirector2Name}"
+									rendered="#{state.deputyDirector2ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah Kanan (Perancangan dan Pensijilan Pengurusan Hutan):"
+									rendered="#{state.seniorAsstDirector1ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector1Name}"
+									rendered="#{state.seniorAsstDirector1ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah Kanan (Silvikultur dan Perlindungan):"
+									rendered="#{state.seniorAsstDirector2ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector2Name}"
+									rendered="#{state.seniorAsstDirector2ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah Kanan (Perindustrian dan Pengusahasilan):"
+									rendered="#{state.seniorAsstDirector3ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector3Name}"
+									rendered="#{state.seniorAsstDirector3ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah Kanan (Hutan Lipur, Eco-Park, dan Taman Negeri):"
+									rendered="#{state.seniorAsstDirector4ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector4Name}"
+									rendered="#{state.seniorAsstDirector4ID != null}" />
+								<p:outputLabel value="Penolong Pengarah Kanan (Penguatkuasaan):"
+									rendered="#{state.seniorAsstDirector5ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector5ame}"
+									rendered="#{state.seniorAsstDirector5ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah Kanan (Latihan dan Pengembangan):"
+									rendered="#{state.seniorAsstDirector6ID != null}" />
+								<p:outputLabel value="#{state.seniorAsstDirector6Name}"
+									rendered="#{state.seniorAsstDirector6ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah (Perancangan dan Pensijilan Pengurusan Hutan):"
+									rendered="#{state.asstDirector1ID != null}" />
+								<p:outputLabel value="#{state.asstDirector1Name}"
+									rendered="#{state.asstDirector1ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah (Silvikultur dan Perlindungan):"
+									rendered="#{state.asstDirector2ID != null}" />
+								<p:outputLabel value="#{state.asstDirector2Name}"
+									rendered="#{state.asstDirector2ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah (Perindustrian dan Pengusahasilan):"
+									rendered="#{state.asstDirector3ID != null}" />
+								<p:outputLabel value="#{state.asstDirector3Name}"
+									rendered="#{state.asstDirector3ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah (Hutan Lipur, Eco-Park, dan Taman Negeri):"
+									rendered="#{state.asstDirector4ID != null}" />
+								<p:outputLabel value="#{state.asstDirector4Name}"
+									rendered="#{state.asstDirector4ID != null}" />
+								<p:outputLabel value="Penolong Pengarah (Penguatkuasaan):"
+									rendered="#{state.asstDirector5ID != null}" />
+								<p:outputLabel value="#{state.asstDirector5ame}"
+									rendered="#{state.asstDirector5ID != null}" />
+								<p:outputLabel
+									value="Penolong Pengarah (Latihan dan Pengembangan):"
+									rendered="#{state.asstDirector6ID != null}" />
+								<p:outputLabel value="#{state.asstDirector6Name}"
+									rendered="#{state.asstDirector6ID != null}" />
+							</p:panelGrid>
+						</p:fieldset>
+						<br />
+						<p:dataTable id="subtable" var="region" value="#{state.regions}"
+							reflow="true" emptyMessage="Tiada daerah sivil direkodkan."
+							paginator="#{state.regions.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<div style="text-align: right; margin: 8px 0px;">
+									<p:commandButton value="Tambah daerah sivil" icon="ui-icon-add"
+										update=":frmEntryRegion"
+										action="#{stateMBean.handleOpenRegion}"
+										oncomplete="PF('popupRegion').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{stateMBean.addRegionOperation}" />
+										<f:setPropertyActionListener value="#{state}"
+											target="#{stateMBean.state}" />
+										<p:resetInput target=":frmEntryRegion" />
+									</p:commandButton>
+								</div>
+							</f:facet>
+							<p:column headerText="Kod" sortBy="#{region.code}"
+								filterBy="#{region.code}" filterMatchMode="contains">
+								<h:outputText value="#{region.code}" />
+							</p:column>
+							<p:column headerText="Nama" sortBy="#{region.name}"
+								filterBy="#{region.name}" filterMatchMode="contains">
+								<h:outputText value="#{region.name}" />
+							</p:column>
+							<p:column headerText="Pilihan" style="text-align: center">
+								<p:commandButton value="Kemaskini daerah sivil"
+									icon="ui-icon-edit" update=":frmEntryRegion"
+									action="#{stateMBean.handleOpenRegion}"
+									oncomplete="PF('popupRegion').show()" process="@this">
+									<f:setPropertyActionListener value="false"
+										target="#{stateMBean.addRegionOperation}" />
+									<f:setPropertyActionListener value="#{state}"
+										target="#{stateMBean.state}" />
+									<f:setPropertyActionListener value="#{region}"
+										target="#{stateMBean.region}" />
+									<p:resetInput target=":frmEntryRegion" />
+								</p:commandButton>
+							</p:column>
+							<f:facet name="footer">#{state.regions.size()} daerah sivil direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="#{userMBean.user.stateID == 0 ? 'footer' : ''}">#{stateMBean.states.size()} negeri direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:tabView id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Asas">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="code" value="Kod:" />
+							<p:inputText id="code" value="#{stateMBean.state.code}"
+								required="true" requiredMessage="Kod diperlukan."
+								validatorMessage="Kod mestilah 5 aksara dan ke bawah.">
+								<f:validateLength maximum="5" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="name" value="Nama:" />
+							<p:inputText id="name" value="#{stateMBean.state.name}"
+								required="true" requiredMessage="Nama diperlukan."
+								validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+								<f:validateLength maximum="50" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="motto" value="Moto:" />
+							<p:inputTextarea id="motto" value="#{stateMBean.state.motto}"
+								required="true" requiredMessage="Moto diperlukan."
+								validatorMessage="Moto mestilah 100 aksara dan ke bawah.">
+								<f:validateLength maximum="100" />
+								<p:clientValidator />
+							</p:inputTextarea>
+							<p:outputLabel for="directorID" value="Pengarah:" />
+							<p:selectOneMenu id="directorID"
+								value="#{stateMBean.state.directorID}" required="true"
+								requiredMessage="Sila pilih pengarah." filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih pengarah -" itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="deputyDirector1ID"
+								value="Timbalan pengarah (pembangunan hutan):" />
+							<p:selectOneMenu id="deputyDirector1ID"
+								value="#{stateMBean.state.deputyDirector1ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih timbalan pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="deputyDirector2ID"
+								value="Timbalan pengarah (operasi dan penguatkuasaan):" />
+							<p:selectOneMenu id="deputyDirector2ID"
+								value="#{stateMBean.state.deputyDirector2ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih timbalan pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Maklumat Penolong Pengarah Kanan">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="seniorAsstDirector1ID"
+								value="Penolong pengarah kanan (perancangan dan pensijilan pengurusan hutan):" />
+							<p:selectOneMenu id="seniorAsstDirector1ID"
+								value="#{stateMBean.state.seniorAsstDirector1ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="seniorAsstDirector2ID"
+								value="Penolong pengarah kanan (silvikultur dan perlindungan):" />
+							<p:selectOneMenu id="seniorAsstDirector2ID"
+								value="#{stateMBean.state.seniorAsstDirector2ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="seniorAsstDirector3ID"
+								value="Penolong pengarah kanan (perindustrian dan pengusahasilan):" />
+							<p:selectOneMenu id="seniorAsstDirector3ID"
+								value="#{stateMBean.state.seniorAsstDirector3ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="seniorAsstDirector4ID"
+								value="Penolong pengarah kanan (hutan lipur, eco-park, dan taman negeri):" />
+							<p:selectOneMenu id="seniorAsstDirector4ID"
+								value="#{stateMBean.state.seniorAsstDirector4ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="seniorAsstDirector5ID"
+								value="Penolong pengarah kanan (penguatkuasaan):" />
+							<p:selectOneMenu id="seniorAsstDirector5ID"
+								value="#{stateMBean.state.seniorAsstDirector5ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="seniorAsstDirector6ID"
+								value="Penolong pengarah kanan (latihan dan pengembangan):" />
+							<p:selectOneMenu id="seniorAsstDirector6ID"
+								value="#{stateMBean.state.seniorAsstDirector6ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah kanan -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Maklumat Penolong Pengarah">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="asstDirector1ID"
+								value="Penolong pengarah (perancangan dan pensijilan pengurusan hutan):" />
+							<p:selectOneMenu id="asstDirector1ID"
+								value="#{stateMBean.state.asstDirector1ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="asstDirector2ID"
+								value="Penolong pengarah (silvikultur dan perlindungan):" />
+							<p:selectOneMenu id="asstDirector2ID"
+								value="#{stateMBean.state.asstDirector2ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="asstDirector3ID"
+								value="Penolong pengarah (perindustrian dan pengusahasilan):" />
+							<p:selectOneMenu id="asstDirector3ID"
+								value="#{stateMBean.state.asstDirector3ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="asstDirector4ID"
+								value="Penolong pengarah (hutan lipur, eco-park, dan taman negeri):" />
+							<p:selectOneMenu id="asstDirector4ID"
+								value="#{stateMBean.state.asstDirector4ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="asstDirector5ID"
+								value="Penolong pengarah (penguatkuasaan):" />
+							<p:selectOneMenu id="asstDirector5ID"
+								value="#{stateMBean.state.asstDirector5ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="asstDirector6ID"
+								value="Penolong pengarah (latihan dan pengembangan):" />
+							<p:selectOneMenu id="asstDirector6ID"
+								value="#{stateMBean.state.asstDirector6ID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{stateMBean.state != null}">
+								<f:selectItem itemLabel="- pilih penolong pengarah -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{stateMBean.staffs}" var="staff"
+									itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+							</p:selectOneMenu>
+						</p:panelGrid>
+					</p:tab>
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{stateMBean.stateEntry}" update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryRegion">
+			<p:dialog id="popupRegion" widgetVar="popupRegion" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesRegion" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="codeRegion" value="Kod:" />
+					<p:inputText id="codeRegion" value="#{stateMBean.region.code}"
+						required="true" requiredMessage="Kod diperlukan."
+						validatorMessage="Kod mestilah 5 aksara dan ke bawah.">
+						<f:validateLength maximum="5" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="nameRegion" value="Nama:" />
+					<p:inputText id="nameRegion" value="#{stateMBean.region.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{stateMBean.regionEntry}"
+							update=":frmManager:growl messagesRegion #{stateMBean.component}"
+							oncomplete="PF('popupRegion').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupRegion').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

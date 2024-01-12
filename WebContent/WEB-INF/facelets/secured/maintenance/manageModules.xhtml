@@ -1,0 +1,66 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="module"
+				value="#{moduleMBean.modules}" reflow="true"
+				emptyMessage="Tiada modul direkodkan."
+				paginator="#{moduleMBean.modules.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">Senarai Modul
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{module.name}"
+					filterBy="#{module.name}" filterMatchMode="contains">
+					<h:outputText value="#{module.name}" />
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist" var="form"
+							value="#{module.forms}" reflow="true"
+							emptyMessage="Tiada borang direkodkan."
+							paginator="#{module.forms.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								Senarai borang
+							</f:facet>
+							<p:column headerText="Nama" sortBy="#{form.name}"
+								filterBy="#{form.name}" filterMatchMode="contains">
+								<h:outputText value="#{form.name}" />
+							</p:column>
+							<p:column headerText="Alamat" sortBy="#{form.path}"
+								filterBy="#{form.path}" filterMatchMode="contains">
+								<h:outputText value="#{form.path}" />
+							</p:column>
+							<p:column headerText="Ikon" sortBy="#{form.icon}"
+								filterBy="#{form.icon}" filterMatchMode="contains">
+								<h:outputText value="#{form.icon}" />
+							</p:column>
+							<p:column headerText="Kategori" sortBy="#{form.category}"
+								filterBy="#{form.category}" filterMatchMode="contains">
+								<h:outputText value="#{form.category}" />
+							</p:column>
+							<f:facet name="footer">#{module.forms.size()} borang direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{moduleMBean.modules.size()} modul direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+</ui:composition>

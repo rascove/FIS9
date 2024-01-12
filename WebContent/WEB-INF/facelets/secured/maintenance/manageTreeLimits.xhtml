@@ -1,0 +1,140 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="treeLimit"
+				value="#{treeLimitMBean.treeLimits}" reflow="true"
+				emptyMessage="Tiada had pokok direkodkan."
+				paginator="#{treeLimitMBean.treeLimits.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<p:outputPanel style="text-align: right; margin: 8px 0px;"
+						rendered="#{userMBean.user.stateID == 0}">
+						<p:commandButton value="Tambah had pokok" icon="ui-icon-add"
+							update=":frmEntry" action="#{treeLimitMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{treeLimitMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</p:outputPanel>
+					<h:outputText value="Senarai Had Pokok"
+						rendered="#{userMBean.user.stateID != 0}" />
+				</f:facet>
+				<p:column headerText="Negeri" sortBy="#{treeLimit.stateName}"
+					filterBy="#{treeLimit.stateName}" filterMatchMode="contains"
+					rendered="#{userMBean.user.stateID == 0}">
+					<h:outputText value="#{treeLimit.stateName}" />
+				</p:column>
+				<p:column headerText="Had Pokok Ibu"
+					sortBy="#{treeLimit.motherLimit}"
+					filterBy="#{treeLimit.motherLimit}" filterMatchMode="contains">
+					<h:outputText value="#{treeLimit.motherLimit} cm" />
+				</p:column>
+				<p:column headerText="Had Tebangan Pokok Chengal"
+					sortBy="#{treeLimit.chengalLimit}"
+					filterBy="#{treeLimit.chengalLimit}" filterMatchMode="contains">
+					<h:outputText value="#{treeLimit.chengalLimit} cm" />
+				</p:column>
+				<p:column headerText="Had Pokok Perlindungan"
+					sortBy="#{treeLimit.protectedLimit}"
+					filterBy="#{treeLimit.protectedLimit}" filterMatchMode="contains">
+					<h:outputText value="#{treeLimit.protectedLimit} cm" />
+				</p:column>
+				<p:column headerText="Had Pokok Tebangan Per Petak"
+					sortBy="#{treeLimit.maximumPerPlot}"
+					filterBy="#{treeLimit.maximumPerPlot}" filterMatchMode="contains">
+					<h:outputText value="#{treeLimit.maximumPerPlot} pokok" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini had pokok" icon="ui-icon-edit"
+						update=":frmEntry" action="#{treeLimitMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{treeLimitMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{treeLimit}"
+							target="#{treeLimitMBean.treeLimit}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{treeLimitMBean.treeLimits.size()} had pokok direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="stateID" value="Negeri:"
+						rendered="#{userMBean.user.stateID == 0}" />
+					<p:selectOneMenu id="stateID"
+						value="#{treeLimitMBean.treeLimit.stateID}" required="true"
+						requiredMessage="Negeri diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{treeLimitMBean.treeLimit != null and userMBean.user.stateID == 0}">
+						<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+						<f:selectItems value="#{treeLimitMBean.states}" var="state"
+							itemLabel="#{state}" itemValue="#{state.stateID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="motherLimit" value="Had pokok ibu:" />
+					<p:inputNumber id="motherLimit"
+						value="#{treeLimitMBean.treeLimit.motherLimit}" required="true"
+						requiredMessage="Had pokok ibu diperlukan." symbol=" cm"
+						symbolPosition="s">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="chengalLimit"
+						value="Had tebangan pokok chengal:" />
+					<p:inputNumber id="chengalLimit"
+						value="#{treeLimitMBean.treeLimit.chengalLimit}" required="true"
+						requiredMessage="Had tebangan pokok chengal diperlukan."
+						symbol=" cm" symbolPosition="s">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="protectedLimit" value="Had pokok perlindungan:" />
+					<p:inputNumber id="protectedLimit"
+						value="#{treeLimitMBean.treeLimit.protectedLimit}" required="true"
+						requiredMessage="Had pokok perlindungan diperlukan." symbol=" cm"
+						symbolPosition="s">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="maximumPerPlot"
+						value="Had pokok tebangan per petak:" />
+					<p:inputNumber id="maximumPerPlot"
+						value="#{treeLimitMBean.treeLimit.maximumPerPlot}" required="true"
+						requiredMessage="Had pokok tebangan per petak diperlukan.">
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{treeLimitMBean.treeLimitEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

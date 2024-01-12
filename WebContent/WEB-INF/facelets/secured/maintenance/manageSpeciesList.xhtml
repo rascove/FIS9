@@ -1,0 +1,187 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="species"
+				value="#{speciesMBean.speciesList}" reflow="true"
+				emptyMessage="Tiada spesis direkodkan."
+				paginator="#{speciesMBean.speciesList.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:menuButton value="Import/eksport" iconPos="right"
+							styleClass="secondary flat">
+							<p:menuitem value="Muat turun (CDO)" icon="ui-icon-file-download"
+								ajax="false">
+								<p:fileDownload value="#{speciesMBean.download()}" />
+							</p:menuitem>
+							<p:menuitem value="Muat naik (CDO)" icon="ui-icon-file-upload"
+								oncomplete="PF('popupUpload').show()" process="@this">
+								<p:resetInput target=":frmUpload" />
+							</p:menuitem>
+						</p:menuButton>
+						<p:spacer width="5" />
+						<p:commandButton value="Tambah spesis" icon="ui-icon-add"
+							update=":frmEntry" action="#{speciesMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{speciesMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="Kod" sortBy="#{species.code}"
+					filterBy="#{species.code}" filterMatchMode="contains">
+					<h:outputText
+						value="#{species.code == null ? 'Tiada kod' : species.code}" />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{species.name}"
+					filterBy="#{species.name}" filterMatchMode="contains">
+					<h:outputText value="#{species.name}" />
+				</p:column>
+				<p:column headerText="Nama Saintifik"
+					sortBy="#{species.scientificName}"
+					filterBy="#{species.scientificName}" filterMatchMode="contains">
+					<h:outputText value="#{species.scientificName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini spesis" icon="ui-icon-edit"
+						update=":frmEntry" action="#{speciesMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{speciesMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{species}"
+							target="#{speciesMBean.species}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{speciesMBean.speciesList.size()} spesis direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="code" value="Kod:" />
+					<p:inputText id="code" value="#{speciesMBean.species.code}"
+						validatorMessage="Kod mestilah 5 aksara dan ke bawah.">
+						<f:validateLength maximum="5" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{speciesMBean.species.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="scientificName" value="Nama saintifik:" />
+					<p:inputText id="scientificName"
+						value="#{speciesMBean.species.scientificName}" required="true"
+						requiredMessage="Nama saintifik diperlukan."
+						validatorMessage="Nama saintifik mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="symbol" value="Simbol:" />
+					<p:inputText id="symbol" value="#{speciesMBean.species.symbol}"
+						required="true" requiredMessage="Simbol diperlukan."
+						validatorMessage="Simbol mestilah 10 aksara dan ke bawah.">
+						<f:validateLength maximum="10" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="speciesTypeID" value="Jenis spesis:" />
+					<p:selectOneMenu id="speciesTypeID"
+						value="#{speciesMBean.species.speciesTypeID}" required="true"
+						requiredMessage="Sila pilih jenis spesis." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{speciesMBean.species != null}">
+						<f:selectItem itemLabel="- pilih jenis spesis -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{speciesMBean.speciesTypes}"
+							var="speciesType" itemLabel="#{speciesType}"
+							itemValue="#{speciesType.speciesTypeID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="timberGroupID"
+						value="Kumpulan jenis kayu-kayan:" />
+					<p:selectOneMenu id="timberGroupID"
+						value="#{speciesMBean.species.timberGroupID}" required="true"
+						requiredMessage="Sila pilih kumpulan jenis kayu-kayan."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popup').initPosition()"
+						rendered="#{speciesMBean.species != null}">
+						<f:selectItem itemLabel="- pilih kumpulan jenis kayu-kayan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{speciesMBean.timberGroups}"
+							var="timberGroup" itemLabel="#{timberGroup}"
+							itemValue="#{timberGroup.timberGroupID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="timberTypeID" value="Kategori kayu:" />
+					<p:selectOneMenu id="timberTypeID"
+						value="#{speciesMBean.species.timberTypeID}" required="true"
+						requiredMessage="Sila pilih kategori kayu." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{speciesMBean.species != null}">
+						<f:selectItem itemLabel="- pilih kategori kayu -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{speciesMBean.timberTypes}"
+							var="timberType" itemLabel="#{timberType}"
+							itemValue="#{timberType.timberTypeID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{speciesMBean.speciesEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload" enctype="multipart/form-data">
+			<p:dialog id="popupUpload" widgetVar="popupUpload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload fileUploadListener="#{speciesMBean.upload}"
+					label="Pilih CDO fail" uploadLabel="Muat naik" cancelLabel="Batal"
+					invalidFileMessage="Sila hantar fail CDO sahaja"
+					allowTypes="/(\.|\/)(cdo)$/" dragDropSupport="true"
+					update=":frmManager messagesUpload @this"
+					onstart="PF('popupUpload').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload').hide(); PF('loading').hide()" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,395 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="permit"
+				value="#{permitMBean.permits}" reflow="true"
+				emptyMessage="Tiada permit direkodkan."
+				paginator="#{permitMBean.permits.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:spacer width="5" /> <p:commandButton value="Tambah permit"
+									icon="ui-icon-add" update=":frmEntry"
+									action="#{permitMBean.handleOpen}"
+									oncomplete="PF('popup').show()" process="@this"
+									styleClass="secondary flat">
+									<f:setPropertyActionListener value="true"
+										target="#{permitMBean.addOperation}" />
+									<p:resetInput target=":frmEntry" />
+								</p:commandButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Maklumat permit"
+					sortBy="#{permit.licenseeCompanyName}"
+					filterBy="#{permit.licenseeCompanyName}" filterMatchMode="contains">
+					<h:outputText value="No. permit : #{permit.permitNo}" />
+					<br />
+					<p:outputPanel rendered="#{permit.licenseID != 0}">
+						<h:outputText value="No. lesen : #{permit.licenseNo}" />
+						<br />
+						<h:outputText
+							value="Pengusaha : #{permit.licenseeNo} - #{permit.licenseeCompanyName}" />
+					</p:outputPanel>
+					<h:outputText value="No. fail PHN : #{permit.fileReferencePHN}"
+						rendered="#{permit.licenseID == 0}" />
+				</p:column>
+				<p:column headerText="Jenis permit" sortBy="#{permit.permitTypeID}"
+					filterBy="#{permit.permitTypeID}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih jenis permit -" itemValue="" />
+							<f:selectItem itemLabel="Permit Kongsi Matau" itemValue="1" />
+							<f:selectItem itemLabel="Permit Penggunaan Kongsi" itemValue="2" />
+							<f:selectItem itemLabel="Permit Jalan" itemValue="3" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Permit Kongsi Matau"
+						rendered="#{permit.permitTypeID == 1}" />
+					<h:outputText value="Permit Penggunaan Kongsi"
+						rendered="#{permit.permitTypeID == 2}" />
+					<h:outputText value="Permit Jalan"
+						rendered="#{permit.permitTypeID == 3}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod" sortBy="#{permit.recorderName}"
+					filterBy="#{permit.recorderName}" filterMatchMode="contains">
+					<h:outputText value="#{permit.recorderName}" />
+				</p:column>
+				<p:column headerText="Tarikh" sortBy="#{permit.registrationDate}"
+					filterBy="#{permit.registrationDate}" filterMatchMode="contains">
+					<h:outputText value="Daftar : " />
+					<h:outputText value="#{permit.registrationDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Mula : " />
+					<h:outputText value="#{permit.startDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Tamat : " />
+					<h:outputText value="#{permit.endDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Status" sortBy="#{permit.status}"
+					filterBy="#{permit.status}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Aktif" itemValue="A" />
+							<f:selectItem itemLabel="Hampir tamat" itemValue="W" />
+							<f:selectItem itemLabel="Tamat tempoh" itemValue="E" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Aktif" rendered="#{permit.status == 'A'}" />
+					<h:outputText value="Hampir tamat"
+						rendered="#{permit.status == 'W'}" />
+					<h:outputText value="Tamat tempoh"
+						rendered="#{permit.status == 'E'}" />
+					<br />
+					<h:outputText value="Belum kemaskini lesen"
+						rendered="#{permit.licenseID == 0}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+							update=":frmEntry" oncomplete="PF('popup').show()"
+							process="@this" rendered="#{permit.status != 'E'}"
+							action="#{permitMBean.handleOpen}">
+							<f:setPropertyActionListener value="false"
+								target="#{permitMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{permit}"
+								target="#{permitMBean.permit}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. Resit:" />
+								<p:outputLabel value="#{permit.receiptNo}" />
+								<p:outputLabel value="Jenis permit:" />
+								<p:outputLabel
+									value="#{permit.permitTypeCode} - #{permit.permitTypeName}" />
+								<p:outputLabel value="No. permit:" />
+								<p:outputLabel value="#{permit.permitNo}" />
+								<p:outputLabel value="Rujukan fail PHN:" />
+								<p:outputLabel value="#{permit.fileReferencePHN}" />
+								<p:outputLabel value="Rujukan fail PHD:" />
+								<p:outputLabel value="#{permit.fileReferencePHD}" />
+
+								<p:outputLabel rendered="#{permit.licenseID != 0}"
+									value="No. lesen:" />
+								<p:outputLabel rendered="#{permit.licenseID != 0}"
+									value="#{permit.licenseNo}" />
+								<p:outputLabel value="Hutan simpan:" />
+								<p:outputLabel
+									value="#{permit.forestCode} - #{permit.forestName}" />
+								<p:outputLabel value="No. kompartmen:" />
+								<p:outputLabel value="#{permit.compartmentNo}" />
+								<p:outputLabel value="Tarikh daftar:" />
+								<p:outputLabel value="#{permit.registrationDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh mula:" />
+								<p:outputLabel value="#{permit.startDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh tamat:" />
+								<p:outputLabel value="#{permit.endDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Wang Amanah:" />
+								<p:outputLabel value="#{permit.permitFund}" decimalSeparator="."
+									thousandSeparator=",">
+									<f:convertNumber type="currency" currencySymbol="RM " />
+								</p:outputLabel>
+								<p:outputLabel value="Pegawai rekod:" />
+								<p:outputLabel value="#{permit.recorderName}" />
+								<p:outputLabel value="Masa rekod:" />
+								<p:outputLabel value="#{permit.recordTime}">
+									<f:convertDateTime pattern="HH:mm" />
+								</p:outputLabel>
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{permitMBean.permits == null ? 0 : permitMBean.permits.size()} permit direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:accordionPanel id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Asas">
+						<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="receiptID" value="No. Resit:"
+								rendered="#{permitMBean.addOperation == true}" />
+							<p:selectOneMenu id="receiptID"
+								value="#{permitMBean.permit.receiptID}" required="true"
+								requiredMessage="Resit diperlukan." filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{permitMBean.permit != null and permitMBean.addOperation == true}">
+								<f:selectItem itemLabel="- pilih resit -" itemValue="#{null}" />
+								<f:selectItems value="#{permitMBean.receipts}" var="receipt"
+									itemLabel="#{receipt}" itemValue="#{receipt.receiptID}" />
+								<p:ajax update="grid, grid1" event="change"
+									oncomplete="PF('popup').initPosition()" />
+							</p:selectOneMenu>
+							<p:outputLabel for="permitTypeID" value="Jenis permit:"
+								rendered="#{permitMBean.permit.receiptID != 0}" />
+							<p:selectOneMenu id="permitTypeID"
+								value="#{permitMBean.permit.permitTypeID}" required="true"
+								requiredMessage="Jenis permit diperlukan." filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit != null}">
+								<f:selectItem itemLabel="- pilih jenis permit -"
+									itemValue="#{null}" />
+								<f:selectItems value="#{permitMBean.permitTypes}"
+									var="permitType" itemLabel="#{permitType}"
+									itemValue="#{permitType.permitTypeID}" />
+								<p:ajax update="grid, grid1" event="change"
+									oncomplete="PF('popup').initPosition()" />
+							</p:selectOneMenu>
+							<p:outputLabel for="permitNo" value="No. permit:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+							<p:inputText id="permitNo" value="#{permitMBean.permit.permitNo}"
+								required="true" requiredMessage="No. permit diperlukan."
+								validatorMessage="No. permit mestilah 20 aksara dan ke bawah."
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+								<f:validateLength maximum="20" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="fileReferenceA" value="Rujukan fail PHN:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+							<p:inputText id="fileReferenceA"
+								value="#{permitMBean.permit.fileReferencePHN}" required="true"
+								requiredMessage="Rujukan fail PHN diperlukan."
+								validatorMessage="Rujukan fail PHN mestilah 30 aksara dan ke bawah."
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+								<f:validateLength maximum="30" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="fileReferenceB" value="Rujukan fail PHD:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+							<p:inputText id="fileReferenceB"
+								value="#{permitMBean.permit.fileReferencePHD}" required="true"
+								requiredMessage="Rujukan fail PHD diperlukan."
+								validatorMessage="Rujukan fail PHD mestilah 30 aksara dan ke bawah."
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+								<f:validateLength maximum="30" />
+								<p:clientValidator />
+							</p:inputText>
+							<p:outputLabel for="licenseID" value="Lesen:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+							<p:selectOneMenu id="licenseID"
+								value="#{permitMBean.permit.licenseID}" filter="true"
+								filterMatchMode="contains" onchange="PF('popup').initPosition()"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.permit != null}">
+								<f:selectItem itemLabel="- pilih lesen -" itemValue="#{null}" />
+								<f:selectItems value="#{permitMBean.licenses}" var="license"
+									itemLabel="#{license}" itemValue="#{license.licenseID}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="startDate" value="Tarikh Kuatkuasa:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.addOperation == true}" />
+							<p:calendar id="startDate" pattern="dd/MM/yyyy"
+								value="#{permitMBean.permit.startDate}" required="true"
+								requiredMessage="Tarikh kuatkuasa diperlukan"
+								readonlyInput="true" mindate="#{permitMBean.today}"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.addOperation == true}">
+							</p:calendar>
+							<p:outputLabel for="duration" value="Jangkamasa:"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.addOperation == true}" />
+							<p:selectOneMenu id="duration" value="#{permitMBean.duration}"
+								filter="true" filterMatchMode="contains"
+								required="true" requiredMessage="Jangkamasa diperlukan."
+								onchange="PF('popup').initPosition()"
+								rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.addOperation == true}">
+								<f:selectItem itemLabel="- pilih tempoh -" itemValue="#{null}" />
+								<f:selectItem itemLabel="1 bulan" itemValue="1" />
+								<f:selectItem itemLabel="2 bulan" itemValue="2" />
+								<f:selectItem itemLabel="3 bulan" itemValue="3" />
+								<f:selectItem itemLabel="4 bulan" itemValue="4" />
+								<f:selectItem itemLabel="5 bulan" itemValue="5" />
+								<f:selectItem itemLabel="6 bulan" itemValue="6" />
+								<f:selectItem itemLabel="7 bulan" itemValue="7" />
+								<f:selectItem itemLabel="8 bulan" itemValue="8" />
+								<f:selectItem itemLabel="9 bulan" itemValue="9" />
+								<f:selectItem itemLabel="10 bulan" itemValue="10" />
+								<f:selectItem itemLabel="11 bulan" itemValue="11" />
+								<f:selectItem itemLabel="12 bulan" itemValue="12" />
+							</p:selectOneMenu>
+
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Maklumat Hutan">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid id="grid1" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="forestID" value="Hutan simpan:"
+									rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0 and permitMBean.permit.permitTypeID != 0}" />
+								<p:selectOneMenu id="forestID"
+									value="#{permitMBean.permit.forestID}" required="true"
+									requiredMessage="Hutan simpan diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{permitMBean.permit != null and permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+									<f:selectItem itemLabel="- pilih hutan simpan -"
+										itemValue="#{null}" />
+									<f:selectItems value="#{permitMBean.forestList}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="compartmentNo" value="No. Kompartmen:"
+									rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+								<p:inputText id="compartmentNo"
+									value="#{permitMBean.permit.compartmentNo}" required="true"
+									requiredMessage="No. kompartmen diperlukan."
+									validatorMessage="No. kompartmen mestilah 20 aksara dan ke bawah."
+									rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+									<f:validateLength maximum="20" />
+									<p:clientValidator />
+								</p:inputText>
+								<p:outputLabel for="referenceNo" value="No. Rujukan:"
+									rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}" />
+								<p:inputText id="referenceNo"
+									value="#{permitMBean.permit.referenceNo}" required="true"
+									requiredMessage="No. rujukan diperlukan."
+									validatorMessage="No. rujukan mestilah 20 aksara dan ke bawah."
+									rendered="#{permitMBean.permit.receiptID != 0 and permitMBean.permit.permitTypeID != 0}">
+									<f:validateLength maximum="20" />
+									<p:clientValidator />
+								</p:inputText>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{permitMBean.permitEntry}" update=":frmManager messages"
+							onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popup').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin #{permitMBean.message} permit ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel value="No. permit : #{permitMBean.permit.permitNo}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-save"
+							action="#{permitMBean.cancelPermit}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{permitMBean.permit.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

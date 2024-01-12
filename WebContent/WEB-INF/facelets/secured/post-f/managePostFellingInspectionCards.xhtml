@@ -1,0 +1,3459 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<script type="text/javascript">
+			function getLocation() {
+				if (navigator.geolocation) {
+					navigator.geolocation
+							.getCurrentPosition(
+									function(position) {
+										document
+												.getElementById("frmEntry:accordion:latitude_input").value = position.coords.latitude;
+										document
+												.getElementById("frmEntry:accordion:longitude_input").value = position.coords.longitude;
+									}, function(error) {
+									}, {
+										enableHighAccuracy : true
+									});
+				}
+			}
+		</script>
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:outputPanel
+				rendered="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID != 0 and postFellingInspectionCardMBean.accessLevel gt 3}">
+				<h3 style="color: white">Tarikh Kerja:
+					#{postFellingInspectionCardMBean.workingDates}</h3>
+			</p:outputPanel>
+			<p:dataTable id="table" widgetVar="list" var="postFellingSurveyCard"
+				value="#{postFellingInspectionCardMBean.postFellingSurveyCards}"
+				reflow="true" emptyMessage="Tiada kad semakan direkodkan."
+				paginator="#{postFellingInspectionCardMBean.postFellingSurveyCards.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+								<p:selectOneMenu id="postFellingSurveyID"
+									value="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID}"
+									required="true" requiredMessage="Sila pilih sesi semakan"
+									filter="true" filterMatchMode="contains"
+									styleClass="table-filter">
+									<f:selectItem itemLabel="- pilih sesi semakan -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.postFellingSurveys}"
+										var="postFellingSurvey" itemLabel="#{postFellingSurvey}"
+										itemValue="#{postFellingSurvey.postFellingSurveyID}" />
+									<p:ajax update="frmManager :frmUpload" event="change"
+										listener="#{postFellingInspectionCardMBean.handlePostFellingSurveyIDChange}" />
+								</p:selectOneMenu>
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:menuButton value="Menu" iconPos="right"
+									styleClass="secondary flat"
+									rendered="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID != 0 and not empty postFellingInspectionCardMBean.postFellingSurveyCards}">
+									<p:menuitem value="Kemaskini pegawai rekod"
+										icon="ui-icon-group" update=":frmEntryStaff"
+										action="#{postFellingInspectionCardMBean.handleOpenConfig}"
+										oncomplete="PF('popupStaff').show()" process="@this"
+										rendered="#{not empty postFellingInspectionCardMBean.postFellingSurveyCards and not postFellingInspectionCardMBean.validated and postFellingInspectionCardMBean.accessLevel gt 2 and postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID}" />
+									<p:menuitem value="Kemaskini maklumat semakan"
+										icon="ui-icon-group" update=":frmInspection"
+										action="#{postFellingInspectionCardMBean.handleOpenInspectionDetails}"
+										oncomplete="PF('popupInspectionDetails').show()"
+										process="@this"
+										rendered="#{not empty postFellingInspectionCardMBean.postFellingSurveyCards and not postFellingInspectionCardMBean.validated and postFellingInspectionCardMBean.accessLevel gt 2 and postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID}" />
+									<p:menuitem value="Muat turun kad semakan (PDF)"
+										icon="ui-icon-picture-as-pdf" ajax="false"
+										rendered="#{not empty postFellingInspectionCardMBean.postFellingSurveyCards}">
+										<p:fileDownload
+											value="#{postFellingInspectionCardMBean.downloadSurveyCard(false)}" />
+									</p:menuitem>
+									<p:menuitem value="Muat turun semua kad (PDF)"
+										icon="ui-icon-picture-as-pdf" ajax="false"
+										rendered="#{not empty postFellingInspectionCardMBean.postFellingSurveyCards}">
+										<p:fileDownload
+											value="#{postFellingInspectionCardMBean.downloadSurveyCard(true)}" />
+									</p:menuitem>
+									<p:menuitem
+										value="Muat turun (#{postFellingInspectionCardMBean.downtype.toUpperCase()})"
+										icon="ui-icon-file-download" ajax="false"
+										rendered="#{not empty postFellingInspectionCardMBean.postFellingSurveyCards and postFellingInspectionCardMBean.accessLevel lt 0}">
+										<p:fileDownload
+											value="#{postFellingInspectionCardMBean.download(false)}" />
+									</p:menuitem>
+									<p:menuitem
+										value="Muat naik (#{postFellingInspectionCardMBean.uptype.toUpperCase()})"
+										icon="ui-icon-file-upload"
+										oncomplete="PF('popupUpload').show()" process="@this"
+										rendered="#{postFellingInspectionCardMBean.accessLevel lt 0 and !postFellingInspectionCardMBean.validated}" />
+								</p:menuButton> <p:spacer width="5" /> <p:menuButton value="Laporan"
+									iconPos="right" styleClass="secondary flat"
+									rendered="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID != 0 and postFellingInspectionCardMBean.validated and postFellingInspectionCardMBean.accessLevel lt 3}">
+									<p:menuitem value="Semakan" icon="ui-icon-web"
+										update="frmInspectionReport"
+										action="#{postFellingInspectionCardMBean.prepareInspectionReport}"
+										oncomplete="PF('popupInspectionReport').show()"
+										process="@this" styleClass="secondary flat"
+										rendered="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID != 0 and postFellingInspectionCardMBean.validated}" />
+									<p:menuitem value="Bancian" icon="ui-icon-web"
+										update="frmReport"
+										action="#{postFellingInspectionCardMBean.prepareReport}"
+										oncomplete="PF('popupReport').show()" process="@this"
+										styleClass="secondary flat"
+										rendered="#{postFellingInspectionCardMBean.selectedPostFellingSurveyID != 0 and postFellingInspectionCardMBean.validated}" />
+								</p:menuButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="No. Garisan"
+					sortBy="#{postFellingSurveyCard.lineNo}"
+					filterBy="#{postFellingSurveyCard.lineNo}"
+					filterMatchMode="contains">
+					<h:outputText value="#{postFellingSurveyCard.lineNo}" />
+				</p:column>
+				<p:column headerText="No. Petak"
+					sortBy="#{postFellingSurveyCard.plotNo}"
+					filterBy="#{postFellingSurveyCard.plotNo}"
+					filterMatchMode="contains">
+					<h:outputText value="#{postFellingSurveyCard.plotNo}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod Kod"
+					sortBy="#{postFellingSurveyCard.recorderName}"
+					filterBy="#{postFellingSurveyCard.recorderName}"
+					filterMatchMode="contains">
+					<h:outputText value="#{postFellingSurveyCard.recorderName}" />
+				</p:column>
+				<p:column headerText="Status"
+					rendered="#{postFellingSurveyCardMBean.accessLevel lt 3}">
+					<h:outputText value="Tidak disemak"
+						rendered="#{postFellingSurveyCard.inspection == false and postFellingSurveyCard.inspectorID == null}" />
+					<h:outputText value="Belum disahkan"
+						rendered="#{postFellingSurveyCard.inspection == true and postFellingSurveyCard.inspectorID == null and postFellingSurveyCard.inspectionDate == null}" />
+					<h:outputText
+						value="Telah disemak oleh #{postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderName} pada "
+						rendered="#{postFellingSurveyCard.inspection == true and postFellingSurveyCard.inspectorID != null}" />
+					<h:outputText value="#{postFellingSurveyCard.inspectionDate}"
+						rendered="#{postFellingSurveyCard.inspection == true  and postFellingSurveyCard.inspectorID != null and postFellingSurveyCard.inspectionDate != null}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Pilihan"
+					rendered="#{!postFellingInspectionCardMBean.postFellingSurvey.open and postFellingInspectionCardMBean.accessLevel gt 1}"
+					style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right"
+						styleClass="secondary flat"
+						rendered="#{postFellingSurveyCard.inspectionDate == null}">
+						<p:menuitem value="Selesai semakan kad" icon="ui-icon-check"
+							action="#{postFellingInspectionCardMBean.handleValidateInspectionCard}"
+							update=":frmManager:growl table"
+							onclick="jQuery('#choiceButton').prop('disabled', true);"
+							process="@this"
+							rendered="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 1}">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini kad" icon="ui-icon-edit"
+							update=":frmEntry"
+							action="#{postFellingInspectionCardMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							rendered="#{postFellingSurveyCard.inspectionDate == null and (postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 0)}">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+
+						<p:menuitem value="Isi maklumat kad baru" icon="ui-icon-refresh"
+							update=":frmEntry"
+							action="#{postFellingInspectionCardMBean.handleResetInspectionInfo}"
+							oncomplete="PF('popup').show()" process="@this"
+							rendered="#{postFellingSurveyCard.inspectionDate == null and (postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 0)}">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Isi rekod bancian baru" icon="ui-icon-refresh"
+							action="#{postFellingInspectionCardMBean.handleResetInspectionRecord}"
+							process="@this" update="subtable"
+							rendered="#{postFellingSurveyCard.inspectionDate == null and (postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 0)}">
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:confirm header="Pengesahan"
+								message="Rekod bancian akan dikosongkan. Apakah anda pasti? "
+								icon="ui-icon-alert" />
+						</p:menuitem>
+					</p:menuButton>
+					<h:outputText value="Tiada pilihan tersedia/Semakan selesai"
+						rendered="#{postFellingSurveyCard.inspectionDate != null and postFellingSurveyCard.inspectorID != null}" />
+				</p:column>
+				<p:column headerText="Pilihan (Admin)"
+					rendered="#{postFellingInspectionCardMBean.accessLevel == 0}"
+					style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right"
+						styleClass="secondary flat">
+						<p:menuitem value="Selesai semakan kad" icon="ui-icon-check"
+							action="#{postFellingInspectionCardMBean.handleValidateInspectionCard}"
+							update=":frmManager:growl table"
+							onclick="jQuery('#choiceButton').prop('disabled', true);"
+							process="@this"
+							rendered="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 1}">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini kad" icon="ui-icon-edit"
+							update=":frmEntry"
+							action="#{postFellingInspectionCardMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+
+						<p:menuitem value="Isi maklumat kad baru" icon="ui-icon-refresh"
+							update=":frmEntry"
+							action="#{postFellingInspectionCardMBean.handleResetInspectionInfo}"
+							oncomplete="PF('popup').show()" process="@this">
+							<f:setPropertyActionListener value="false"
+								target="#{postFellingInspectionCardMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Isi rekod bancian baru" icon="ui-icon-refresh"
+							action="#{postFellingInspectionCardMBean.handleResetInspectionRecord}"
+							process="@this" update="subtable">
+							<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+								target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+							<p:confirm header="Pengesahan"
+								message="Rekod bancian akan dikosongkan. Apakah anda pasti? "
+								icon="ui-icon-alert" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" widgetVar="sublist"
+							var="postFellingSurveyRecord"
+							value="#{postFellingSurveyCard.postFellingSurveyRecords}"
+							reflow="true" emptyMessage="Tiada rekod semakan direkodkan."
+							paginator="#{postFellingSurveyCard.postFellingSurveyRecords.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<p:outputPanel style="text-align: right; margin: 8px 0px;"
+									rendered="#{postFellingSurveyCard.inspectionDate == null and (postFellingSurveyCard.inspectorID == userMBean.user.staffID or postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 2) and postFellingInspectionCardMBean.postFellingSurvey.inspectionOpen gt 0}">
+									<p:menuButton value="Tambah rekod semakan" iconPos="right"
+										styleClass="secondary flat">
+										<p:menuitem value="Tunggal" icon="ui-icon-control-point"
+											update=":frmEntryPostFellingSurveyRecord"
+											action="#{postFellingInspectionCardMBean.handleOpenPostFellingSurveyRecord}"
+											oncomplete="PF('popupPostFellingSurveyRecord').show()"
+											process="@this">
+											<f:setPropertyActionListener value="true"
+												target="#{postFellingInspectionCardMBean.addPostFellingSurveyRecordOperation}" />
+											<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+												target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+											<p:resetInput target=":frmEntryPostFellingSurveyRecord" />
+										</p:menuitem>
+										<p:menuitem value="Pelbagai"
+											icon="ui-icon-control-point-duplicate"
+											update=":frmEntryTraditional"
+											action="#{postFellingInspectionCardMBean.handleOpenTraditional}"
+											oncomplete="PF('popupTraditional').show()" process="@this">
+											<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+												target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+											<p:resetInput target=":frmEntryTraditional" />
+										</p:menuitem>
+									</p:menuButton>
+								</p:outputPanel>
+								<h:outputText value="Senarai Rekod"
+									rendered="#{not postFellingInspectionCardMBean.postFellingSurvey.open or postFellingSurveyCard.inspectionDate != null or postFellingSurveyCard.recorderID != userMBean.user.staffID and postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID != userMBean.user.staffID and postFellingInspectionCardMBean.accessLevel != 4}" />
+							</f:facet>
+							<p:column headerText="Jenis Petak"
+								sortBy="#{postFellingSurveyRecord.plotTypeName}"
+								filterBy="#{postFellingSurveyRecord.plotTypeID}"
+								filterMatchMode="contains" groupRow="true"
+								style="vertical-align: top">
+								<f:facet name="filter">
+									<p:selectOneMenu onchange="PF('sublist').filter()"
+										filter="true">
+										<f:selectItem itemLabel="Semua jenis petak" itemValue="" />
+										<f:selectItems
+											value="#{postFellingInspectionCardMBean.plotTypes}"
+											var="plotType" itemLabel="#{plotType}"
+											itemValue="#{plotType.plotTypeID}" />
+									</p:selectOneMenu>
+								</f:facet>
+								<h:outputText value="#{postFellingSurveyRecord.plotTypeName}" />
+								<br />
+								<h:outputText
+									value="Bilangan rekod: #{postFellingSurveyCard.getRecordCount(postFellingSurveyRecord.plotTypeName)}" />
+							</p:column>
+							<p:column headerText="Spesis"
+								sortBy="#{postFellingSurveyRecord.inspectionSpeciesCode}"
+								filterBy="#{postFellingSurveyRecord.inspectionSpeciesCode} #{postFellingSurveyRecord.inspectionSpeciesName}"
+								filterMatchMode="contains">
+								<h:outputText
+									value="#{postFellingSurveyRecord.inspectionSpeciesCode == null ? '' : postFellingSurveyRecord.inspectionSpeciesCode.concat(' - ')}#{postFellingSurveyRecord.inspectionSpeciesName}" />
+							</p:column>
+							<p:column headerText="Keterangan"
+								style="#{((postFellingSurveyRecord.inspectionDiameter==0 and postFellingSurveyRecord.plotTypeID != 6) or (postFellingSurveyRecord.plotTypeID == 6 and postFellingSurveyRecord.inspectionSaplingQuantity==0 and postFellingSurveyRecord.inspectionSeedlingQuantity==0)) ? 'background-color: #F08080;  text-decoration: line-through;':  ''}">
+								<h:outputText
+									value="Diameter: #{postFellingSurveyRecord.inspectionDiameter} cm"
+									rendered="#{postFellingSurveyRecord.plotTypeID != 6}" />
+								<ui:fragment
+									rendered="#{postFellingSurveyRecord.plotTypeID == 1 or postFellingSurveyRecord.plotTypeID == 2 or postFellingSurveyRecord.plotTypeID == 3}">
+									<br />
+									<h:outputText
+										value="Bilangan balak: #{postFellingSurveyRecord.inspectionLogQuantity}" />
+									<br />
+									<h:outputText
+										value="Kualiti balak: #{postFellingSurveyRecord.inspectionLogQuality} - #{postFellingSurveyRecord.inspectionLogQualityName}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{postFellingSurveyRecord.plotTypeID == 1 or postFellingSurveyRecord.plotTypeID == 2 or postFellingSurveyRecord.plotTypeID == 3}">
+									<br />
+									<h:outputText
+										value="Status Pokok: #{postFellingSurveyRecord.inspectionTreeStatus} - #{postFellingSurveyRecord.inspectionTreeStatusName}" />
+									<br />
+									<h:outputText
+										value="Silara: #{postFellingSurveyRecord.inspectionSilara} - #{postFellingSurveyRecord.inspectionSilaraName}" />
+									<br />
+									<h:outputText
+										value="Unggul: #{postFellingSurveyRecord.inspectionDominance} - #{postFellingSurveyRecord.inspectionDominanceName}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{postFellingSurveyRecord.plotTypeID == 5}">
+									<br />
+									<h:outputText
+										value="Kesuburan: #{postFellingSurveyRecord.inspectionFertility}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{postFellingSurveyRecord.plotTypeID == 1 or postFellingSurveyRecord.plotTypeID == 2 or postFellingSurveyRecord.plotTypeID == 3}">
+									<br />
+									<h:outputText
+										value="Bilangan pepanjat: #{postFellingSurveyRecord.inspectionVine}" />
+								</ui:fragment>
+								<ui:fragment
+									rendered="#{postFellingSurveyRecord.plotTypeID == 6}">
+									<h:outputText
+										value="Bilangan > 1.5 m tinggi - 5 cm diameter: #{postFellingSurveyRecord.inspectionSaplingQuantity}" />
+									<br />
+									<h:outputText
+										value="Bilangan > 15 cm - 150 cm tinggi: #{postFellingSurveyRecord.inspectionSeedlingQuantity}" />
+								</ui:fragment>
+							</p:column>
+							<p:column headerText="Pilihan"
+								rendered="#{postFellingSurveyCard.inspectionDate == null and (postFellingSurveyCard.inspectorID == userMBean.user.staffID or postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID or postFellingInspectionCardMBean.accessLevel gt 2)}"
+								style="text-align: center">
+								<p:menuButton value="Pilihan" iconPos="right">
+									<p:menuitem value="Kemaskini rekod" icon="ui-icon-edit"
+										action="#{postFellingInspectionCardMBean.handleOpenPostFellingSurveyRecord}"
+										update=":frmEntryPostFellingSurveyRecord"
+										oncomplete="PF('popupPostFellingSurveyRecord').show()"
+										process="@this">
+										<f:setPropertyActionListener value="false"
+											target="#{postFellingInspectionCardMBean.addPostFellingSurveyRecordOperation}" />
+										<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+										<f:setPropertyActionListener
+											value="#{postFellingSurveyRecord}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyRecord}" />
+										<p:resetInput target=":frmEntryPostFellingSurveyRecord" />
+									</p:menuitem>
+									<p:menuitem value="Padam rekod bancian" icon="ui-icon-close"
+										action="#{postFellingInspectionCardMBean.postFellingSurveyRecordResetForInspection}"
+										update="subtable" process="@this">
+										<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+										<f:setPropertyActionListener
+											value="#{postFellingSurveyRecord}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyRecord}" />
+										<p:confirm header="Pengesahan"
+											message="Rekod Bancian akan dikemaskini sebagai di tidak wujud di dalam Kad Semakan. Apakah anda yakin?"
+											icon="ui-icon-alert" />
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+							<p:column headerText="Pilihan (Admin)"
+								rendered="#{postFellingInspectionCardMBean.accessLevel==0}"
+								style="text-align: center">
+								<p:menuButton value="Pilihan" iconPos="right">
+									<p:menuitem value="Kemaskini rekod" icon="ui-icon-edit"
+										action="#{postFellingInspectionCardMBean.handleOpenPostFellingSurveyRecord}"
+										update=":frmEntryPostFellingSurveyRecord"
+										oncomplete="PF('popupPostFellingSurveyRecord').show()"
+										process="@this">
+										<f:setPropertyActionListener value="false"
+											target="#{postFellingInspectionCardMBean.addPostFellingSurveyRecordOperation}" />
+										<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+										<f:setPropertyActionListener
+											value="#{postFellingSurveyRecord}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyRecord}" />
+										<p:resetInput target=":frmEntryPostFellingSurveyRecord" />
+									</p:menuitem>
+									<p:menuitem value="Padam rekod bancian" icon="ui-icon-close"
+										action="#{postFellingInspectionCardMBean.postFellingSurveyRecordResetForInspection}"
+										update="subtable" process="@this">
+										<f:setPropertyActionListener value="#{postFellingSurveyCard}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyCard}" />
+										<f:setPropertyActionListener
+											value="#{postFellingSurveyRecord}"
+											target="#{postFellingInspectionCardMBean.postFellingSurveyRecord}" />
+										<p:confirm header="Pengesahan"
+											message="Rekod Bancian akan dikemaskini sebagai di tidak wujud di dalam Kad Semakan. Apakah anda yakin?"
+											icon="ui-icon-alert" />
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+							<f:facet name="footer">#{postFellingSurveyCard.postFellingSurveyRecords.size()} rekod semakan direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurveyCards == null ? 0 : postFellingInspectionCardMBean.postFellingSurveyCards.size()} kad semakan direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:accordionPanel id="accordion" widgetVar="accordion"
+					onTabShow="PF('popup').initPosition()"
+					onTabChange="PF('popup').initPosition()"
+					onTabClose="PF('popup').initPosition()">
+					<p:tab title="Maklumat Hutan">
+						<p:scrollPanel style="max-height: 300px; border: none;">
+							<p:panelGrid columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel for="inspectionForestTypeID" value="Jenis hutan:" />
+								<p:selectOneMenu id="inspectionForestTypeID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionForestTypeID}"
+									required="#{postFellingInspectionCardMBean.accessLevel lt 4}"
+									requiredMessage="Jenis hutan diperlukan." filter="true"
+									filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih jenis hutan -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.forestTypes}"
+										var="forestType" itemLabel="#{forestType}"
+										itemValue="#{forestType.forestTypeID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionSoilStatusID"
+									value="Keadaan tanah:" />
+								<p:selectOneMenu id="inspectionSoilStatusID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionSoilStatusID}"
+									required="true" requiredMessage="Keadaan tanah diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih keadaan tanah -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.soilStatuses}"
+										var="soilStatus" itemLabel="#{soilStatus}"
+										itemValue="#{soilStatus.soilStatusID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionAspectID" value="Aspek:" />
+								<p:selectOneMenu id="inspectionAspectID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionAspectID}"
+									required="true" requiredMessage="Aspek diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih aspek -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.aspects}" var="aspect"
+										itemLabel="#{aspect}" itemValue="#{aspect.aspectID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionSlope" value="Cerun:" />
+								<p:inputNumber id="inspectionSlope"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionSlope}"
+									required="true" requiredMessage="Cerun diperlukan."
+									decimalPlaces="0" symbol="%" symbolPosition="s">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="inspectionSlopeLocationID"
+									value="Tempat cerun:" />
+								<p:selectOneMenu id="inspectionSlopeLocationID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionSlopeLocationID}"
+									required="true" requiredMessage="Tempat cerun diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih tempat cerun -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.slopeLocations}"
+										var="slopeLocation" itemLabel="#{slopeLocation}"
+										itemValue="#{slopeLocation.slopeLocationID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionElevationID" value="Dongakan:" />
+								<p:selectOneMenu id="inspectionElevationID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionElevationID}"
+									required="true" requiredMessage="Dongakan diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih dongakan -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.elevations}"
+										var="elevation" itemLabel="#{elevation}"
+										itemValue="#{elevation.elevationID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionBertam" value="Bertam:" />
+								<p:inputNumber id="inspectionBertam"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionBertam}"
+									required="true" requiredMessage="Bertam diperlukan."
+									decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="inspectionBamboo" value="Buluh:" />
+								<p:inputNumber id="inspectionBamboo"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionBamboo}"
+									required="true" requiredMessage="Buluh diperlukan."
+									decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="inspectionPalm" value="Palma:" />
+								<p:inputNumber id="inspectionPalm"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionPalm}"
+									required="true" requiredMessage="Palma diperlukan."
+									decimalPlaces="0">
+									<p:clientValidator />
+								</p:inputNumber>
+								<p:outputLabel for="inspectionResamID" value="Resam:" />
+								<p:selectOneMenu id="inspectionResamID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionResamID}"
+									required="true" requiredMessage="Resam diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih resam -" itemValue="#{null}" />
+									<f:selectItems value="#{postFellingInspectionCardMBean.resams}"
+										var="resam" itemLabel="#{resam}" itemValue="#{resam.resamID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionGingerID" value="Halia:" />
+								<p:selectOneMenu id="inspectionGingerID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionGingerID}"
+									required="true" requiredMessage="Halia diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih halia -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.gingers}" var="ginger"
+										itemLabel="#{ginger}" itemValue="#{ginger.gingerID}" />
+								</p:selectOneMenu>
+								<p:outputLabel for="inspectionBananaID" value="Pisang:" />
+								<p:selectOneMenu id="inspectionBananaID"
+									value="#{postFellingInspectionCardMBean.postFellingSurveyCard.inspectionBananaID}"
+									required="true" requiredMessage="Pisang diperlukan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popup').initPosition()"
+									rendered="#{postFellingInspectionCardMBean.postFellingSurveyCard != null}">
+									<f:selectItem itemLabel="- pilih pisang -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.bananas}" var="banana"
+										itemLabel="#{banana}" itemValue="#{banana.bananaID}" />
+								</p:selectOneMenu>
+							</p:panelGrid>
+						</p:scrollPanel>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.postFellingInspectionCardEntry}"
+							update=":frmManager messages" onclick="PF('accordion').select(0)"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popup').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryPostFellingSurveyRecord">
+			<p:dialog id="popupPostFellingSurveyRecord"
+				widgetVar="popupPostFellingSurveyRecord" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesPostFellingSurveyRecord" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="plotTypeID" value="Jenis petak:" />
+					<p:selectOneRadio id="plotTypeID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID}"
+						required="true" requiredMessage="Sila pilih jenis petak."
+						layout="responsive" columns="1"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null}">
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.plotTypesReduced}"
+							var="plotTypesReduced" itemLabel="#{plotTypesReduced}"
+							itemValue="#{plotTypesReduced.plotTypeID}" />
+						<p:ajax update="grid" event="change"
+							listener="#{postFellingInspectionCardMBean.handlePlotTypeIDChange}"
+							oncomplete="PF('popupPostFellingSurveyRecord').initPosition()" />
+					</p:selectOneRadio>
+					<p:outputLabel for="inspectionSpeciesID" value="Spesis:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 0}" />
+					<p:selectOneMenu id="inspectionSpeciesID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionSpeciesID}"
+						required="true" requiredMessage="Sila pilih spesis." filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupPostFellingSurveyRecord').initPosition()"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 0}">
+						<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.speciesList}"
+							var="species" itemLabel="#{species}"
+							itemValue="#{species.speciesID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="inspectionDiameter" value="Diameter:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 0 and postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 4 and postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 6}" />
+					<p:inputNumber id="inspectionDiameter"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionDiameter}"
+						required="true" requiredMessage="Diameter diperlukan."
+						validatorMessage="Diameter mestilah di antara #{postFellingInspectionCardMBean.plotType.minDiameter} cm dan #{postFellingInspectionCardMBean.plotType.maxDiameter} cm."
+						symbol=" cm" symbolPosition="s"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 0 and postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 4 and postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID != 6}">
+						<f:validateDoubleRange
+							minimum="#{postFellingInspectionCardMBean.plotType.minDiameter}"
+							maximum="#{postFellingInspectionCardMBean.plotType.maxDiameter}" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="inspectionLogQuantity" value="Bilangan balak:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:inputNumber id="inspectionLogQuantity"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionLogQuantity}"
+						required="true" requiredMessage="Bilangan balak diperlukan."
+						validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+						decimalPlaces="0"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}">
+						<f:validateDoubleRange minimum="1" maximum="5" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="inspectionLogQualityID" value="Kualiti balak:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:selectOneRadio id="inspectionLogQualityID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionLogQualityID}"
+						required="true" requiredMessage="Sila pilih kualiti balak."
+						layout="responsive" columns="3"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and (postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2) or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}">
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.logQualities}"
+							var="logQuality" itemLabel="#{logQuality}"
+							itemValue="#{logQuality.logQualityID}" />
+					</p:selectOneRadio>
+					<p:outputLabel for="inspectionTreeStatusID" value="Status Pokok:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:selectOneMenu id="inspectionTreeStatusID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionTreeStatusID}"
+						required="true" requiredMessage="Sila pilih status pokok."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupPostFellingSurveyRecord').initPosition()"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and (postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3)}">
+						<f:selectItem itemLabel="- pilih status pokok -"
+							itemValue="#{null}" />
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.treeStatuses}"
+							var="treeStatus" itemLabel="#{treeStatus}"
+							itemValue="#{treeStatus.treeStatusID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="inspectionSilaraID" value="Silara pokok:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:selectOneMenu id="inspectionSilaraID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionSilaraID}"
+						required="true" requiredMessage="Sila pilih silara pokok."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupPostFellingSurveyRecord').initPosition()"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and (postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3)}">
+						<f:selectItem itemLabel="- pilih silara pokok -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{postFellingInspectionCardMBean.silaras}"
+							var="silara" itemLabel="#{silara}" itemValue="#{silara.silaraID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="inspectionDominanceID" value="Unggul silara:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:selectOneMenu id="inspectionDominanceID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionDominanceID}"
+						required="true" requiredMessage="Sila pilih unggul silara."
+						filter="true" filterMatchMode="contains"
+						onchange="PF('popupPostFellingSurveyRecord').initPosition()"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and (postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3)}">
+						<f:selectItem itemLabel="- pilih unggul silara -"
+							itemValue="#{null}" />
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.dominances}"
+							var="dominance" itemLabel="#{dominance}"
+							itemValue="#{dominance.dominanceID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="inspectionVine" value="Bilangan pepanjat:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}" />
+					<p:inputNumber id="inspectionVine"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionVine}"
+						required="true" requiredMessage="Bilangan pepanjat diperlukan."
+						decimalPlaces="0"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 1 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 2 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 3}">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="inspectionFertilityID" value="Kesuburan:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 4 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 5}" />
+					<p:selectOneRadio id="inspectionFertilityID"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionFertilityID}"
+						required="true" requiredMessage="Sila pilih kesuburan."
+						layout="responsive" columns="2"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord != null and (postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 4 or postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 5)}">
+						<f:selectItems
+							value="#{postFellingInspectionCardMBean.fertilities}"
+							var="fertility" itemLabel="#{fertility}"
+							itemValue="#{fertility.fertilityID}" />
+					</p:selectOneRadio>
+					<p:outputLabel for="inspectionSaplingQuantity"
+						value="Bilangan > 1.5 m tinggi - 5 cm diameter:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 6}" />
+					<p:inputNumber id="inspectionSaplingQuantity"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionSaplingQuantity}"
+						required="true"
+						requiredMessage="Bilangan anak-anak pokok diperlukan."
+						decimalPlaces="0"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 6}">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="inspectionSeedlingQuantity"
+						value="Bilangan > 15 cm - 150 cm tinggi:"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 6}" />
+					<p:inputNumber id="inspectionSeedlingQuantity"
+						value="#{postFellingInspectionCardMBean.postFellingSurveyRecord.inspectionSeedlingQuantity}"
+						required="true" requiredMessage="Bilangan anak benih diperlukan."
+						decimalPlaces="0"
+						rendered="#{postFellingInspectionCardMBean.postFellingSurveyRecord.plotTypeID == 6}">
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.postFellingSurveyRecordEntry}"
+							update=":frmManager:growl messagesPostFellingSurveyRecord grid #{postFellingInspectionCardMBean.component}"
+							oncomplete="PF('popupPostFellingSurveyRecord').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupPostFellingSurveyRecord').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryTraditional">
+			<p:dialog id="popupTraditional" widgetVar="popupTraditional"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesTraditional" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" closable="true" />
+				<p:accordionPanel widgetVar="accordion"
+					onTabShow="PF('popupTraditional').initPosition()"
+					onTabChange="PF('popupTraditional').initPosition()"
+					onTabClose="PF('popupTraditional').initPosition()">
+					<p:tab
+						title="#{postFellingInspectionCardMBean.plotTypes[0].toString()}">
+						<p:dataTable id="bulk1" rowIndexVar="ri"
+							var="postFellingSurveyRecord"
+							value="#{postFellingInspectionCardMBean.traditionalPostFellingSurveyCards[0].postFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSpeciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk1:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionDiameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{postFellingInspectionCardMBean.plotTypes[0].minDiameter} cm dan #{postFellingInspectionCardMBean.plotTypes[0].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{postFellingInspectionCardMBean.plotTypes[0].minDiameter}"
+										maximum="#{postFellingInspectionCardMBean.plotTypes[0].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Balak">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionLogQuantity}"
+									required="true" requiredMessage="Bilangan balak diperlukan."
+									validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange minimum="1" maximum="5" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kualiti Balak">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionLogQualityID}"
+									required="true" requiredMessage="Sila pilih kualiti balak."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih kualiti balak -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.logQualities}"
+										var="logQuality" itemLabel="#{logQuality}"
+										itemValue="#{logQuality.logQualityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Status Pokok">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionTreeStatusID}"
+									required="true" requiredMessage="Sila pilih status pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih status pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.treeStatuses}"
+										var="treeStatus" itemLabel="#{treeStatus}"
+										itemValue="#{treeStatus.treeStatusID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Silara">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSilaraID}"
+									required="true" requiredMessage="Sila pilih silara pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih silara pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.silaras}" var="silara"
+										itemLabel="#{silara}" itemValue="#{silara.silaraID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Unggul">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionDominanceID}"
+									required="true" requiredMessage="Sila pilih unggul silara."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih unggul silara -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.dominances}"
+										var="dominance" itemLabel="#{dominance}"
+										itemValue="#{dominance.dominanceID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Pepanjat">
+								<p:inputNumber id="vine"
+									value="#{postFellingSurveyRecord.inspectionVine}"
+									required="true" requiredMessage="Bilangan pepanjat diperlukan."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab
+						title="#{postFellingInspectionCardMBean.plotTypes[1].toString()}">
+						<p:dataTable id="bulk2" rowIndexVar="ri"
+							var="postFellingSurveyRecord"
+							value="#{postFellingInspectionCardMBean.traditionalPostFellingSurveyCards[1].postFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSpeciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk2:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionDiameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{postFellingInspectionCardMBean.plotTypes[1].minDiameter} cm dan #{postFellingInspectionCardMBean.plotTypes[1].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{postFellingInspectionCardMBean.plotTypes[1].minDiameter}"
+										maximum="#{postFellingInspectionCardMBean.plotTypes[1].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Balak">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionLogQuantity}"
+									required="true" requiredMessage="Bilangan balak diperlukan."
+									validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange minimum="1" maximum="5" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kualiti Balak">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionLogQualityID}"
+									required="true" requiredMessage="Sila pilih kualiti balak."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih kualiti balak -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.logQualities}"
+										var="logQuality" itemLabel="#{logQuality}"
+										itemValue="#{logQuality.logQualityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Status Pokok">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionTreeStatusID}"
+									required="true" requiredMessage="Sila pilih status pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih status pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.treeStatuses}"
+										var="treeStatus" itemLabel="#{treeStatus}"
+										itemValue="#{treeStatus.treeStatusID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Silara">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSilaraID}"
+									required="true" requiredMessage="Sila pilih silara pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih silara pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.silaras}" var="silara"
+										itemLabel="#{silara}" itemValue="#{silara.silaraID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Unggul">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionDominanceID}"
+									required="true" requiredMessage="Sila pilih unggul silara."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih unggul silara -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.dominances}"
+										var="dominance" itemLabel="#{dominance}"
+										itemValue="#{dominance.dominanceID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Pepanjat">
+								<p:inputNumber id="vine"
+									value="#{postFellingSurveyRecord.inspectionVine}"
+									required="true" requiredMessage="Bilangan pepanjat diperlukan."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab
+						title="#{postFellingInspectionCardMBean.plotTypes[2].toString()}">
+						<p:dataTable id="bulk3" rowIndexVar="ri"
+							var="postFellingSurveyRecord"
+							value="#{postFellingInspectionCardMBean.traditionalPostFellingSurveyCards[2].postFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSpeciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk3:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionDiameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{postFellingInspectionCardMBean.plotTypes[2].minDiameter} cm dan #{postFellingInspectionCardMBean.plotTypes[2].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{postFellingInspectionCardMBean.plotTypes[2].minDiameter}"
+										maximum="#{postFellingInspectionCardMBean.plotTypes[2].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Balak">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionLogQuantity}"
+									required="true" requiredMessage="Bilangan balak diperlukan."
+									validatorMessage="Bilangan balak mestilah antara 1 sehingga 5."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange minimum="1" maximum="5" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kualiti Balak">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionLogQualityID}"
+									required="true" requiredMessage="Sila pilih kualiti balak."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih kualiti balak -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.logQualities}"
+										var="logQuality" itemLabel="#{logQuality}"
+										itemValue="#{logQuality.logQualityID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Status Pokok">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionTreeStatusID}"
+									required="true" requiredMessage="Sila pilih status pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih status pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.treeStatuses}"
+										var="treeStatus" itemLabel="#{treeStatus}"
+										itemValue="#{treeStatus.treeStatusID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Silara">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSilaraID}"
+									required="true" requiredMessage="Sila pilih silara pokok."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih silara pokok -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.silaras}" var="silara"
+										itemLabel="#{silara}" itemValue="#{silara.silaraID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Unggul">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionDominanceID}"
+									required="true" requiredMessage="Sila pilih unggul silara."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih unggul silara -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.dominances}"
+										var="dominance" itemLabel="#{dominance}"
+										itemValue="#{dominance.dominanceID}" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Pepanjat">
+								<p:inputNumber id="vine"
+									value="#{postFellingSurveyRecord.inspectionVine}"
+									required="true" requiredMessage="Bilangan pepanjat diperlukan."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab
+						title="#{postFellingInspectionCardMBean.plotTypes[4].toString()}">
+						<p:dataTable id="bulk5" rowIndexVar="ri"
+							var="postFellingSurveyRecord"
+							value="#{postFellingInspectionCardMBean.traditionalPostFellingSurveyCards[4].postFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSpeciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk5:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Diameter">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionDiameter}"
+									required="true" requiredMessage="Diameter diperlukan."
+									validatorMessage="Diameter mestilah di antara #{postFellingInspectionCardMBean.plotTypes[4].minDiameter} cm dan #{postFellingInspectionCardMBean.plotTypes[4].maxDiameter} cm."
+									symbol=" cm" symbolPosition="s"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:validateDoubleRange
+										minimum="#{postFellingInspectionCardMBean.plotTypes[4].minDiameter}"
+										maximum="#{postFellingInspectionCardMBean.plotTypes[4].maxDiameter}" />
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Kesuburan">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionFertilityID}"
+									required="true" requiredMessage="Sila pilih kesuburan."
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<f:selectItem itemLabel="- pilih kesuburan -"
+										itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.fertilities}"
+										var="fertility" itemLabel="#{fertility}"
+										itemValue="#{fertility.fertilityID}" />
+								</p:selectOneMenu>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab
+						title="#{postFellingInspectionCardMBean.plotTypes[5].toString()}">
+						<p:dataTable id="bulk6" rowIndexVar="ri"
+							var="postFellingSurveyRecord"
+							value="#{postFellingInspectionCardMBean.traditionalPostFellingSurveyCards[5].postFellingSurveyRecords}"
+							scrollable="true" scrollHeight="200">
+							<p:column headerText="Spesis">
+								<p:selectOneMenu
+									value="#{postFellingSurveyRecord.inspectionSpeciesID}"
+									filter="true" filterMatchMode="contains"
+									onchange="PF('popupTraditional').initPosition()">
+									<f:selectItem itemLabel="- pilih spesis -" itemValue="#{null}" />
+									<f:selectItems
+										value="#{postFellingInspectionCardMBean.speciesList}"
+										var="species" itemLabel="#{species}"
+										itemValue="#{species.speciesID}" />
+									<p:ajax update="bulk6:@row(#{ri})" event="change" />
+								</p:selectOneMenu>
+							</p:column>
+							<p:column headerText="Bilangan Anak-anak Pokok">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionSaplingQuantity}"
+									required="true"
+									requiredMessage="Bilangan anak-anak pokok diperlukan."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+							<p:column headerText="Bilangan Anak Benih">
+								<p:inputNumber
+									value="#{postFellingSurveyRecord.inspectionSeedlingQuantity}"
+									required="true"
+									requiredMessage="Bilangan anak benih diperlukan."
+									decimalPlaces="0"
+									disabled="#{postFellingSurveyRecord.inspectionSpeciesID == 0}">
+									<p:clientValidator />
+								</p:inputNumber>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+				</p:accordionPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.postFellingSurveyRecordEntryTraditional}"
+							update=":frmManager:growl messagesTraditional #{postFellingInspectionCardMBean.component}"
+							onclick="PF('accordion').select(0)"
+							oncomplete="PF('popupTraditional').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('accordion').select(0); PF('popupTraditional').hide();"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload" enctype="multipart/form-data">
+			<p:dialog id="popupUpload" widgetVar="popupUpload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload
+					fileUploadListener="#{postFellingInspectionCardMBean.upload}"
+					label="Pilih #{postFellingInspectionCardMBean.uptype.toUpperCase()} fail"
+					uploadLabel="Muat naik" cancelLabel="Batal"
+					invalidFileMessage="Sila hantar fail #{postFellingInspectionCardMBean.uptype.toUpperCase()} sahaja"
+					allowTypes="/(\.|\/)(#{postFellingInspectionCardMBean.uptype})$/"
+					dragDropSupport="true" update=":frmManager messagesUpload @this"
+					onstart="PF('popupUpload').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmDownload">
+			<p:dialog id="popupDownload" widgetVar="popupDownload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesDownload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p style="font-weight: bold">
+					#{postFellingInspectionCardMBean.recommendation}<br />Anda tidak
+					perlu memilih mana-mana no. garisan bila ingin memuat turun semua
+					kad semakan yang belum disemak.
+				</p>
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:selectManyCheckbox id="lineList"
+						value="#{postFellingInspectionCardMBean.selectedLines}"
+						layout="pageDirection" columns="1">
+						<f:selectItems value="#{postFellingInspectionCardMBean.lineList}" />
+						<p:ajax listener="#{postFellingInspectionCardMBean.selectLine}"
+							update="percentage" />
+					</p:selectManyCheckbox>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<h:outputText id="percentage"
+							value="#{postFellingInspectionCardMBean.percentage}" />
+						<p:spacer width="10" />
+						<p:remoteCommand name="stop" update=":frmManager" />
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							ajax="false"
+							onclick="PrimeFaces.monitorDownload(null, stop); PF('popupDownload').hide();"
+							styleClass="save-btn">
+							<p:fileDownload
+								value="#{postFellingInspectionCardMBean.download(true)}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupDownload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmReport">
+			<p:dialog id="popupReport" widgetVar="popupReport" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesSurveyReport" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:tabView onTabShow="PF('popupReport').initPosition()"
+					onTabChange="PF('popupReport').initPosition()"
+					onTabClose="PF('popupReport').initPosition()">
+					<p:tab title="Intepretasi">
+						<p:scrollPanel mode="native" style="width:100%;height:450px">
+							<p:dataList
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportIntepretationForHTML()}"
+								var="element" type="definition">
+								<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[12]}</f:facet>
+								<h:outputText value="#{element}" escape="false" />
+							</p:dataList>
+						</p:scrollPanel>
+					</p:tab>
+					<p:tab title="Format 1A">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat1A()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[0]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="STATUS" />
+									<p:column headerText="+15 - 30 cm" />
+									<p:column headerText="+30 - 45 cm" />
+									<p:column headerText="+45 - 60 cm" />
+									<p:column headerText="+60 - 75 cm" />
+									<p:column headerText="+75 - 90 cm" />
+									<p:column headerText="+90 cm" />
+									<p:column headerText="Jumlah" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 1B">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat1B()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[1]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" rowspan="2" headerText="KESUBURAN"
+										width="20%" />
+									<p:column colspan="2"
+										headerText="Pokok Jaras Kecil (+5 - 15 cm)" />
+									<p:column rowspan="2" headerText="JUMLAH" />
+								</p:row>
+								<p:row>
+									<p:column headerText="SPESIS RS" />
+									<p:column headerText="SPESIS BUKAN RS" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 2A">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat2A()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[2]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="STATUS" />
+									<p:column colspan="5" headerText="KELAS KEUNGGULAN" />
+									<p:column rowspan="2" headerText="JUMLAH SEMUA" />
+									<p:column rowspan="2" headerText="JUMLAH D,C1,S1" />
+								</p:row>
+								<p:row>
+									<p:column headerText="1 = D" />
+									<p:column headerText="2 = C1" />
+									<p:column headerText="3 = C2" />
+									<p:column headerText="4 = S1" />
+									<p:column headerText="5 = S2" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 2B">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat2B()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[3]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="STATUS" />
+									<p:column colspan="5" headerText="KELAS KEUNGGULAN" />
+									<p:column rowspan="2" headerText="JUMLAH SEMUA" />
+									<p:column rowspan="2" headerText="JUMLAH D,C1,S1" />
+								</p:row>
+								<p:row>
+									<p:column headerText="1 = D" />
+									<p:column headerText="2 = C1" />
+									<p:column headerText="3 = C2" />
+									<p:column headerText="4 = S1" />
+									<p:column headerText="5 = S2" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 2C">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat2C()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[4]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="STATUS" />
+									<p:column colspan="5" headerText="KELAS KEUNGGULAN" />
+									<p:column rowspan="2" headerText="JUMLAH SEMUA" />
+									<p:column rowspan="2" headerText="JUMLAH D,C1,S1" />
+								</p:row>
+								<p:row>
+									<p:column headerText="1 = D" />
+									<p:column headerText="2 = C1" />
+									<p:column headerText="3 = C2" />
+									<p:column headerText="4 = S1" />
+									<p:column headerText="5 = S2" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 3A">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat3A()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[5]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" headerText="STATUS" />
+									<p:column colspan="12" headerText="GANGGUAN OLEH PEPANJAT" />
+									<p:column rowspan="3" headerText="JUMLAH" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText="9" />
+								</p:row>
+								<p:row>
+									<p:column headerText="D, C1, S1" />
+									<p:column headerText="C2, S2" />
+									<p:column headerText="JUMLAH" />
+
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[12]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 3B">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat3B()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[6]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" headerText="STATUS" />
+									<p:column colspan="12" headerText="GANGGUAN OLEH PEPANJAT" />
+									<p:column rowspan="3" headerText="JUMLAH" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText="9" />
+								</p:row>
+								<p:row>
+									<p:column headerText="D, C1, S1" />
+									<p:column headerText="C2, S2" />
+									<p:column headerText="JUMLAH" />
+
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[12]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 3C">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat3C()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[7]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" headerText="STATUS" />
+									<p:column colspan="12" headerText="GANGGUAN OLEH PEPANJAT" />
+									<p:column rowspan="3" headerText="JUMLAH" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText="9" />
+								</p:row>
+								<p:row>
+									<p:column headerText="D, C1, S1" />
+									<p:column headerText="C2, S2" />
+									<p:column headerText="JUMLAH" />
+
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[11]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[12]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 4A">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat4A()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[8]} <br /> BILANGAN PETAK DINVENTORI: #{postFellingInspectionCardMBean.postFellingSurvey.getPostFellingSurveyCards().size()} </f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Bil Anak Pokok"
+										style="text-align: right;" />
+									<p:column rowspan="2" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText=">9" />
+									<p:column rowspan="2" headerText="JUMLAH" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="Kump. Spesis"
+										style="text-align: left;" />
+								</p:row>
+
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 4B">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat4B()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[9]} <br /> BILANGAN PETAK DINVENTORI: #{postFellingInspectionCardMBean.postFellingSurvey.getPostFellingSurveyCards().size()} </f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Bil Anak Pokok"
+										style="text-align: right;" />
+									<p:column rowspan="2" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText=">9" />
+									<p:column rowspan="2" headerText="JUMLAH" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="Kump. Spesis"
+										style="text-align: left;" />
+								</p:row>
+
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>	+++++++++	
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 4C">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat4C()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[10]} <br /> BILANGAN PETAK DINVENTORI/FAKTOR: #{postFellingInspectionCardMBean.postFellingSurvey.getPostFellingSurveyCards().size()} </f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="Bil Rumpun"
+										style="text-align: right;" />
+									<p:column rowspan="2" headerText="0" />
+									<p:column rowspan="2" headerText="1" />
+									<p:column rowspan="2" headerText="2" />
+									<p:column rowspan="2" headerText="3" />
+									<p:column rowspan="2" headerText="4" />
+									<p:column rowspan="2" headerText="5" />
+									<p:column rowspan="2" headerText="6" />
+									<p:column rowspan="2" headerText="7" />
+									<p:column rowspan="2" headerText="8" />
+									<p:column rowspan="2" headerText=">9" />
+									<p:column rowspan="2" headerText="JUMLAH" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="Batang"
+										style="text-align: left;" />
+								</p:row>
+
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[6]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[7]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[8]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[9]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[10]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Format 4D">
+						<p:dataTable var="element"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.getReportFormat4D()}"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingReport.headers[11]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="2" headerText="% Keluasan Ditumbuhi" />
+									<p:column rowspan="2" headerText="0 - 20" />
+									<p:column rowspan="2" headerText="21 - 40" />
+									<p:column rowspan="2" headerText="41 - 60" />
+									<p:column rowspan="2" headerText="61 - 80" />
+									<p:column rowspan="2" headerText="81 - 100" />
+									<p:column rowspan="2" headerText="JUMLAH" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{element.group}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.criteria}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[0]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[1]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[2]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[3]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[4]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<h:outputText value="#{element.values[5]}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Muat turun" icon="ui-icon-picture-as-pdf"
+							rendered="#{postFellingInspectionCardMBean.postFellingSurvey.commentPPPN != null and postFellingInspectionCardMBean.postFellingSurvey.commentPPPN != ''}"
+							ajax="false" styleClass="save-btn">
+							<p:fileDownload
+								value="#{postFellingInspectionCardMBean.download()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupReport').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmInspectionReport">
+			<p:dialog id="popupInspectionReport"
+				widgetVar="popupInspectionReport" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messagesInspectionReport" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:tabView onTabShow="PF('popupInspectionReport').initPosition()"
+					onTabChange="PF('popupInspectionReport').initPosition()"
+					onTabClose="PF('popupInspectionReport').initPosition()">
+					<p:tab title="Maklumat">
+						<p:accordionPanel id="accordion" widgetVar="accordion"
+							onTabShow="PF('popupInspectionReport').initPosition()"
+							onTabChange="PF('popupInspectionReport').initPosition()"
+							onTabClose="PF('popupInspectionReport').initPosition()">
+							<p:tab title="Maklumat Asas">
+								<p:panelGrid columns="2" cellpadding="5" layout="grid"
+									styleClass="ui-fluid ui-panelgrid-blank form-group"
+									columnClasses="ui-grid-col-3,ui-grid-col-9">
+									<p:outputLabel value="No. Tawaran"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo}"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}">
+									</p:outputLabel>
+									<p:outputLabel value="Nama Kontraktor"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.teamLeaderName}"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}">
+									</p:outputLabel>
+									<p:outputLabel value="Daerah Hutan:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.districtName}">
+									</p:outputLabel>
+									<p:outputLabel value="Hutan Simpan:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.forestName}">
+									</p:outputLabel>
+									<p:outputLabel value="No. Kompartmen/Subkompartmen:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.comptBlockNo}">
+									</p:outputLabel>
+									<p:outputLabel value="Luas Kompartmen/Subkompartmen:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.area}">
+									</p:outputLabel>
+									<p:outputLabel value="Jumlah Garis Inventori" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.totalInventoryLine}">
+									</p:outputLabel>
+								</p:panelGrid>
+							</p:tab>
+							<p:tab title="Kawasan Disemak">
+								<p:panelGrid columns="2" cellpadding="5" layout="grid"
+									styleClass="ui-fluid ui-panelgrid-blank form-group"
+									columnClasses="ui-grid-col-3,ui-grid-col-9">
+									<p:outputLabel value="No. Tawaran"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo}"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}">
+									</p:outputLabel>
+									<p:outputLabel value="Nama Kontraktor"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.teamLeaderName}"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.tenderNo != null}">
+									</p:outputLabel>
+									<p:outputLabel value="Daerah Hutan:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.districtName}" />
+
+									<p:outputLabel value="Hutan Simpan:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.forestName}" />
+
+									<p:outputLabel value="No. Kompartmen/Subkompartmen:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.comptBlockNo}" />
+
+									<p:outputLabel value="Luas Kompartmen/Subkompartmen:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.area}">
+									</p:outputLabel>
+									<p:outputLabel value="Jumlah Garis Inventori" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.totalInventoryLine}">
+									</p:outputLabel>
+								</p:panelGrid>
+							</p:tab>
+							<p:tab title="Tempoh Pelaksanaan Kerja">
+								<p:panelGrid columns="2" cellpadding="5" layout="grid"
+									styleClass="ui-fluid ui-panelgrid-blank form-group"
+									columnClasses="ui-grid-col-2,ui-grid-col-10">
+									<p:outputLabel value="Tarikh Milik Tapak" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.ownershipDate}">
+										<f:convertDateTime pattern="dd/MM/yyyy" />
+									</p:outputLabel>
+									<p:outputLabel value="Tarikh mula kerja:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionStartWorkDate}">
+										<f:convertDateTime pattern="dd/MM/yyyy" />
+									</p:outputLabel>
+									<p:outputLabel value="Tarikh siap kerja:" />
+									<p:outputLabel
+										value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionEndWorkDate}">
+										<f:convertDateTime pattern="dd/MM/yyyy" />
+									</p:outputLabel>
+								</p:panelGrid>
+							</p:tab>
+							<p:tab title="Butiran Semakan">
+								<p:panelGrid columns="1" cellpadding="1" layout="grid"
+									styleClass="ui-fluid ui-panelgrid-blank"
+									columnClasses="ui-grid-col-10">
+									<p>
+										<strong>Papan Tanda</strong>
+									</p>
+									<h:outputText value="Papan Tanda ada dan boleh diterima"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionSignage == 2}" />
+									<h:outputText
+										value="Papan Tanda ada, tetapi tidak boleh diterima"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionSignage == 1}" />
+									<h:outputText value="Papan Tanda tiada"
+										rendered="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionSignage == 0}" />
+									<p>
+										<strong>Garis Tapak</strong>
+									</p>
+									<p:outputLabel
+										value="Bearing Garis Tapak #{postFellingInspectionCardMBean.postFellingSurvey.inspectionBearing == false ? 'tidak' : 'betul'} mengikut Pelan Kawasan Kerja Post-F" />
+									<p:outputLabel
+										value="Jarak Garis Tapak #{postFellingInspectionCardMBean.postFellingSurvey.inspectionLineDistance	 == false ? 'tidak' : 'betul'} mengikut Pelan Kawasan Kerja Post-F" />
+									<p:outputLabel
+										value="Sepanjang Garis Tapak #{postFellingInspectionCardMBean.postFellingSurvey.inspectionStake	 == false ? 'tidak ditanda' : 'ditanda'} dengan pancang pada setiap jarak 20m" />
+									<p:outputLabel
+										value="Pembetulan kecuraman  #{postFellingInspectionCardMBean.postFellingSurvey.inspectionSteepness	 == false ? 'tidak dibuat' : 'telah dibuat'} dikawasan cerum sepanjang Garis Tapak" />
+								</p:panelGrid>
+							</p:tab>
+						</p:accordionPanel>
+					</p:tab>
+					<p:tab title="Garis/Petak Inventori">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportGarisTiang()}"
+							var="garis" type="definition"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300" style="text-align: center;">
+							<f:facet name="header">Jarak di antara Garis Inventori dan Pemasangan Tiang Pemulaan serta Tiang Penghujung Garis Inventori</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" headerText="No. Garis Inventori" />
+									<p:column colspan="4" headerText="Kedudukan Garis Inventori" />
+									<p:column colspan="2"
+										headerText="Tiang Permulaan Garis Inventori" />
+									<p:column colspan="2"
+										headerText="Tiang Penghujung Garis Inventori" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="Dari Garis Sebelum " />
+									<p:column colspan="2" headerText="Dari Garis Selepas " />
+									<p:column rowspan="2" headerText="Ada" />
+									<p:column rowspan="2" headerText="Tiada" />
+									<p:column rowspan="2" headerText="Ada" />
+									<p:column rowspan="2" headerText="Tiada" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Jarak (m)" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Jarak (m)" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{garis.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[6]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[8]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Bearing/Jarak/Pancang/Kecuraman">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportBearingGaris()}"
+							var="garis" type="definition"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300" style="text-align: center;">
+							<f:facet name="header">Bearing/Jarak/Pancang/Kecuraman</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="No. Garis Inventori" />
+									<p:column colspan="2" headerText="Kesilapan Bearing" />
+									<p:column colspan="2"
+										headerText="Kesilapan Jarak antara Pusat Petak (Bilangan)" />
+									<p:column colspan="2" headerText="Pancang Setiap 20m" />
+									<p:column colspan="2" headerText="Pembetulan kecuraman" />
+								</p:row>
+								<p:row>
+									<p:column headerText="&lt;=1&#176;" />
+									<p:column headerText="&gt;1&#176;" />
+									<p:column headerText="&lt;=2%" />
+									<p:column headerText="&gt;2%" />
+									<p:column headerText="Ada" />
+									<p:column headerText="Tiada" />
+									<p:column headerText="Boleh diterima" />
+									<p:column headerText="Tidak Boleh diterima" />
+								</p:row>
+							</p:columnGroup>
+
+							<p:column>
+								<h:outputText value="#{garis.data[0]}" />
+							</p:column>
+
+							<p:column colspan="2"
+								rendered="#{garis.data[0] == '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[2]}" escape="false" />
+							</p:column>
+							<p:column colspan="2"
+								rendered="#{garis.data[0] == '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[4]}" escape="false" />
+							</p:column>
+
+							<p:column colspan="2"
+								rendered="#{garis.data[0] == '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[6]}" escape="false" />
+							</p:column>
+
+							<p:column colspan="2"
+								rendered="#{garis.data[0] == '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[8]}" escape="false" />
+							</p:column>
+
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[1]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[2]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[3]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[4]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[5]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[6]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[7]}" escape="false" />
+							</p:column>
+							<p:column rendered="#{garis.data[0] != '% Bilangan Kesilapan'}">
+								<h:outputText value="#{garis.data[8]}" escape="false" />
+							</p:column>
+							<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size()} rekod Garis Inventori direkodkan.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Sempadan">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportSempadan()}"
+							var="garis" type="definition"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300" style="text-align: center;">
+							<f:facet name="header">Sempadan</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="3" headerText="No. Garis" />
+									<p:column colspan="4" headerText="Dari Garis Sebelum" />
+									<p:column colspan="4" headerText="Dari Garis Selepas" />
+								</p:row>
+								<p:row>
+									<p:column colspan="2" headerText="Penandaan pokok sempadan" />
+									<p:column colspan="2" headerText="Lebar sempadan dibersihkan" />
+									<p:column colspan="2" headerText="Penandaan pokok sempadan" />
+									<p:column colspan="2" headerText="Lebar sempadan dibersihkan" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Boleh diterima" />
+									<p:column headerText="Tidak boleh diterima" />
+									<p:column headerText="Boleh diterima" />
+									<p:column headerText="Tidak boleh diterima" />
+									<p:column headerText="Boleh diterima" />
+									<p:column headerText="Tidak boleh diterima" />
+									<p:column headerText="Boleh diterima" />
+									<p:column headerText="Tidak boleh diterima" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{garis.data[0]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[1]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[2]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[3]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[4]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[5]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[6]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[7]}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{garis.data[8]}" />
+							</p:column>
+
+							<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size()} rekod Garis Inventori direkodkan.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Pasukan">
+						<p:dataTable id="subtable3" widgetVar="sublist" var="staff"
+							value="#{postFellingInspectionCardMBean.inspectionStaffs}"
+							reflow="true" emptyMessage="Tiada rekod semakan direkodkan."
+							scrollable="true"
+							paginator="#{postFellingInspectionCardMBean.inspectionStaffs.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100" scrollHeight="300"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">Pasukan Semakan</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column headerText="Nama" sortBy="#{staff.name}"
+										style="vertical-align: top" />
+									<p:column headerText="Jawatan" />
+
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{staff.name}" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{staff.designationName}" />
+							</p:column>
+
+							<f:facet name="footer">#{postFellingInspectionCardMBean.inspectionStaffs.size()} rekod staf.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Ulasan Ketua Pasukan">
+						<h3>ULASAN DAN SYOR KETUA PASUKAN SEMAKAN</h3>
+						<p>
+							<i>Nyatakan sama ada kerja-kerja inventori telah dijalankan
+								mengikut spesifikasi dan syarat kerja yang telah ditetapkan dan
+								berikan syor serta tindakan susulan</i>
+						</p>
+						<p:inputTextarea
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.commentInspectionLeader}"
+							rows="3" cols="60" maxlength="500" />
+					</p:tab>
+					<p:tab title="Ulasan PPPN">
+
+						<h3>ULASAN/KEPUTUSAN PPPN</h3>
+
+						<p:inputTextarea
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.commentPPPN}"
+							rows="3" cols="60" maxlength="500" />
+						<br />
+						<br />
+						<p:commandButton value="Simpan" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.handleUpdateCommentPPPN}"
+							update=":frmInspectionReport" validateClient="true"
+							oncomplete="PF('popupInspectionReport').initPosition()" />
+						<p:commandButton value="Reset" icon="ui-icon-cancel" type="reset" />
+					</p:tab>
+					<p:tab title="Lampiran A">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranA()}"
+							var="petak" type="definition"
+							emptyMessage="Tiada anggaran bilangan tersedia."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[0]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="4" headerText="Bil" />
+									<p:column rowspan="4" headerText="No. Petak Inventori" />
+									<p:column colspan="7"
+										headerText="Petak Utama (5m x 20m) Semua Pokok >45cm" />
+									<p:column colspan="7"
+										headerText="Petak Utama (5m x 20m) Semua Pokok >30cm - 45cm" />
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="Bilangan Pokok" />
+									<p:column colspan="4" headerText="Kesilapan Inventori" />
+									<p:column colspan="3" headerText="Bilangan Pokok" />
+									<p:column colspan="4" headerText="Kesilapan Inventori" />
+								</p:row>
+								<p:row>
+									<p:column rowspan="2" headerText="Asal" />
+									<p:column rowspan="2" headerText="Semakan" />
+									<p:column rowspan="2" headerText="% Kesilapan" />
+									<p:column colspan="2" headerText="Spesis" />
+									<p:column colspan="2" headerText="Ukuran" />
+									<p:column rowspan="2" headerText="Asal" />
+									<p:column rowspan="2" headerText="Semakan" />
+									<p:column rowspan="2" headerText="% Kesilapan" />
+									<p:column colspan="2" headerText="Spesis" />
+									<p:column colspan="2" headerText="Ukuran" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+
+
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[9]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[10]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[11]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[12]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[13]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[14]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[15]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran B">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranB()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[1]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="4" headerText="Bil" />
+									<p:column rowspan="4" headerText="No. Petak Inventori" />
+									<p:column colspan="7"
+										headerText="Petak Kedua (25m x 20m) Semua Pokok >15cm - 30cm diameter" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="Bilangan Pokok" />
+									<p:column colspan="4" headerText="Kesilapan Inventori" />
+								</p:row>
+								<p:row>
+									<p:column rowspan="2" headerText="Asal" />
+									<p:column rowspan="2" headerText="Semakan" />
+									<p:column rowspan="2" headerText="% Kesilapan" />
+									<p:column colspan="2" headerText="Spesis" />
+									<p:column colspan="2" headerText="Ukuran" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran C">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranC()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[3]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="4" headerText="Bil" />
+									<p:column rowspan="4" headerText="No. Petak Inventori" />
+									<p:column colspan="7"
+										headerText="Petak Ketiga (10m x 10m) Semua Pokok >5cm - 15cm diameter" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="Bilangan Pokok" />
+									<p:column colspan="4" headerText="Kesilapan Inventori" />
+								</p:row>
+								<p:row>
+									<p:column rowspan="2" headerText="Asal" />
+									<p:column rowspan="2" headerText="Semakan" />
+									<p:column rowspan="2" headerText="% Kesilapan" />
+									<p:column colspan="2" headerText="Spesis" />
+									<p:column colspan="2" headerText="Ukuran" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bil. Pokok" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran D">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranD()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[3]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="4" headerText="Bil" />
+									<p:column rowspan="4" headerText="No. Petak Inventori" />
+									<p:column colspan="10"
+										headerText="Petak Keempat / Kelima (5m x 5m / 2m x 2m) Semua Pokok 5cm diameter dan kebawah" />
+
+								</p:row>
+								<p:row>
+									<p:column colspan="5"
+										headerText="Anak Pokok >1.5m Tinggi - 1.5m Tinggi" />
+									<p:column colspan="5"
+										headerText="Anak Benih 15cm Tinggi - 5cm Diameter" />
+								</p:row>
+								<p:row>
+									<p:column colspan="3" headerText="Bilangan Anak Pokok" />
+									<p:column colspan="2" headerText="Kesilapan Spesis" />
+									<p:column colspan="3" headerText="Bilangan Anak Benih" />
+									<p:column colspan="2" headerText="Kesilapan Spesis" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bilangan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Bilangan" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[9]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[10]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[11]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran E">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranE()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[4]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column headerText="Bil" />
+									<p:column headerText="No. Petak Inventori" />
+									<p:column headerText="Bilangan Rumpun Buluh yang dibanci Asal" />
+									<p:column
+										headerText="Bilangan Rumpun Buluh yang dibanci Semula" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran F">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranF()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[5]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="Bil" />
+									<p:column rowspan="2" headerText="No. Petak Inventori" />
+									<p:column colspan="3" headerText="Bilangan Batang Palma" />
+									<p:column colspan="3" headerText="Bilangan Rumpun Bertam" />
+									<p:column colspan="3"
+										headerText="Bilangan Pepanjat Melingkari Pokok" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[9]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[10]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Lampiran G">
+						<p:dataTable
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.getReportLampiranG()}"
+							var="petak" type="definition" emptyMessage="Tiada data."
+							scrollable="true" scrollHeight="300">
+							<f:facet name="header">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionReport.headers[6]}</f:facet>
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="Bil" />
+									<p:column rowspan="2" headerText="No. Petak Inventori" />
+									<p:column colspan="3" headerText="Peratusan Resam" />
+									<p:column colspan="3" headerText="Peratusan Halia" />
+									<p:column colspan="3" headerText="Peratusan Pisang" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+									<p:column headerText="Asal" />
+									<p:column headerText="Semakan" />
+									<p:column headerText="% Kesilapan" />
+								</p:row>
+							</p:columnGroup>
+							<p:column>
+								<h:outputText value="#{petak.data[0]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[1]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[2]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[3]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[4]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[5]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[6]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[7]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[8]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[9]}" escape="false" />
+							</p:column>
+							<p:column>
+								<h:outputText value="#{petak.data[10]}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</p:tab>
+
+
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Muat turun laporan semakan"
+							rendered="#{postFellingInspectionCardMBean.postFellingSurvey.commentPPPN != null and postFellingInspectionCardMBean.postFellingSurvey.commentPPPN != ''}"
+							icon="ui-icon-picture-as-pdf" ajax="false" styleClass="save-btn">
+							<p:fileDownload
+								value="#{postFellingInspectionCardMBean.downloadInspectionReport()}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupInspectionReport').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryStaff">
+			<p:dialog id="popupStaff" widgetVar="popupStaff" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade" width="90%"
+				rendered="#{postFellingInspectionCardMBean.postFellingSurvey!= null and postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID}">
+				<p:messages id="messagesStaff" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:tabView id="accordion" widgetVar="accordion"
+					onTabShow="PF('popupStaff').initPosition()"
+					onTabChange="PF('popupStaff').initPosition()"
+					onTabClose="PF('popupStaff').initPosition()">
+					<p:tab title="Pilih pegawai semakan">
+						<p:scrollPanel style="max-height: 400px; border: none;">
+							<p:selectManyCheckbox id="staffList"
+								value="#{postFellingInspectionCardMBean.selectedStaffs}"
+								layout="pageDirection" columns="1" required="true"
+								requiredMessage="Sila pilih pegawai rekod.">
+								<f:selectItems
+									value="#{postFellingInspectionCardMBean.staffList}" />
+							</p:selectManyCheckbox>
+						</p:scrollPanel>
+					</p:tab>
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.postFellingSurveyUpdate}"
+							update=":frmManager messagesStaff"
+							oncomplete="PF('popupStaff').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupStaff').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmInspection">
+			<p:dialog id="popupInspectionDetails"
+				widgetVar="popupInspectionDetails" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" width="90%"
+				rendered="#{postFellingInspectionCardMBean.postFellingSurvey!= null and postFellingInspectionCardMBean.postFellingSurvey.inspectionLeaderID == userMBean.user.staffID}">
+				<p:messages id="messagesStaff" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:tabView id="accordion" widgetVar="accordion"
+					onTabShow="PF('popupInspectionDetails').initPosition()"
+					onTabChange="PF('popupInspectionDetails').initPosition()"
+					onTabClose="PF('popupInspectionDetails').initPosition()">
+					<p:tab title="Tempoh Kerja">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="ownershipDate" value="Tarikh Milik Tapak" />
+							<p:calendar id="ownershipDate" pattern="dd/MM/yyyy"
+								readonlyInput="true" required="true"
+								requiredMessage="Sila masukkan tarikh miliki tapak"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.ownershipDate}"
+								rendered="#{postFellingInspectionCardMBean.accessLevel gt 2}" />
+							<p:outputLabel for="inspectionStartWorkDate"
+								value="Tarikh mula kerja:" />
+							<p:calendar id="inspectionStartWorkDate" pattern="dd/MM/yyyy"
+								readonlyInput="true" required="true"
+								requiredMessage="Sila masukkan tarikh mula kerja"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionStartWorkDate}"
+								mindate="#{postFellingInspectionCardMBean.postFellingSurvey.ownershipDate}">
+								<p:ajax event="dateSelect" update="inspectionEndWorkDate"
+									listener="#{postFellingInspectionCardMBean.doNothing}" />
+							</p:calendar>
+							<p:outputLabel for="inspectionEndWorkDate"
+								value="Tarikh siap kerja:" />
+							<p:calendar id="inspectionEndWorkDate" pattern="dd/MM/yyyy"
+								readonlyInput="true" required="true"
+								requiredMessage="Sila masukkan tarikh selesai kerja"
+								mindate="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionStartWorkDate}"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionEndWorkDate}" />
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Butiran Semakan">
+						<p:panelGrid columns="2" cellpadding="5" layout="grid"
+							styleClass="ui-fluid ui-panelgrid-blank form-group"
+							columnClasses="ui-grid-col-3,ui-grid-col-9">
+							<p:outputLabel for="inspectionSignage" value="Papan Tanda"
+								layout="responsive" columns="2" />
+							<p:selectOneRadio id="inspectionSignage" columns="2"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionSignage}"
+								layout="pageDirection">
+								<f:selectItem itemLabel="Ada dan boleh diterima" itemValue="2" />
+								<f:selectItem itemLabel="Ada tetapi tidak boleh diterima"
+									itemValue="1" />
+								<f:selectItem itemLabel="Tiada" itemValue="0" />
+							</p:selectOneRadio>
+							<p:outputLabel for="inspectionBearing"
+								value="Bearing Garis Tapak mengikut Pelan Kawasan Kerja Post-F" />
+							<p:selectOneRadio id="inspectionBearing"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionBearing}">
+								<f:selectItem itemLabel="Ya" itemValue="true" />
+								<f:selectItem itemLabel="Tidak" itemValue="false" />
+							</p:selectOneRadio>
+							<p:outputLabel for="inspectionLineDistance"
+								value="Jarak Garis Tapak mengikut Pelan Kawasan Kerja Post-F" />
+							<p:selectOneRadio id="inspectionLineDistance"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionLineDistance}">
+								<f:selectItem itemLabel="Ya" itemValue="true" />
+								<f:selectItem itemLabel="Tidak" itemValue="false" />
+							</p:selectOneRadio>
+							<p:outputLabel for="inspectionStake"
+								value="Sepanjang Garis Tapak ditanda dengan pancang setiap 20m" />
+							<p:selectOneRadio id="inspectionStake"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionStake}">
+								<f:selectItem itemLabel="Ya" itemValue="true" />
+								<f:selectItem itemLabel="Tidak" itemValue="false" />
+							</p:selectOneRadio>
+							<p:outputLabel for="inspectionSteepness"
+								value="Pembetulan kecuraman telah dibuat di kawasan cerun sepanjang Garis Tapak" />
+							<p:selectOneRadio id="inspectionSteepness"
+								value="#{postFellingInspectionCardMBean.postFellingSurvey.inspectionSteepness}">
+								<f:selectItem itemLabel="Ya" itemValue="true" />
+								<f:selectItem itemLabel="Tidak" itemValue="false" />
+							</p:selectOneRadio>
+						</p:panelGrid>
+					</p:tab>
+					<p:tab title="Garis dan Petak Inventori">
+						<p:dataTable id="subtable" widgetVar="sublist"
+							var="postFellingInspectionLine"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines}"
+							reflow="true" emptyMessage="Tiada rekod semakan direkodkan."
+							paginator="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100" scrollable="true"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<p:column headerText="No. Garis Inventori"
+								sortBy="#{postFellingInspectionLine.LineNo}"
+								style="vertical-align: top">
+								<h:outputText value="#{postFellingInspectionLine.lineNo}" />
+								<br />
+							</p:column>
+							<p:column
+								headerText="Kedudukan Garis Inventori dari Garis Sebelum"
+								style="vertical-align: top">
+								<p:inputNumber value="#{postFellingInspectionLine.lineBefore}"
+									symbol=" m" symbolPosition="s" />
+							</p:column>
+							<p:column
+								headerText="Kedudukan Garis Inventori dari Garis Selepas"
+								style="vertical-align: top">
+								<p:inputNumber value="#{postFellingInspectionLine.lineAfter}"
+									symbol=" m" symbolPosition="s" />
+							</p:column>
+							<p:column headerText="Tiang Permulaan Garis Inventori"
+								style="vertical-align: top">
+								<p:selectOneRadio id="startPole"
+									value="#{postFellingInspectionLine.startPole}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Ada" itemValue="true" />
+									<f:selectItem itemLabel="Tiada" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column headerText="Tiang Penghujung Garis Inventori"
+								style="vertical-align: top" layout="responsive" columns="2">
+								<p:selectOneRadio id="endPole"
+									value="#{postFellingInspectionLine.endPole}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Ada" itemValue="true" />
+									<f:selectItem itemLabel="Tiada" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size()} rekod Garis Inventori direkodkan.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Bearing, Jarak, Pancang, Kecuraman">
+						<p:dataTable id="subtable1" widgetVar="sublist"
+							var="postFellingInspectionLine"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines}"
+							reflow="true" emptyMessage="Tiada rekod semakan direkodkan."
+							scrollable="true"
+							paginator="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+
+							<p:column headerText="No. Garis"
+								sortBy="#{postFellingInspectionLine.lineNo}"
+								style="vertical-align: top">
+								<h:outputText value="#{postFellingInspectionLine.lineNo}" />
+								<br />
+							</p:column>
+							<p:column headerText="Kesilapan Bearing"
+								style="vertical-align: top">
+								<p:selectOneRadio id="bearingError"
+									value="#{postFellingInspectionLine.bearingError}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="&lt;=1&#176;" itemValue="0" />
+									<f:selectItem itemLabel="&gt;1&#176;" itemValue="1" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column headerText="Kesilapan Jarak antara Pusat Petak"
+								style="vertical-align: top">
+								<p:selectOneRadio id="plotError"
+									value="#{postFellingInspectionLine.plotError}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="&lt;=2%" itemValue="0" />
+									<f:selectItem itemLabel="&gt;2%" itemValue="1" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column headerText="Pancang Setiap 20 m"
+								style="vertical-align: top">
+								<p:selectOneRadio id="startPole"
+									value="#{postFellingInspectionLine.stake}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Ada" itemValue="true" />
+									<f:selectItem itemLabel="Tiada" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column headerText="Pembetulan kecuraman"
+								style="vertical-align: top" layout="responsive" columns="2">
+								<p:selectOneRadio id="endPole"
+									value="#{postFellingInspectionLine.steepness}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Terima" itemValue="true" />>
+						            <f:selectItem itemLabel="Tidak terima"
+										itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size()} rekod Garis Inventori direkodkan.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Sempadan">
+						<p:dataTable id="subtable2" widgetVar="sublist"
+							var="postFellingInspectionLine"
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines}"
+							reflow="true" emptyMessage="Tiada rekod semakan direkodkan."
+							scrollable="true"
+							paginator="#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size() gt 20}"
+							rows="30" rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column rowspan="2" headerText="No. Garis" />
+									<p:column colspan="2" headerText="Dari Garis Sebelum" />
+									<p:column colspan="2" headerText="Dari Garis Selepas" />
+								</p:row>
+								<p:row>
+									<p:column headerText="Tanda pokok sempadan" />
+									<p:column headerText="Lebar sempadan dibersih" />
+									<p:column headerText="Tanda sempadan" />
+									<p:column headerText="Lebar sempadan dibersih" />
+								</p:row>
+							</p:columnGroup>
+							<p:column groupRow="true">
+								<h:outputText value="#{postFellingInspectionLine.lineNo}" />
+							</p:column>
+							<p:column>
+								<p:selectOneRadio id="boundarySignageStart"
+									value="#{postFellingInspectionLine.boundarySignageStart}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Terima" itemValue="true" />
+									<f:selectItem itemLabel="Tidak terima" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column>
+								<p:selectOneRadio id="boundaryCleanStart"
+									value="#{postFellingInspectionLine.boundaryCleanStart}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Terima" itemValue="true" />
+									<f:selectItem itemLabel="Tidak terima" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column>
+								<p:selectOneRadio id="boundarySignageEnd"
+									value="#{postFellingInspectionLine.boundarySignageEnd}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Terima" itemValue="true" />
+									<f:selectItem itemLabel="Tidak terima" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<p:column>
+								<p:selectOneRadio id="boundaryCleanEnd"
+									value="#{postFellingInspectionLine.boundaryCleanEnd}"
+									layout="pageDirection">
+									<f:selectItem itemLabel="Terima" itemValue="true" />
+									<f:selectItem itemLabel="Tidak terima" itemValue="false" />
+								</p:selectOneRadio>
+							</p:column>
+							<f:facet name="footer">#{postFellingInspectionCardMBean.postFellingSurvey.postFellingInspectionLines.size()} rekod Garis Inventori direkodkan.</f:facet>
+						</p:dataTable>
+					</p:tab>
+					<p:tab title="Ulasan">
+						<h3>ULASAN DAN SYOR KETUA PASUKAN SEMAKAN</h3>
+						<p>
+							<i>Nyatakan sama ada kerja-kerja inventori telah dijalankan
+								mengikut spesifikasi dan syarat kerja yang telah ditetapkan dan
+								berikan syor serta tindakan susulan</i>
+						</p>
+						<p:inputTextarea
+							value="#{postFellingInspectionCardMBean.postFellingSurvey.commentInspectionLeader}"
+							required="true" requiredMessage="Sila isi ulasan" rows="3"
+							cols="60" maxlength="500" />
+					</p:tab>
+				</p:tabView>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Simpan" icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.handleUpdateInspectionDetails}"
+							update=":frmManager messagesStaff"
+							oncomplete="PF('popupInspectionDetails').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Simpan dan tutup/selesai semakan"
+							icon="ui-icon-save"
+							action="#{postFellingInspectionCardMBean.handleUpdateInspectionDetails}"
+							update=":frmManager messagesStaff @this"
+							oncomplete="PF('popupInspectionDetails').initPosition()"
+							validateClient="true" styleClass="save-btn">
+							<f:setPropertyActionListener value="true"
+								target="#{postFellingInspectionCardMBean.inspectionFinish}" />
+						</p:commandButton>
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupInspectionDetails').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

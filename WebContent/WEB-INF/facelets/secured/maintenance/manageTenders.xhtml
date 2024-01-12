@@ -1,0 +1,159 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="tender"
+				value="#{tenderMBean.tenders}" reflow="true"
+				emptyMessage="Tiada sebut harga direkodkan."
+				paginator="#{tenderMBean.tenders.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})">
+				<f:facet name="header">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tambah sebut harga" icon="ui-icon-add"
+							update=":frmEntry" action="#{tenderMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{tenderMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</div>
+				</f:facet>
+				<p:column headerText="No. Sebut Harga" sortBy="#{tender.tenderNo}"
+					filterBy="#{tender.tenderNo}" filterMatchMode="contains">
+					<h:outputText value="#{tender.tenderNo}" />
+				</p:column>
+				<p:column headerText="Pembalak" sortBy="#{tender.contractorName}"
+					filterBy="#{tender.contractorName}" filterMatchMode="contains">
+					<h:outputText value="#{tender.contractorName}" />
+				</p:column>
+				<p:column headerText="Jenis Kerja" sortBy="#{tender.workType}"
+					filterBy="#{tender.workType}" filterMatchMode="contains">
+					<h:outputText
+						value="#{tender.workType == 'F' ? 'Pre-F' : (tender.workType == 'T' ? 'Tagging' : (tender.workType == 'P' ? 'Post-F' : 'Lain-lain'))}" />
+				</p:column>
+				<p:column headerText="Tarikh Kerja" sortBy="#{tender.startDate}"
+					filterBy="#{tender.startDate} #{tender.endDate}"
+					filterMatchMode="contains">
+					<h:outputText value="#{tender.startDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					-
+					<h:outputText value="#{tender.endDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:commandButton value="Kemaskini sebut harga" icon="ui-icon-edit"
+						update=":frmEntry" action="#{tenderMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{tenderMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{tender}"
+							target="#{tenderMBean.tender}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<f:facet name="footer">#{tenderMBean.tenders.size()} sebut harga direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="tenderNo" value="No. sebut harga:" />
+					<p:inputText id="tenderNo" value="#{tenderMBean.tender.tenderNo}"
+						required="true" requiredMessage="No. sebut harga diperlukan."
+						validatorMessage="No. sebut harga mestilah 20 aksara dan ke bawah.">
+						<f:validateLength maximum="20" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="contractorID" value="Kontraktor:" />
+					<p:selectOneMenu id="contractorID"
+						value="#{tenderMBean.tender.contractorID}" required="true"
+						requiredMessage="Kontraktor diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{tenderMBean.tender != null}">
+						<f:selectItem itemLabel="- pilih kontraktor -" itemValue="#{null}" />
+						<f:selectItems value="#{tenderMBean.contractors}" var="contractor"
+							itemLabel="#{contractor.companyName}"
+							itemValue="#{contractor.contractorID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="appointDate" value="Tarikh lantikan:" />
+					<p:calendar id="appointDate" pattern="dd/MM/yyyy"
+						value="#{tenderMBean.tender.appointDate}" required="true"
+						requiredMessage="Tarikh lantikan diperlukan" readonlyInput="true">
+						<p:ajax event="dateSelect" update="startDate"
+							listener="#{tenderMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="startDate" value="Tarikh mula:" />
+					<p:calendar id="startDate" pattern="dd/MM/yyyy"
+						value="#{tenderMBean.tender.startDate}" required="true"
+						requiredMessage="Tarikh mula diperlukan" readonlyInput="true"
+						mindate="#{tenderMBean.tender.appointDate}">
+						<p:ajax event="dateSelect" update="endDate"
+							listener="#{tenderMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="endDate" value="Tarikh tamat:" />
+					<p:calendar id="endDate" pattern="dd/MM/yyyy"
+						value="#{tenderMBean.tender.endDate}" required="true"
+						requiredMessage="Tarikh tamat diperlukan" readonlyInput="true"
+						mindate="#{tenderMBean.tender.startDate}" />
+					<p:outputLabel for="jenisKerja" value="Jenis kerja:" />
+					<p:selectOneRadio id="jenisKerja"
+						value="#{tenderMBean.tender.workType}" layout="responsive"
+						columns="3" required="true"
+						requiredMessage="Jenis kerja diperlukan.">
+						<f:selectItem itemLabel="Pre-Felling" itemValue="F" />
+						<f:selectItem itemLabel="Tagging" itemValue="T" />
+						<f:selectItem itemLabel="Post-Felling" itemValue="P" />
+					</p:selectOneRadio>
+					<p:outputLabel for="voucher" value="Voucher: " />
+					<p:selectOneRadio id="voucher"
+						value="#{tenderMBean.tender.voucher}" layout="responsive"
+						columns="2" required="true" requiredMessage="Voucher diperlukan.">
+						<f:selectItem itemLabel="Ya" itemValue="Y" />
+						<f:selectItem itemLabel="Tidak" itemValue="N" />
+					</p:selectOneRadio>
+					<p:outputLabel for="stateID" value="Negeri:"
+						rendered="#{userMBean.user.stateID == 0}" />
+					<p:selectOneMenu id="stateID" value="#{tenderMBean.tender.stateID}"
+						required="true" requiredMessage="Sila pilih negeri." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{userMBean.user.stateID == 0 and tenderMBean.tender != null}">
+						<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+						<f:selectItems value="#{tenderMBean.states}" var="state"
+							itemLabel="#{state}" itemValue="#{state.stateID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{tenderMBean.tenderEntry}" update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

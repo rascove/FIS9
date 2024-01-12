@@ -1,0 +1,394 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="district"
+				value="#{districtMBean.districts}" reflow="true"
+				emptyMessage="Tiada daerah hutan direkodkan."
+				paginator="#{districtMBean.districts.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<p:outputPanel style="text-align: right; margin: 8px 0px;"
+						rendered="#{districtMBean.accessLevel != 2}">
+						<p:commandButton value="Tambah daerah hutan" icon="ui-icon-add"
+							update=":frmEntry" action="#{districtMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							styleClass="secondary flat">
+							<f:setPropertyActionListener value="true"
+								target="#{districtMBean.addOperation}" />
+							<p:resetInput target=":frmEntry" />
+						</p:commandButton>
+					</p:outputPanel>
+					<h:outputText value="Daerah Hutan"
+						rendered="#{districtMBean.accessLevel == 2}" />
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Kod" sortBy="#{district.code}"
+					filterBy="#{district.code}" filterMatchMode="contains">
+					<h:outputText value="#{district.code}" />
+				</p:column>
+				<p:column headerText="Nama" sortBy="#{district.name}"
+					filterBy="#{district.name}" filterMatchMode="contains">
+					<h:outputText value="#{district.name}" />
+				</p:column>
+				<p:column headerText="Negeri" sortBy="#{district.stateName}"
+					filterBy="#{district.stateID}" filterMatchMode="exact"
+					rendered="#{userMBean.user.stateID == 0}">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="Semua negeri" itemValue="" />
+							<f:selectItems value="#{districtMBean.states}" var="state"
+								itemLabel="#{state}" itemValue="#{state.stateID}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="#{district.stateName}" />
+				</p:column>
+				<p:column headerText="Pegawai" sortBy="#{district.officerName}"
+					filterBy="#{district.officerName}" filterMatchMode="contains">
+					<h:outputText value="#{district.officerName}" />
+				</p:column>
+				<p:column headerText="Penolong Pegawai"
+					sortBy="#{district.asstOfficerName}"
+					filterBy="#{district.asstOfficerName}" filterMatchMode="contains">
+					<h:outputText value="#{district.asstOfficerName}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center"
+					rendered="#{districtMBean.accessLevel != 2}">
+					<p:commandButton value="Kemaskini daerah hutan" icon="ui-icon-edit"
+						update=":frmEntry" action="#{districtMBean.handleOpen}"
+						oncomplete="PF('popup').show()" process="@this">
+						<f:setPropertyActionListener value="false"
+							target="#{districtMBean.addOperation}" />
+						<f:setPropertyActionListener value="#{district}"
+							target="#{districtMBean.district}" />
+						<f:setPropertyActionListener value="#{district.stateID}"
+							target="#{districtMBean.selectedStateID}" />
+						<p:resetInput target=":frmEntry" />
+					</p:commandButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:dataTable id="subtable" var="range" value="#{district.ranges}"
+							reflow="true" emptyMessage="Tiada renj hutan direkodkan."
+							paginator="#{district.ranges.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<p:outputPanel style="text-align: right; margin: 8px 0px;"
+									rendered="#{districtMBean.accessLevel != 2}">
+									<p:commandButton value="Tambah renj hutan" icon="ui-icon-add"
+										update=":frmEntryRange"
+										action="#{districtMBean.handleOpenRange}"
+										oncomplete="PF('popupRange').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{districtMBean.addRangeOperation}" />
+										<f:setPropertyActionListener value="#{district}"
+											target="#{districtMBean.district}" />
+										<p:resetInput target=":frmEntryRange" />
+									</p:commandButton>
+								</p:outputPanel>
+								<h:outputText value="Renj Hutan"
+									rendered="#{districtMBean.accessLevel == 2}" />
+							</f:facet>
+							<p:column headerText="Nama" sortBy="#{range.name}"
+								filterBy="#{range.name}" filterMatchMode="contains">
+								<h:outputText value="#{range.name}" />
+							</p:column>
+							<p:column headerText="Penolong Pegawai"
+								sortBy="#{range.asstOfficerName}"
+								filterBy="#{range.asstOfficerName}" filterMatchMode="contains">
+								<h:outputText value="#{range.asstOfficerName}" />
+							</p:column>
+							<p:column headerText="Pilihan" style="text-align: center"
+								rendered="#{districtMBean.accessLevel != 2}">
+								<p:commandButton value="Kemaskini renj hutan"
+									icon="ui-icon-edit" update=":frmEntryRange"
+									action="#{districtMBean.handleOpenRange}"
+									oncomplete="PF('popupRange').show()" process="@this">
+									<f:setPropertyActionListener value="false"
+										target="#{districtMBean.addRangeOperation}" />
+									<f:setPropertyActionListener value="#{district}"
+										target="#{districtMBean.district}" />
+									<f:setPropertyActionListener value="#{range}"
+										target="#{districtMBean.range}" />
+									<p:resetInput target=":frmEntryRange" />
+								</p:commandButton>
+							</p:column>
+							<f:facet name="footer">#{district.ranges.size()} renj hutan direkodkan.</f:facet>
+						</p:dataTable>
+						<br />
+						<p:dataTable id="subtable2" var="hall" value="#{district.halls}"
+							reflow="true"
+							emptyMessage="Tiada balai pemeriksa hutan direkodkan."
+							paginator="#{district.halls.size() gt 20}" rows="30"
+							rowsPerPageTemplate="10,30,50,100"
+							paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							currentPageReportTemplate="({currentPage} dari {totalPages})">
+							<f:facet name="header">
+								<div style="text-align: right; margin: 8px 0px;">
+									<p:commandButton value="Tambah balai pemeriksa hutan"
+										icon="ui-icon-add" update=":frmEntryHall"
+										action="#{districtMBean.handleOpenHall}"
+										oncomplete="PF('popupHall').show()" process="@this"
+										styleClass="secondary flat">
+										<f:setPropertyActionListener value="true"
+											target="#{districtMBean.addHallOperation}" />
+										<f:setPropertyActionListener value="#{district}"
+											target="#{districtMBean.district}" />
+										<p:resetInput target=":frmEntryHall" />
+									</p:commandButton>
+								</div>
+							</f:facet>
+							<p:column headerText="Nama" sortBy="#{hall.name}"
+								filterBy="#{hall.name}" filterMatchMode="contains">
+								<h:outputText value="#{hall.name}" />
+							</p:column>
+							<p:column headerText="Status" sortBy="#{hall.status}"
+								filterBy="#{hall.status}" filterMatchMode="contains">
+								<h:outputText value="#{hall.status ? 'Aktif' : 'Nyah-aktif'}" />
+							</p:column>
+							<p:column headerText="Pilihan" style="text-align: center">
+								<p:commandButton value="Kemaskini balai pemeriksa hutan"
+									icon="ui-icon-edit" update=":frmEntryHall"
+									action="#{districtMBean.handleOpenHall}"
+									oncomplete="PF('popupHall').show()" process="@this">
+									<f:setPropertyActionListener value="false"
+										target="#{districtMBean.addHallOperation}" />
+									<f:setPropertyActionListener value="#{district}"
+										target="#{districtMBean.district}" />
+									<f:setPropertyActionListener value="#{hall}"
+										target="#{districtMBean.hall}" />
+									<p:resetInput target=":frmEntryHall" />
+								</p:commandButton>
+							</p:column>
+							<f:facet name="footer">#{district.halls.size()} balai pemeriksa hutan direkodkan.</f:facet>
+						</p:dataTable>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{districtMBean.districts.size()} daerah hutan direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="code" value="Kod:" />
+					<p:inputText id="code" value="#{districtMBean.district.code}"
+						required="true" requiredMessage="Kod diperlukan."
+						validatorMessage="Kod mestilah 5 aksara dan ke bawah.">
+						<f:validateLength maximum="5" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="name" value="Nama:" />
+					<p:inputText id="name" value="#{districtMBean.district.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="address" value="Alamat:" />
+					<p:inputTextarea id="address"
+						value="#{districtMBean.district.address}" required="true"
+						requiredMessage="Alamat diperlukan."
+						validatorMessage="Alamat mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputTextarea>
+					<p:outputLabel for="stateID" value="Negeri:"
+						rendered="#{userMBean.user.stateID == 0}" />
+					<p:selectOneMenu id="stateID"
+						value="#{districtMBean.selectedStateID}" required="true"
+						requiredMessage="Sila pilih negeri." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{userMBean.user.stateID == 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.states}" var="state"
+							itemLabel="#{state}" itemValue="#{state.stateID}" />
+						<p:ajax update="grid" event="change"
+							listener="#{districtMBean.handleStateIDChange}"
+							oncomplete="PF('popup').initPosition()" />
+					</p:selectOneMenu>
+					<p:outputLabel for="officerID" value="Pegawai:"
+						rendered="#{districtMBean.selectedStateID != 0}" />
+					<p:selectOneMenu id="officerID"
+						value="#{districtMBean.district.officerID}" required="true"
+						requiredMessage="Sila pilih pegawai." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{districtMBean.selectedStateID != 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih pegawai -" itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="asstOfficerID" value="Penolong pegawai:"
+						rendered="#{districtMBean.selectedStateID != 0}" />
+					<p:selectOneMenu id="asstOfficerID"
+						value="#{districtMBean.district.asstOfficerID}" required="true"
+						requiredMessage="Sila pilih penolong pegawai." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{districtMBean.selectedStateID != 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih penolong pegawai -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="clerk1ID" value="Pembantu kewangan 1:"
+						rendered="#{districtMBean.selectedStateID != 0}" />
+					<p:selectOneMenu id="clerk1ID"
+						value="#{districtMBean.district.clerk1ID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{districtMBean.selectedStateID != 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih pembantu kewangan 1 -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="clerk2ID" value="Pembantu kewangan 2:"
+						rendered="#{districtMBean.selectedStateID != 0}" />
+					<p:selectOneMenu id="clerk2ID"
+						value="#{districtMBean.district.clerk2ID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{districtMBean.selectedStateID != 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih pembantu kewangan 2 -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="clerk3ID" value="Pembantu kewangan 3:"
+						rendered="#{districtMBean.selectedStateID != 0}" />
+					<p:selectOneMenu id="clerk3ID"
+						value="#{districtMBean.district.clerk3ID}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{districtMBean.selectedStateID != 0 and districtMBean.district != null}">
+						<f:selectItem itemLabel="- pilih pembantu kewangan 3 -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{districtMBean.districtEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryRange">
+			<p:dialog id="popupRange" widgetVar="popupRange" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesRange" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="nameRange" value="Nama:" />
+					<p:inputText id="nameRange" value="#{districtMBean.range.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="addressRange" value="Alamat:" />
+					<p:inputTextarea id="addressRange"
+						value="#{districtMBean.range.address}" required="true"
+						requiredMessage="Alamat diperlukan."
+						validatorMessage="Alamat mestilah 100 aksara dan ke bawah.">
+						<f:validateLength maximum="100" />
+						<p:clientValidator />
+					</p:inputTextarea>
+					<p:outputLabel for="rangeAsstOfficerID" value="Penolong pegawai:" />
+					<p:selectOneMenu id="rangeAsstOfficerID"
+						value="#{districtMBean.range.asstOfficerID}" required="true"
+						requiredMessage="Sila pilih penolong pegawai." filter="true"
+						filterMatchMode="contains"
+						onchange="PF('popupRange').initPosition()"
+						rendered="#{districtMBean.range != null}">
+						<f:selectItem itemLabel="- pilih penolong pegawai -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{districtMBean.staffs}" var="staff"
+							itemLabel="#{staff}" itemValue="#{staff.staffID}" />
+					</p:selectOneMenu>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{districtMBean.rangeEntry}"
+							update=":frmManager:growl messagesRange #{districtMBean.component}"
+							oncomplete="PF('popupRange').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupRange').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryHall">
+			<p:dialog id="popupHall" widgetVar="popupHall" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesHall" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="nameHall" value="Nama:" />
+					<p:inputText id="nameHall" value="#{districtMBean.hall.name}"
+						required="true" requiredMessage="Nama diperlukan."
+						validatorMessage="Nama mestilah 50 aksara dan ke bawah.">
+						<f:validateLength maximum="50" />
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="status" value="Status:"
+						rendered="#{not districtMBean.addHallOperation}" />
+					<p:selectOneRadio id="status" value="#{districtMBean.hall.status}"
+						required="true" requiredMessage="Status diperlukan."
+						rendered="#{not districtMBean.addHallOperation}">
+						<f:selectItem itemLabel="Aktif" itemValue="true" />
+						<f:selectItem itemLabel="Nyahaktif" itemValue="false" />
+					</p:selectOneRadio>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{districtMBean.hallEntry}"
+							update=":frmManager:growl messagesHall #{districtMBean.component2}"
+							oncomplete="PF('popupHall').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupHall').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

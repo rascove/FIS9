@@ -1,0 +1,495 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list"
+				var="forestDevelopmentContractor"
+				value="#{forestDevelopmentContractorMBean.forestDevelopmentContractors}"
+				reflow="true"
+				emptyMessage="Tiada kontraktor pembangunan hutan direkodkan."
+				paginator="#{forestDevelopmentContractorMBean.forestDevelopmentContractors.size() gt 20}"
+				rows="30" rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;">
+								<p:spacer width="5" /> <p:commandButton
+									value="Tambah kontraktor pembangunan hutan" icon="ui-icon-add"
+									update=":frmEntry"
+									action="#{forestDevelopmentContractorMBean.handleOpen}"
+									oncomplete="PF('popup').show()" process="@this"
+									styleClass="secondary flat">
+									<f:setPropertyActionListener value="true"
+										target="#{forestDevelopmentContractorMBean.addOperation}" />
+									<p:resetInput target=":frmEntry" />
+								</p:commandButton>
+							</td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Maklumat kontraktor pembangunan hutan"
+					sortBy="#{forestDevelopmentContractor.companyName}"
+					filterBy="#{forestDevelopmentContractor.companyName}"
+					filterMatchMode="contains">
+					<h:outputText
+						value="No. Pendaftaran : #{forestDevelopmentContractor.registrationNo}" />
+					<br />					
+					<h:outputText
+						value="Syarikat : #{forestDevelopmentContractor.companyName}" />
+					<br />
+					<h:outputText value="Alamat : #{forestDevelopmentContractor.address}" />
+					<br />
+					<h:outputText value="Tel : #{forestDevelopmentContractor.telNo != null ? forestDevelopmentContractor.telNo : 'Tiada'}" />
+				</p:column>
+				<p:column headerText="Pegawai Rekod"
+					sortBy="#{forestDevelopmentContractor.recorderName}"
+					filterBy="#{forestDevelopmentContractor.recorderName}"
+					filterMatchMode="contains">
+					<h:outputText value="#{forestDevelopmentContractor.recorderName}" />
+				</p:column>
+				<p:column headerText="Tarikh"
+					sortBy="#{forestDevelopmentContractor.registrationDate}"
+					filterBy="#{forestDevelopmentContractor.registrationDate}"
+					filterMatchMode="contains">
+					<h:outputText value="Daftar : " />
+					<h:outputText
+						value="#{forestDevelopmentContractor.registrationDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Mula : " />
+					<h:outputText value="#{forestDevelopmentContractor.startDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+					<br />
+					<h:outputText value="Tamat : " />
+					<h:outputText value="#{forestDevelopmentContractor.endDate}">
+						<f:converter converterId="dateConverter" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Status"
+					sortBy="#{forestDevelopmentContractor.status}"
+					filterBy="#{forestDevelopmentContractor.status}"
+					filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Aktif" itemValue="A" />
+							<f:selectItem itemLabel="Hampir tamat" itemValue="W" />
+							<f:selectItem itemLabel="Tamat tempoh" itemValue="E" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="Aktif"
+						rendered="#{forestDevelopmentContractor.status == 'A'}" />
+					<h:outputText value="Hampir tamat"
+						rendered="#{forestDevelopmentContractor.status == 'W'}" />
+					<h:outputText value="Tamat tempoh"
+						rendered="#{forestDevelopmentContractor.status == 'E'}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right">
+						<p:menuitem value="Kemaskini" icon="ui-icon-edit"
+							update=":frmEntry" oncomplete="PF('popup').show()"
+							process="@this"
+							rendered="#{forestDevelopmentContractor.status == 'A'}"
+							action="#{forestDevelopmentContractorMBean.handleOpen}">
+							<f:setPropertyActionListener value="false"
+								target="#{forestDevelopmentContractorMBean.addOperation}" />
+							<f:setPropertyActionListener
+								value="#{forestDevelopmentContractor}"
+								target="#{forestDevelopmentContractorMBean.forestDevelopmentContractor}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+					</p:menuButton>
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="No. resit:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.receiptNo}" />
+								<p:outputLabel value="No. pendaftaran syarikat:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.registrationNo}" />
+								<p:outputLabel value="Nama:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.name}" />
+								<p:outputLabel value="No. IC:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.icNo}" />
+								<p:outputLabel value="Nama syarikat:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.companyName}" />
+								<p:outputLabel value="Alamat:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.address}" />
+								<p:outputLabel value="Alamat berdaftar:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.registeredAddress}" />
+								<p:outputLabel value="Negeri:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.stateName}" />
+								<p:outputLabel value="No. telefon:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.telNo != null ? forestDevelopmentContractor.telNo : 'Tiada'}" />
+								<p:outputLabel value="No. telefon bimbit:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.hpNo != null ? forestDevelopmentContractor.hpNo : 'Tiada'}" />
+								<p:outputLabel value="Status lesen:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.licenseStatusCode} - #{forestDevelopmentContractor.licenseStatusName}" />
+								<p:outputLabel value="Tarikh daftar:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.registrationDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh mula:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.startDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tarikh tamat:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.endDate}">
+									<f:converter converterId="dateConverter" />
+								</p:outputLabel>
+								<p:outputLabel value="Tajuk pusat khidmat kontraktor:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.contractorServiceCenterTitle != null ? forestDevelopmentContractor.contractorServiceCenterTitle : 'Tiada'}" />
+								<p:outputLabel value="No. sijil pendaftaran PKK:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.pkkRegistrationCertificateNo != null ? forestDevelopmentContractor.pkkRegistrationCertificateNo : 'Tiada'}" />
+								<p:outputLabel value="No. pendaftaran CIDB:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.cidbRegistrationNo != null ? forestDevelopmentContractor.cidbRegistrationNo : 'Tiada'}" />
+								<p:outputLabel value="Bilangan pekerja pengurusan:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.managementStaffNo} orang" />
+								<p:outputLabel value="Bilangan pekerja penyeliaan:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.supervisionStaffNo} orang" />
+								<p:outputLabel value="Bilangan pekerja mahir:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.skilledStaffNo} orang" />
+								<p:outputLabel value="Bilangan pekerja tidak mahir:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.unSkilledStaffNo} orang" />
+								<p:outputLabel value="Bilangan pekerja lain-lain:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.othersStaffNo} orang" />
+								<p:outputLabel value="Penerangan mesin:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.machineryDescription != null ? forestDevelopmentContractor.machineryDescription : 'Tiada'}" />
+								<p:outputLabel value="Pengalaman lampau:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.previousExperience != null ? forestDevelopmentContractor.previousExperience : 'Tiada'}" />
+
+
+								<p:outputLabel value="Pegawai rekod:" />
+								<p:outputLabel
+									value="#{forestDevelopmentContractor.recorderName}" />
+								<p:outputLabel value="Masa rekod:" />
+								<p:outputLabel value="#{forestDevelopmentContractor.recordTime}">
+									<f:convertDateTime type="time" dateStyle="full" />
+								</p:outputLabel>
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{forestDevelopmentContractorMBean.forestDevelopmentContractors == null ? 0 : forestDevelopmentContractorMBean.forestDevelopmentContractors.size()} kontraktor pembangunan hutan direkodkan.</f:facet>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				style="">
+				<p:commandButton value="Ya" type="button"
+					styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+				<p:commandButton value="Tidak" type="button"
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:scrollPanel style="max-height: 300px; border: none;">
+					<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+						styleClass="ui-fluid ui-panelgrid-blank form-group"
+						columnClasses="ui-grid-col-3,ui-grid-col-9">
+						<p:outputLabel for="receiptID" value="Resit:"
+							rendered="#{forestDevelopmentContractorMBean.forestDevelopmentContractor != null and forestDevelopmentContractorMBean.addOperation == true}" />
+						<p:selectOneMenu id="receiptID"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.receiptID}"
+							required="true" requiredMessage="Resit diperlukan." filter="true"
+							filterMatchMode="contains" onchange="PF('popup').initPosition()"
+							rendered="#{forestDevelopmentContractorMBean.forestDevelopmentContractor != null and forestDevelopmentContractorMBean.addOperation == true}">
+							<f:selectItem itemLabel="- pilih resit -" itemValue="#{null}" />
+							<f:selectItems
+								value="#{forestDevelopmentContractorMBean.receipts}"
+								var="receipt" itemLabel="#{receipt}"
+								itemValue="#{receipt.receiptID}" />
+							<p:ajax event="change" update="grid" listener="#{forestDevelopmentContractorMBean.handleReceiptIDChange}" />
+						</p:selectOneMenu>
+						<p:outputLabel for="registrationNo"
+							value="No. pendaftaran syarikat:"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}" />
+						<p:inputText id="registrationNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.registrationNo}"
+							required="true"
+							requiredMessage="No. pendaftaran syarikat diperlukan."
+							validatorMessage="No. pendaftaran syarikat mestilah 50 aksara dan ke bawah."
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}">
+							<f:validateLength maximum="50" />
+							<p:clientValidator />
+						</p:inputText>
+
+						<p:outputLabel for="name" value="Nama:" />
+						<p:inputText id="name"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.name}"
+							required="true" requiredMessage="Nama diperlukan."
+							validatorMessage="Nama mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="icNo" value="No. IC:" />
+						<p:inputText id="icNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.icNo}"
+							required="true" requiredMessage="No. IC diperlukan."
+							validatorMessage="No. IC mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="companyName" value="Nama syarikat:" />
+						<p:inputText id="companyName"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.companyName}"
+							required="true" requiredMessage="Nama syarikat diperlukan."
+							validatorMessage="Nama syarikat mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="address" value="Alamat:" />
+						<p:inputText id="address"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.address}"
+							required="true" requiredMessage="Alamat diperlukan."
+							validatorMessage="Alamat mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="registeredAddress" value="Alamat berdaftar:" />
+						<p:inputText id="registeredAddress"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.registeredAddress}"
+							required="true" requiredMessage="Alamat diperlukan."
+							validatorMessage="Alamat berdaftar mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="stateID" value="Negeri:" />
+						<p:selectOneMenu id="stateID"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.stateID}"
+							required="true" requiredMessage="Negeri diperlukan."
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popup').initPosition()"
+							rendered="#{forestDevelopmentContractorMBean.forestDevelopmentContractor != null}">
+							<f:selectItem itemLabel="- pilih negeri -" itemValue="#{null}" />
+							<f:selectItems value="#{forestDevelopmentContractorMBean.states}"
+								var="state" itemLabel="#{state}" itemValue="#{state.stateID}" />
+
+						</p:selectOneMenu>
+						<p:outputLabel for="telNo" value="No. telefon:" />
+						<p:inputText id="telNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.telNo}"
+							validatorMessage="No. telefon mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="hpNo" value="No. telefon bimbit:" />
+						<p:inputText id="hpNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.hpNo}"
+							validatorMessage="No. telefon bimbit mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="licenseStatusID" value="Status lesen:" />
+						<p:selectOneMenu id="licenseStatusID"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.licenseStatusID}"
+							required="true" requiredMessage="Status lesen diperlukan."
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popup').initPosition()"
+							rendered="#{forestDevelopmentContractorMBean.forestDevelopmentContractor != null}">
+							<f:selectItem itemLabel="- pilih status lesen -"
+								itemValue="#{null}" />
+							<f:selectItems
+								value="#{forestDevelopmentContractorMBean.licenseStatuses}"
+								var="licenseStatus" itemLabel="#{licenseStatus}"
+								itemValue="#{licenseStatus.licenseStatusID}" />
+						</p:selectOneMenu>
+						<p:outputLabel for="startDate" value="Tarikh Kuatkuasa:"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}" />
+						<p:calendar id="startDate" pattern="dd/MM/yyyy"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.startDate}"
+							required="true" requiredMessage="Tarikh kuatkuasa diperlukan"
+							readonlyInput="true"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}">
+						</p:calendar>
+						<p:outputLabel for="duration" value="Jangkamasa:"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}" />
+						<p:selectOneMenu id="duration"
+							value="#{forestDevelopmentContractorMBean.duration}"
+							required="true" requiredMessage="Jangkamasa diperlukan."
+							filter="true" filterMatchMode="contains"
+							onchange="PF('popup').initPosition()"
+							rendered="#{forestDevelopmentContractorMBean.addOperation == true}" >
+							<f:selectItem itemLabel="- pilih tempoh -" itemValue="#{null}" />
+							<f:selectItem itemLabel="1 bulan" itemValue="1" />
+							<f:selectItem itemLabel="2 bulan" itemValue="2" />
+							<f:selectItem itemLabel="3 bulan" itemValue="3" />
+							<f:selectItem itemLabel="4 bulan" itemValue="4" />
+							<f:selectItem itemLabel="5 bulan" itemValue="5" />
+							<f:selectItem itemLabel="6 bulan" itemValue="6" />
+							<f:selectItem itemLabel="7 bulan" itemValue="7" />
+							<f:selectItem itemLabel="8 bulan" itemValue="8" />
+							<f:selectItem itemLabel="9 bulan" itemValue="9" />
+							<f:selectItem itemLabel="10 bulan" itemValue="10" />
+							<f:selectItem itemLabel="11 bulan" itemValue="11" />
+							<f:selectItem itemLabel="12 bulan" itemValue="12" />
+						</p:selectOneMenu>
+						<p:outputLabel for="contractorServiceCenterTitle"
+							value="Tajuk pusat khidmat kontraktor:" />
+						<p:inputText id="contractorServiceCenterTitle"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.contractorServiceCenterTitle}"
+							validatorMessage="Tajuk pusat khidmat kontraktor mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="pkkRegistrationCertificateNo"
+							value="No. sijil pendaftaran PKK:" />
+						<p:inputText id="pkkRegistrationCertificateNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.pkkRegistrationCertificateNo}"
+							validatorMessage="No. sijil pendaftaran PKK mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="cidbRegistrationNo"
+							value="No. pendaftaran CIDB:" />
+						<p:inputText id="cidbRegistrationNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.cidbRegistrationNo}"
+							validatorMessage="No. pendaftaran CIDB mestilah 20 aksara dan ke bawah.">
+							<f:validateLength maximum="20" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="managementStaffNo"
+							value="Bil. pekerja pengurusan:" />
+						<p:inputNumber id="managementStaffNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.managementStaffNo}"
+							required="true" requiredMessage="Gandaan royalti diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="supervisionStaffNo"
+							value="Bil. pekerja penyeliaan:" />
+						<p:inputNumber id="supervisionStaffNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.supervisionStaffNo}"
+							required="true" requiredMessage="Gandaan royalti diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="skilledStaffNo" value="Bil. pekerja mahir:" />
+						<p:inputNumber id="skilledStaffNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.skilledStaffNo}"
+							required="true" requiredMessage="Gandaan royalti diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="unSkilledStaffNo"
+							value="Bil. pekerja tidak mahir:" />
+						<p:inputNumber id="unSkilledStaffNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.unSkilledStaffNo}"
+							required="true" requiredMessage="Gandaan royalti diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="othersStaffNo" value="Bil. pekerja lain-lain:" />
+						<p:inputNumber id="othersStaffNo"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.othersStaffNo}"
+							required="true" requiredMessage="Gandaan royalti diperlukan."
+							decimalPlaces="0">
+							<p:clientValidator />
+						</p:inputNumber>
+						<p:outputLabel for="machineryDescription"
+							value="Penerangan mesin:" />
+						<p:inputText id="machineryDescription"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.machineryDescription}"
+							validatorMessage="Penerangan mesin mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+						<p:outputLabel for="previousExperience"
+							value="Pengalaman sebelum ini:" />
+						<p:inputText id="previousExperience"
+							value="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.previousExperience}"
+							validatorMessage="Pengalaman sebelum ini mestilah 100 aksara dan ke bawah.">
+							<f:validateLength maximum="100" />
+							<p:clientValidator />
+						</p:inputText>
+					</p:panelGrid>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{forestDevelopmentContractorMBean.forestDevelopmentContractorEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide();" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmProcess">
+			<p:dialog id="popupProcess" widgetVar="popupProcess" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="1" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group">
+					<p:outputLabel
+						value="Adakah anda pasti ingin #{forestDevelopmentContractorMBean.message} kontraktor pembangunan hutan ini?" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel
+						value="No. kontraktor pembangunan hutan : #{forestDevelopmentContractorMBean.forestDevelopmentContractor.registeredBusinessNo}" />
+					<p:outputLabel value="" />
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Batal" icon="ui-icon-save"
+							action="#{forestDevelopmentContractorMBean.cancelForestDevelopmentContractor}"
+							update=":frmManager messages"
+							oncomplete="PF('popupProcess').initPosition()"
+							validateClient="true" styleClass="save-btn"
+							rendered="#{forestDevelopmentContractorMBean.forestDevelopmentContractor.status == 'A'}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupProcess').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

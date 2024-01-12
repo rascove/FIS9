@@ -1,0 +1,680 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="../../template.xhtml">
+	<ui:define name="menu">
+		<ui:include src="../menu.xhtml" />
+	</ui:define>
+	<ui:define name="content">
+		<h:form id="frmManager" style="overflow: visible">
+			<p:growl id="growl" showDetail="true" showSummary="false"
+				globalOnly="true" life="5000" />
+			<p:dataTable id="table" widgetVar="list" var="tagging"
+				value="#{taggingMBean.taggings}" reflow="true"
+				emptyMessage="Tiada sesi penandaan direkodkan."
+				paginator="#{taggingMBean.taggings.size() gt 20}" rows="30"
+				rowsPerPageTemplate="10,30,50,100"
+				paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+				currentPageReportTemplate="({currentPage} dari {totalPages})"
+				rowExpandMode="single">
+				<f:facet name="header">
+					<table>
+						<tr>
+							<td style="border: 0px; text-align: left; padding: 8px 0px;">
+								<p:selectOneMenu id="yearRange"
+									value="#{taggingMBean.selectedYearRange}" required="true"
+									requiredMessage="Sila pilih tahun." filter="true"
+									filterMatchMode="contains" styleClass="table-filter">
+									<f:selectItem itemLabel="- pilih tahun -" itemValue="#{null}" />
+									<f:selectItems value="#{taggingMBean.yearList}" />
+									<p:ajax update="frmManager :frmUpload" event="change"
+										listener="#{taggingMBean.handleYearChange}" />
+								</p:selectOneMenu>
+							</td>
+							<td style="border: 0px; text-align: right; padding: 8px 0px;"><p:commandButton
+									value="Muat naik sesi penandaan" icon="ui-icon-file-upload"
+									oncomplete="PF('popupUpload').show()" process="@this"
+									styleClass="secondary flat"
+									rendered="#{taggingMBean.accessLevel gt 1}">
+									<p:resetInput target=":frmUpload" />
+								</p:commandButton> <p:commandButton value="Tambah sesi penandaan"
+									icon="ui-icon-add" update=":frmEntry"
+									action="#{taggingMBean.handleOpen}"
+									oncomplete="PF('popup').show()" process="@this"
+									styleClass="secondary flat"
+									rendered="#{taggingMBean.accessLevel lt 2}">
+									<f:setPropertyActionListener value="true"
+										target="#{taggingMBean.addOperation}" />
+									<f:setPropertyActionListener value="popup"
+										target="#{taggingMBean.popupName}" />
+									<p:resetInput target=":frmEntry" />
+								</p:commandButton></td>
+						</tr>
+					</table>
+				</f:facet>
+				<p:column styleClass="row-toggler-column">
+					<p:rowToggler />
+				</p:column>
+				<p:column headerText="Hutan Simpan" sortBy="#{tagging.forestName}"
+					filterBy="#{tagging.forestID}" filterMatchMode="exact">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()" filter="true">
+							<f:selectItem itemLabel="Semua hutan simpan" itemValue="" />
+							<f:selectItems value="#{taggingMBean.forestList}" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="#{tagging.forestName}" />
+				</p:column>
+				<p:column headerText="No. Kompatmen/Blok"
+					sortBy="#{tagging.comptBlockNo}" filterBy="#{tagging.comptBlockNo}"
+					filterMatchMode="contains">
+					<h:outputText value="#{tagging.comptBlockNo}" />
+				</p:column>
+				<p:column headerText="Keluasan" sortBy="#{tagging.area}"
+					filterBy="#{tagging.area}" filterMatchMode="contains">
+					<h:outputText value="#{tagging.area} ha" />
+				</p:column>
+				<p:column headerText="Tahun" sortBy="#{tagging.year}"
+					filterBy="#{tagging.year}" filterMatchMode="contains">
+					<h:outputText value="#{tagging.year}" />
+				</p:column>
+				<p:column headerText="Tarikh Kerja" sortBy="#{tagging.startDate}"
+					filterBy="#{tagging.startDate} #{tagging.endDate}"
+					filterMatchMode="contains">
+					<p:outputPanel rendered="#{tagging.startDate != null}">
+						<h:outputText value="#{tagging.startDate}">
+							<f:converter converterId="dateConverter" />
+						</h:outputText>
+						-
+						<h:outputText value="#{tagging.endDate}">
+							<f:converter converterId="dateConverter" />
+						</h:outputText>
+					</p:outputPanel>
+					<h:outputText value="Belum ditentukan"
+						rendered="#{tagging.startDate == null}" />
+				</p:column>
+				<p:column headerText="Status" sortBy="#{tagging.open}"
+					filterBy="#{tagging.open}" filterMatchMode="contains">
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('list').filter()">
+							<f:selectItem itemLabel="- pilih status -" itemValue="" />
+							<f:selectItem itemLabel="Buka" itemValue="true" />
+							<f:selectItem itemLabel="Tutup" itemValue="false" />
+						</p:selectOneMenu>
+					</f:facet>
+					<h:outputText value="#{tagging.open ? 'Buka' : 'Tutup'}" />
+				</p:column>
+				<p:column headerText="Pilihan" style="text-align: center">
+					<p:menuButton value="Pilihan" iconPos="right"
+						rendered="#{taggingMBean.accessLevel != 3 and taggingMBean.accessLevel != 5 or taggingMBean.accessLevel == 3 and tagging.hallID != 0 or taggingMBean.accessLevel == 5 and tagging.teamLeaderID == userMBean.user.staffID}">
+						<p:menuitem value="Kemaskini sesi penandaan" icon="ui-icon-edit"
+							update=":frmEntry" action="#{taggingMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							rendered="#{taggingMBean.accessLevel lt 2}">
+							<f:setPropertyActionListener value="false"
+								target="#{taggingMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<f:setPropertyActionListener value="popup"
+								target="#{taggingMBean.popupName}" />
+							<p:resetInput target=":frmEntry" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini sesi penandaan" icon="ui-icon-edit"
+							update=":frmEntrySub" action="#{taggingMBean.handleOpen}"
+							oncomplete="PF('popup').show()" process="@this"
+							rendered="#{taggingMBean.accessLevel == 2 and tagging.open}">
+							<f:setPropertyActionListener value="false"
+								target="#{taggingMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<f:setPropertyActionListener value="popup"
+								target="#{taggingMBean.popupName}" />
+							<p:resetInput target=":frmEntrySub" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini sesi penandaan" icon="ui-icon-edit"
+							update=":frmEntrySub" action="#{taggingMBean.handleOpenConfig1}"
+							oncomplete="PF('popup').show()" process="@this"
+							rendered="#{(taggingMBean.accessLevel == 4 or taggingMBean.accessLevel == 6) and tagging.open}">
+							<f:setPropertyActionListener value="false"
+								target="#{taggingMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<f:setPropertyActionListener value="popup"
+								target="#{taggingMBean.popupName}" />
+							<p:resetInput target=":frmEntrySub" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini pengecualian had tebangan"
+							icon="ui-icon-edit" update=":frmEntryLimit"
+							action="#{taggingMBean.handleOpenTaggingLimitException}"
+							oncomplete="PF('popupLimit').show()" process="@this"
+							rendered="#{taggingMBean.accessLevel lt 2}">
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<p:resetInput target=":frmEntryLimit" />
+						</p:menuitem>
+						<p:menuitem value="Kemaskini pegawai rekod kod"
+							icon="ui-icon-group" update=":frmEntryStaff"
+							action="#{taggingMBean.handleOpenConfig2}"
+							oncomplete="PF('#{taggingMBean.accessLevel == 4 ? 'popupStaff' : 'popup'}').show()"
+							process="@this"
+							rendered="#{tagging.open and tagging.teamLeaderID == userMBean.user.staffID}">
+							<f:setPropertyActionListener value="false"
+								target="#{taggingMBean.addOperation}" />
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<f:setPropertyActionListener
+								value="#{taggingMBean.accessLevel == 4 ? 'popupStaff' : 'popup'}"
+								target="#{taggingMBean.popupName}" />
+							<p:resetInput target=":frmEntryStaff" />
+						</p:menuitem>
+						<p:menuitem
+							value="#{taggingMBean.accessLevel gt 3 ? 'Kemaskini' : 'Papar'} kod pengesahan pengecualian had tebangan"
+							icon="ui-icon-edit" update=":frmEntryCode"
+							action="#{taggingMBean.handleOpenCode}"
+							oncomplete="PF('popupCode').show()" process="@this"
+							rendered="#{not empty tagging.taggingLimitExceptions and taggingMBean.accessLevel gt 1 and taggingMBean.accessLevel lt 4 or taggingMBean.accessLevel gt 3 and taggingMBean.accessLevel lt 7}">
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<p:resetInput target=":frmEntryCode" />
+						</p:menuitem>
+						<p:menuitem value="Muat naik pelan kerja"
+							icon="ui-icon-file-upload" oncomplete="PF('popupUpload2').show()"
+							process="@this"
+							rendered="#{tagging.open and (taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 3)}">
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<p:resetInput target=":frmUpload2" />
+						</p:menuitem>
+						<p:menuitem value="Muat naik peta stok" icon="ui-icon-file-upload"
+							oncomplete="PF('popupUpload3').show()" process="@this"
+							rendered="#{tagging.open and (taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 3)}">
+							<f:setPropertyActionListener value="#{tagging}"
+								target="#{taggingMBean.tagging}" />
+							<p:resetInput target=":frmUpload3" />
+						</p:menuitem>
+						<p:menuitem
+							value="Muat turun surat #{tagging.open ? 'buka' : 'tutup'} sesi penandaan"
+							icon="ui-icon-picture-as-pdf" ajax="false"
+							rendered="#{taggingMBean.accessLevel lt 3}">
+							<p:fileDownload value="#{taggingMBean.download(tagging, 1)}" />
+						</p:menuitem>
+						<p:menuitem value="Muat turun surat kerja sesi penandaan"
+							icon="ui-icon-picture-as-pdf" ajax="false"
+							rendered="#{(taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 3 or taggingMBean.accessLevel == 4) and tagging.hallID != 0 and tagging.tenderNo == null}">
+							<p:fileDownload value="#{taggingMBean.download(tagging, 2)}" />
+						</p:menuitem>
+						<p:menuitem value="Muat turun surat lantikan ketua pasukan"
+							icon="ui-icon-picture-as-pdf" ajax="false"
+							rendered="#{taggingMBean.accessLevel == 4 and tagging.teamLeaderID != null or tagging.teamLeaderID == userMBean.user.staffID}">
+							<p:fileDownload value="#{taggingMBean.download(tagging, 3)}" />
+						</p:menuitem>
+						<p:menuitem value="Muat turun sesi penandaan"
+							icon="ui-icon-file-download" ajax="false"
+							rendered="#{taggingMBean.accessLevel lt 2 or (taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 3) and tagging.hallID != 0 and tagging.planUploaded or taggingMBean.accessLevel == 4 and tagging.teamLeaderID != null and not empty tagging.hammers or taggingMBean.accessLevel == 5 and tagging.teamLeaderID == userMBean.user.staffID and not empty tagging.recorders}">
+							<p:fileDownload value="#{taggingMBean.download(tagging, 0)}" />
+						</p:menuitem>
+					</p:menuButton>
+					<h:outputText value="Tiada pilihan tersedia"
+						rendered="#{taggingMBean.accessLevel == 3 and tagging.hallID == 0 or taggingMBean.accessLevel == 5 and tagging.teamLeaderID != userMBean.user.staffID}" />
+				</p:column>
+				<p:rowExpansion>
+					<div class="ui-g-12 ui-md-12">
+						<p:fieldset style="background-color: white">
+							<p:panelGrid id="grid" columns="2" cellpadding="5" layout="grid"
+								styleClass="ui-fluid ui-panelgrid-blank form-group"
+								columnClasses="ui-grid-col-3,ui-grid-col-9">
+								<p:outputLabel value="Daerah hutan:" />
+								<p:outputLabel value="#{tagging.districtName}" />
+								<p:outputLabel value="Renj hutan:" />
+								<p:outputLabel
+									value="#{tagging.rangeID != 0 ? tagging.rangeName : 'Belum ditentukan'}" />
+								<p:outputLabel value="Balai pemeriksa hutan:" />
+								<p:outputLabel
+									value="#{tagging.hallID != 0 ? tagging.hallName : 'Belum ditentukan'}" />
+								<p:outputLabel value="Ketua pasukan:"
+									rendered="#{tagging.tenderNo == null}" />
+								<p:outputLabel
+									value="#{tagging.teamLeaderID != null ? tagging.teamLeaderName : 'Belum ditentukan'}"
+									rendered="#{tagging.tenderNo == null}" />
+								<p:outputLabel value="Pegawai rekod kod:"
+									rendered="#{tagging.tenderNo == null}" />
+								<p:outputLabel value="Belum ditentukan"
+									rendered="#{tagging.tenderNo == null and empty tagging.recorders}" />
+								<p:repeat value="#{tagging.recorders}" var="recorder"
+									rendered="#{tagging.tenderNo == null and not empty tagging.recorders}">
+									<p:outputLabel value="#{recorder.name}" />
+									<br />
+								</p:repeat>
+								<p:outputLabel value="Tukul tanda jabatan:"
+									rendered="#{tagging.tenderNo == null}" />
+								<p:outputLabel value="Belum ditentukan"
+									rendered="#{tagging.tenderNo == null and empty tagging.hammers}" />
+								<p:repeat value="#{tagging.hammers}" var="hammer"
+									rendered="#{tagging.tenderNo == null and not empty tagging.hammers}">
+									<p:outputLabel value="#{hammer.hammerNo}" />
+									<br />
+								</p:repeat>
+								<p:outputLabel value="Pengecualian had pokok tebangan:"
+									rendered="#{not empty tagging.taggingLimitExceptions}" />
+								<p:repeat value="#{tagging.taggingLimitExceptions}"
+									var="taggingLimitException"
+									rendered="#{not empty tagging.taggingLimitExceptions}">
+									<p:outputLabel
+										value="Blok #{taggingLimitException.blockNo}, petak #{taggingLimitException.plotNo}: #{taggingLimitException.quantity} pokok" />
+									<br />
+								</p:repeat>
+								<p:outputLabel value="No. sebut harga:"
+									rendered="#{tagging.tenderNo != null}" />
+								<p:outputLabel value="#{tagging.tenderNo}"
+									rendered="#{tagging.tenderNo != null}" />
+								<p:outputLabel value="Had tebangan dipterokarp:" />
+								<p:outputLabel value="#{tagging.dipterocarpLimit} cm" />
+								<p:outputLabel value="Had tebangan bukan dipterokarp:" />
+								<p:outputLabel value="#{tagging.nonDipterocarpLimit} cm" />
+								<p:outputLabel value="Had isipadu kompartmen:" />
+								<p:outputLabel
+									value="#{tagging.grossVolumeLimit * tagging.area} m&#x00B3; (kasar), #{tagging.netVolumeLimit * tagging.area} m&#x00B3; (bersih)" />
+								<p:outputLabel value="Pelan kerja:"
+									rendered="#{tagging.planUploaded}" />
+								<p:button value="Lihat pelan kerja"
+									href="../files/tagging/pelan_#{tagging.taggingID}.png"
+									target="_blank" rendered="#{tagging.planUploaded}" />
+								<p:outputLabel value="Peta stok:"
+									rendered="#{tagging.stockUploaded}" />
+								<p:button value="Lihat peta stok"
+									href="../files/tagging/stok_#{tagging.taggingID}.png"
+									target="_blank" rendered="#{tagging.stockUploaded}" />
+							</p:panelGrid>
+						</p:fieldset>
+					</div>
+				</p:rowExpansion>
+				<f:facet name="footer">#{taggingMBean.taggings.size()} sesi penandaan direkodkan.</f:facet>
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+	<ui:define name="dialog">
+		<h:form id="frmEntry">
+			<p:dialog id="popup" widgetVar="popup" modal="true" responsive="true"
+				resizable="false" draggable="false" closable="false"
+				showHeader="false" showEffect="fade" hideEffect="fade" width="90%"
+				rendered="#{taggingMBean.accessLevel lt 2}">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="taggingID" value="Sesi bancian:"
+						rendered="#{userMBean.user.stateID != 0 and taggingMBean.addOperation}" />
+					<p:selectOneMenu id="taggingID"
+						value="#{taggingMBean.tagging.preFellingSurveyID}" required="true"
+						requiredMessage="Sesi bancian diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{taggingMBean.tagging != null and userMBean.user.stateID != 0 and taggingMBean.addOperation}">
+						<f:selectItem itemLabel="- pilih sesi bancian -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{taggingMBean.preFellingSurveys}"
+							var="preFellingSurvey" itemLabel="#{preFellingSurvey}"
+							itemValue="#{preFellingSurvey.preFellingSurveyID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="taggingIDAdmin" value="Sesi bancian:"
+						rendered="#{userMBean.user.stateID == 0 and taggingMBean.addOperation}" />
+					<p:selectOneMenu id="taggingIDAdmin"
+						value="#{taggingMBean.tagging.preFellingSurveyID}" required="true"
+						requiredMessage="Sesi bancian diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{taggingMBean.tagging != null and userMBean.user.stateID == 0 and taggingMBean.addOperation}">
+						<f:selectItem itemLabel="- pilih sesi bancian -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{taggingMBean.preFellingSurveys}"
+							var="preFellingSurvey" itemLabel="#{preFellingSurvey}"
+							itemValue="#{preFellingSurvey.preFellingSurveyID}" />
+						<p:ajax update="tenderNo" event="change"
+							listener="#{taggingMBean.handlePreFellingSurveyIDChange}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="year" value="Tahun:" />
+					<p:inputNumber id="year" value="#{taggingMBean.tagging.year}"
+						required="true" requiredMessage="Tahun diperlukan."
+						decimalPlaces="0" decimalSeparator="" thousandSeparator="">
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="grossVolumeLimit" value="Had isipadu kasar:" />
+					<p:inputNumber id="grossVolumeLimit"
+						value="#{taggingMBean.tagging.grossVolumeLimit}" required="true"
+						requiredMessage="Had isipadu kasar per hektar diperlukan."
+						validatorMessage="Nilai minimum had isipadu kasar per hektar ialah 1.0 m&#x00B3;/ha."
+						symbol=" m&#x00B3;/ha" symbolPosition="s">
+						<f:validateDoubleRange minimum="1" />
+						<p:ajax event="change" update="netVolumeLimit" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="netVolumeLimit" value="Had isipadu bersih:" />
+					<p:inputNumber id="netVolumeLimit"
+						value="#{taggingMBean.tagging.netVolumeLimit}"
+						validatorMessage="Nilai had isipadu bersih per hektar mestilah kurang dari #{taggingMBean.tagging.grossVolumeLimit} m&#x00B3;/ha."
+						symbol=" m&#x00B3;/ha" symbolPosition="s">
+						<f:validateDoubleRange
+							maximum="#{taggingMBean.tagging.grossVolumeLimit}" />
+						<p:clientValidator />
+					</p:inputNumber>
+					<p:outputLabel for="tenderNo" value="No. sebut harga:" />
+					<p:selectOneMenu id="tenderNo"
+						value="#{taggingMBean.tagging.tenderNo}" filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{taggingMBean.tagging != null}">
+						<f:selectItem itemLabel="- pilih no. sebut harga -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{taggingMBean.tenders}" var="tender"
+							itemLabel="#{tender.tenderNo} - #{tender.contractorName}"
+							itemValue="#{staff.tenderNo}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="status" value="Status:"
+						rendered="#{not taggingMBean.addOperation}" />
+					<p:selectOneRadio id="status" value="#{taggingMBean.tagging.open}"
+						required="true" requiredMessage="Status diperlukan."
+						rendered="#{not taggingMBean.addOperation}">
+						<f:selectItem itemLabel="Buka" itemValue="true" />
+						<f:selectItem itemLabel="Tutup" itemValue="false" />
+					</p:selectOneRadio>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{taggingMBean.taggingEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntrySub">
+			<p:dialog id="popupSub" widgetVar="popup" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%"
+				rendered="#{taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 4 or taggingMBean.accessLevel == 6}">
+				<p:messages id="messages" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9"
+					rendered="#{taggingMBean.accessLevel == 2}">
+					<p:outputLabel for="hallID" value="Balai pemeriksa hutan:" />
+					<p:selectOneMenu id="hallID" value="#{taggingMBean.tagging.hallID}"
+						required="true"
+						requiredMessage="Balai pemeriksa hutan diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{taggingMBean.tagging != null}">
+						<f:selectItem itemLabel="- pilih balai pemeriksa hutan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{taggingMBean.halls}" var="hall"
+							itemLabel="#{hall}" itemValue="#{hall.hallID}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="startDate" value="Tarikh mula"
+						rendered="#{taggingMBean.accessLevel == 2}" />
+					<p:calendar id="startDate" pattern="dd/MM/yyyy"
+						value="#{taggingMBean.tagging.startDate}" required="true"
+						requiredMessage="Tarikh mula diperlukan" readonlyInput="true"
+						rendered="#{taggingMBean.accessLevel == 2}">
+						<p:ajax event="dateSelect" update="endDate"
+							listener="#{taggingMBean.doNothing}" />
+					</p:calendar>
+					<p:outputLabel for="endDate" value="Tarikh tamat"
+						rendered="#{taggingMBean.accessLevel == 2}" />
+					<p:calendar id="endDate" pattern="dd/MM/yyyy"
+						value="#{taggingMBean.tagging.endDate}" required="true"
+						requiredMessage="Tarikh tamat diperlukan" readonlyInput="true"
+						mindate="#{taggingMBean.tagging.startDate}"
+						rendered="#{taggingMBean.accessLevel == 2}" />
+				</p:panelGrid>
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9"
+					rendered="#{taggingMBean.accessLevel == 4 or taggingMBean.accessLevel == 6}">
+					<p:outputLabel for="teamLeaderID" value="Ketua pasukan:"
+						rendered="#{taggingMBean.accessLevel == 4}" />
+					<p:selectOneMenu id="teamLeaderID"
+						value="#{taggingMBean.tagging.teamLeaderID}" required="true"
+						requiredMessage="Ketua pasukan diperlukan." filter="true"
+						filterMatchMode="contains" onchange="PF('popup').initPosition()"
+						rendered="#{taggingMBean.tagging != null and taggingMBean.accessLevel == 4}">
+						<f:selectItem itemLabel="- pilih ketua pasukan -"
+							itemValue="#{null}" />
+						<f:selectItems value="#{taggingMBean.staffList}" />
+					</p:selectOneMenu>
+					<p:outputLabel for="hammerList" value="Tukul tanda:" />
+					<p:selectManyCheckbox id="hammerList"
+						value="#{taggingMBean.selectedHammers}" layout="responsive"
+						columns="3" required="true"
+						requiredMessage="Sila pilih tukul tanda.">
+						<f:selectItems value="#{taggingMBean.hammerList}" />
+					</p:selectManyCheckbox>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{taggingMBean.taggingEntry}"
+							update=":frmManager messages"
+							oncomplete="PF('popup').initPosition()" validateClient="true"
+							styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popup').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryStaff">
+			<p:dialog id="popupStaff" widgetVar="#{taggingMBean.popupName}"
+				modal="true" responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade" width="90%"
+				rendered="#{taggingMBean.tagging != null and taggingMBean.tagging.teamLeaderID == userMBean.user.staffID}">
+				<p:messages id="messagesStaff" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:scrollPanel style="max-height: 400px; border: none;">
+					<p:selectManyCheckbox id="staffList"
+						value="#{taggingMBean.selectedStaffs}" layout="pageDirection"
+						columns="1" required="true"
+						requiredMessage="Sila pilih pegawai rekod kod.">
+						<f:selectItems value="#{taggingMBean.staffList}" />
+					</p:selectManyCheckbox>
+				</p:scrollPanel>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{taggingMBean.taggingEntry}"
+							update=":frmManager messagesStaff"
+							oncomplete="PF('#{taggingMBean.popupName}').initPosition()"
+							validateClient="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('#{taggingMBean.popupName}').hide()"
+							styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload" enctype="multipart/form-data">
+			<p:dialog id="popupUpload" widgetVar="popupUpload" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload fileUploadListener="#{taggingMBean.upload}"
+					label="Pilih #{taggingMBean.accessLevel == 5 ? 'CTOR atau CTOF' : taggingMBean.uptype.toUpperCase()} fail"
+					uploadLabel="Muat naik" cancelLabel="Batal"
+					fileLimitMessage="Hanya 1 fail sahaja yang dibenarkan untuk dimuat naik"
+					invalidFileMessage="Sila hantar fail #{taggingMBean.accessLevel == 5 ? 'CTOR atau CTOF' : taggingMBean.uptype.toUpperCase()} sahaja"
+					fileLimit="1" allowTypes="/(\.|\/)(#{taggingMBean.uptype})$/i"
+					dragDropSupport="true" update=":frmManager messagesUpload @this"
+					onstart="PF('popupUpload').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload2" enctype="multipart/form-data">
+			<p:dialog id="popupUpload2" widgetVar="popupUpload2" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload2" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload fileUploadListener="#{taggingMBean.uploadPlan}"
+					label="Pilih JPEG atau PNG fail" uploadLabel="Muat naik"
+					cancelLabel="Batal"
+					fileLimitMessage="Hanya 1 fail sahaja yang dibenarkan untuk dimuat naik"
+					invalidFileMessage="Sila hantar fail JPEG atau PNG sahaja"
+					fileLimit="1" allowTypes="/(\.|\/)(jpe?g|png)$/i"
+					dragDropSupport="true" update=":frmManager messagesUpload2 @this"
+					onstart="PF('popupUpload2').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload2').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload2').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload2').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmUpload3" enctype="multipart/form-data">
+			<p:dialog id="popupUpload3" widgetVar="popupUpload3" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%">
+				<p:messages id="messagesUpload3" showDetail="true"
+					showSummary="false" life="5000" redisplay="false" />
+				<p:fileUpload fileUploadListener="#{taggingMBean.uploadStock}"
+					label="Pilih JPEG atau PNG fail" uploadLabel="Muat naik"
+					cancelLabel="Batal"
+					fileLimitMessage="Hanya 1 fail sahaja yang dibenarkan untuk dimuat naik"
+					invalidFileMessage="Sila hantar fail JPEG atau PNG sahaja"
+					fileLimit="1" allowTypes="/(\.|\/)(jpe?g|png)$/i"
+					dragDropSupport="true" update=":frmManager messagesUpload3 @this"
+					onstart="PF('popupUpload3').initPosition(); PF('loading').show();"
+					oncomplete="PF('popupUpload3').hide(); PF('loading').hide();"
+					onerror="PF('popupUpload3').hide(); PF('loading').hide();" />
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupUpload3').hide()" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryLimit">
+			<p:dialog id="popupLimit" widgetVar="popupLimit" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%"
+				rendered="#{taggingMBean.accessLevel lt 2}">
+				<p:messages id="messagesLimit" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid id="limitGrid" columns="2" cellpadding="5"
+					layout="grid" styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="blockNo" value="No. blok:" />
+					<p:inputText id="blockNo"
+						value="#{taggingMBean.taggingLimitException.blockNo}"
+						required="true" requiredMessage="No. blok diperlukan">
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="blockNo" value="No. petak:" />
+					<p:inputText id="plotNo"
+						value="#{taggingMBean.taggingLimitException.plotNo}"
+						required="true" requiredMessage="No. petak diperlukan">
+						<p:clientValidator />
+					</p:inputText>
+					<p:outputLabel for="quantity" value="Bilangan:" />
+					<p:inputNumber id="quantity"
+						value="#{taggingMBean.taggingLimitException.quantity}"
+						required="true" requiredMessage="Bilangan diperlukan"
+						validatorMessage="Minimum bilangan ialah 1" minValue="1"
+						decimalPlaces="0">
+						<f:validateDoubleRange minimum="1" />
+						<p:clientValidator />
+					</p:inputNumber>
+				</p:panelGrid>
+				<div style="text-align: right">
+					<p:commandButton value="Tambah" icon="ui-icon-add"
+						update="taggingLimitExceptions limitGrid frmEntryLimit:messagesLimit"
+						action="#{taggingMBean.handleAddTaggingLimitException}"
+						oncomplete="PF('popupLimit').initPosition()" />
+				</div>
+				<p:separator />
+				<p:dataTable value="#{taggingMBean.tagging.taggingLimitExceptions}"
+					var="taggingLimitException" id="taggingLimitExceptions"
+					emptyMessage="Tiada pengecualian had pokok tebangan direkodkan."
+					scrollable="true" scrollHeight="200">
+					<f:facet name="header">Senarai Pengecualian Had Pokok Tebangan</f:facet>
+					<p:column headerText="No. Blok">
+						<h:outputText value="#{taggingLimitException.blockNo}" />
+					</p:column>
+					<p:column headerText="No. Petak">
+						<h:outputText value="#{taggingLimitException.plotNo}" />
+					</p:column>
+					<p:column headerText="Bilangan">
+						<h:outputText value="#{taggingLimitException.quantity}" />
+					</p:column>
+					<p:column headerText="Pilihan" style="text-align: center">
+						<p:commandLink value="Padam"
+							update="frmEntryLimit:taggingLimitExceptions" process="@this">
+							<p:collector value="#{taggingLimitException}"
+								removeFrom="#{taggingMBean.tagging.taggingLimitExceptions}"
+								unique="true" />
+						</p:commandLink>
+					</p:column>
+				</p:dataTable>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{taggingMBean.taggingLimitExceptionEntry}"
+							update=":frmManager messagesLimit" validateClient="true"
+							immediate="true" styleClass="save-btn" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupLimit').hide();" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+		<h:form id="frmEntryCode">
+			<p:dialog id="popupCode" widgetVar="popupCode" modal="true"
+				responsive="true" resizable="false" draggable="false"
+				closable="false" showHeader="false" showEffect="fade"
+				hideEffect="fade" width="90%"
+				rendered="#{taggingMBean.accessLevel gt 1 and taggingMBean.accessLevel lt 7}">
+				<p:messages id="messagesCode" showDetail="true" showSummary="false"
+					life="5000" redisplay="false" />
+				<p:panelGrid columns="2" cellpadding="5" layout="grid"
+					styleClass="ui-fluid ui-panelgrid-blank form-group"
+					columnClasses="ui-grid-col-3,ui-grid-col-9">
+					<p:outputLabel for="code" value="Kod pengesahan:" />
+					<p:inputTextarea id="code" value="#{taggingMBean.code}"
+						required="true" requiredMessage="Kod pengesahan diperlukan"
+						readonly="#{taggingMBean.accessLevel == 2 or taggingMBean.accessLevel == 3}">
+						<p:clientValidator />
+					</p:inputTextarea>
+				</p:panelGrid>
+				<f:facet name="footer">
+					<div style="text-align: right; margin: 8px 0px;">
+						<p:commandButton value="Hantar" icon="ui-icon-save"
+							action="#{taggingMBean.taggingCodeEntry}"
+							update=":frmManager messagesCode" validateClient="true"
+							styleClass="save-btn"
+							rendered="#{taggingMBean.accessLevel gt 3 and taggingMBean.accessLevel lt 7}" />
+						<p:commandButton value="Tutup" icon="ui-icon-block" type="button"
+							onclick="PF('popupCode').hide();" styleClass="close-btn" />
+					</div>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>
