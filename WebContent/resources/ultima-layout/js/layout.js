@@ -27,6 +27,10 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
         this.menuButtonClick = false;
         this.isMobileDev = this.isMobileDevice();
         this.isRTL = this.wrapper.hasClass('layout-rtl');
+
+        this.configButton = $('#layout-config-button');
+        this.configMenu = $('#layout-config');
+        this.configMenuClose = this.configMenu.find('> .layout-config-content > .layout-config-close');
         
         if(this.wrapper.hasClass('layout-menu-slim')) {
             this.profileButton = $('.profile');
@@ -34,9 +38,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
 
         this._bindEvents();
         
-        if(this.cfg.stateful && !this.wrapper.hasClass('menu-layout-horizontal') && !this.wrapper.hasClass('layout-menu-slim')) {
-            this.restoreMenuState();
-        }
+        this.restoreMenuState();
         
         var $this = this;
         this.menuWrapper.children('.nano').nanoScroller({flash:true, isRTL:$this.isRTL});
@@ -45,7 +47,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
     _bindEvents: function() {
         var $this = this;
         
-        this.menuWrapper.on('click', function(e) {
+        this.menuWrapper.off('click.menu').on('click.menu', function(e) {
             $this.menuClick = true;
         });
         
@@ -116,7 +118,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             e.preventDefault();
         });
         
-        this.rightPanelButton.on('click', function(e) {
+        this.rightPanelButton.off('click.rightpanel').on('click.rightpanel', function(e) {
             $this.rightPanelButtonClick = true;
             $this.rightPanel.toggleClass('layout-rightpanel-active');
             $this.closeOverlayMenu();
@@ -128,11 +130,11 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             e.preventDefault();
         });
         
-        this.rightPanel.on('click', function(e) {
+        this.rightPanel.off('click.rightpanel').on('click.rightpanel', function(e) {
             $this.rightPanelClick = true;
         });
         
-        this.menulinks.off('click').on('click', function(e) {
+        this.menulinks.off('click.menu').on('click.menu', function(e) {
             var link = $(this),
             item = link.parent(),
             submenu = item.children('ul'),
@@ -151,15 +153,15 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
                     }
                 }
                 else {
+                    $this.deactivateItems(item.siblings(), false);
                     item.addClass('active-menuitem');
                     $this.addMenuitem(item.attr('id'));
-                    $this.deactivateItems(item.siblings(), false);
                     submenu.show();
 
                     $this.updateSubPosOnSlimMenu(submenu, item);
                     
                     if(item.parent().is($this.jq)) {
-                        $this.menuActive = true;
+                        $this.menuWithdrawalStatus = '';
                     }
                 }
             }
@@ -187,7 +189,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
                     if(horizontal) {
                         $this.deactivateItems(item.siblings());
                         item.addClass('active-menuitem');
-                        $this.menuActive = true;
+                        $this.menuWithdrawalStatus = '';
                         submenu.show();
                     }
                     else {
@@ -215,7 +217,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             }
         });
         
-        this.menu.find('> li').on('mouseenter', function(e) {    
+        this.menu.find('> li').off('mouseenter.menu').on('mouseenter.menu', function(e) {    
             if(($this.isHorizontal() && $this.isDesktop()) || $this.isSlim()) {
                 var item = $(this);
                 
@@ -294,11 +296,13 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             e.preventDefault();         
         });
         
-        $this.topbarItems.children('.search-item').on('click', function(e) {
+        $this.topbarItems.children('.search-item').off('click.topbar').on('click.topbar', function(e) {
             $this.topbarLinkClick = true;
         });
+
+        this.bindConfigEvents();
         
-        $(document.body).off('click').on('click', function(e) {
+        $(document.body).off('click.layoutBody').on('click.layoutBody', function(e) {
             if(($this.isHorizontal() || $this.isSlim()) && !$this.menuClick && $this.isDesktop()) {
                 $this.menu.find('.active-menuitem').removeClass('active-menuitem');
                 $this.menu.find('ul:visible').hide();
@@ -321,6 +325,10 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             if(!$this.topbarMenuClick && !$this.topbarLinkClick) {
                 $this.topbarItems.removeClass('topbar-items-visible');
             }
+
+            if (!$this.configMenuClicked) {
+                $this.configMenu.removeClass('layout-config-active');
+            }
                         
             $this.menuClick = false;
             $this.menuButtonClick = false;
@@ -328,10 +336,28 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
             $this.topbarMenuClick = false;
             $this.rightPanelClick = false;
             $this.rightPanelButtonClick = false;
+            $this.configMenuClicked = false;
         });
     },
 
-    isDatePickerPanelClicked: function () {
+    bindConfigEvents: function() {
+        var $this = this;
+        var changeConfigMenuState = function(e) {
+            this.toggleClass(this.configMenu, 'layout-config-active');
+            
+            this.configMenuClicked = true;
+            e.preventDefault();
+        };
+        
+        this.configButton.off('click.config').on('click.config', changeConfigMenuState.bind(this));
+        this.configMenuClose.off('click.config').on('click.config', changeConfigMenuState.bind(this));
+        
+        this.configMenu.off('click.rightpanel').on('click.rightpanel', function() {
+            $this.configMenuClicked = true;
+        });
+    },
+
+    isDatePickerPanelClicked: function() {
         if ($.datepicker) {
             var input = $($.datepicker._lastInput);
             if (input.closest('.layout-rightpanel').length && $('#ui-datepicker-div').is(':visible')) {
@@ -429,6 +455,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
                     });
                 }
                 else {
+                    $this.removeMenuitem(item.attr('id'));
                     item.find('.active-menuitem').each(function() {
                         var subItem = $(this);
                         $this.deactivate(subItem);
@@ -468,6 +495,7 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
     },
     
     clearMenuState: function() {
+        this.expandedMenuitems = [];
         $.removeCookie('ultima_expandeditems', {path: '/'});
     },
     
@@ -479,29 +507,42 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
     },
     
     restoreMenuState: function() {
-        var menucookie = $.cookie('ultima_expandeditems');
-        if (menucookie) {
-            this.clearActiveItems();
-            
-            this.expandedMenuitems = menucookie.split(',');
-            for (var i = 0; i < this.expandedMenuitems.length; i++) {
-                var id = this.expandedMenuitems[i];
-                if (id) {
-                    var menuitem = $("#" + this.expandedMenuitems[i].replace(/:/g, "\\:"));
-                    menuitem.addClass('active-menuitem');
-                    
-                    var submenu = menuitem.children('ul');
-                    if(submenu.length) {
-                        submenu.show();
+        var isHorizontalMenu = this.wrapper.hasClass('menu-layout-horizontal');
+        var isSlimMenu = this.wrapper.hasClass('layout-menu-slim');
+
+        if (this.cfg.stateful && !isHorizontalMenu && !isSlimMenu) {
+            var menucookie = $.cookie('ultima_expandeditems');
+            if (menucookie) {
+                this.clearActiveItems();
+                
+                this.expandedMenuitems = menucookie.split(',');
+                for (var i = 0; i < this.expandedMenuitems.length; i++) {
+                    var id = this.expandedMenuitems[i];
+                    if (id) {
+                        var menuitem = $("#" + this.expandedMenuitems[i].replace(/:/g, "\\:"));
+                        menuitem.addClass('active-menuitem');
+                        
+                        var submenu = menuitem.children('ul');
+                        if(submenu.length) {
+                            submenu.show();
+                        }
                     }
                 }
             }
         }
-        
+            
         var inlineProfileCookie = $.cookie('ultima_inlineprofile_expanded');
         if (inlineProfileCookie) {
             this.profileMenu.show().prev('.profile').addClass('profile-expanded');
         }
+    },
+
+    clearLayoutState: function() {
+        this.clearMenuState();
+        this.clearActiveItems();
+
+        this.setInlineProfileState(false);
+        this.profileMenu.hide().prev('.profile').removeClass('profile-expanded');
     },
     
     enableModal: function() {
@@ -560,6 +601,15 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
     isMobileDevice: function() {
         return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(window.navigator.userAgent.toLowerCase());
     },
+
+    toggleClass: function(el, className) {
+        if (el.hasClass(className)) {
+            el.removeClass(className);
+        }
+        else {
+            el.addClass(className);
+        }
+    },
     
     clearActiveItems: function() {
         var activeItems = this.jq.find('li.active-menuitem'),
@@ -590,6 +640,119 @@ PrimeFaces.widget.Ultima = PrimeFaces.widget.BaseWidget.extend({
     }
     
 });
+
+PrimeFaces.UltimaConfigurator = {
+
+    changeLayout: function(layoutTheme) {
+        var linkElement = $('link[href*="layout-"');
+        var href = linkElement.attr('href');
+        var startIndexOf = href.indexOf('layout-') + 7;
+        var endIndexOf = href.indexOf('.css');
+        var currentColor = href.substring(startIndexOf, endIndexOf);
+
+        this.replaceLink(linkElement, href.replace('layout-' + currentColor, layoutTheme));
+    },
+
+    changeComponentsTheme: function(theme) {
+        var library = 'primefaces-ultima';
+        var linkElement = $('link[href*="theme.css"');
+        var href = linkElement.attr('href');
+        var index = href.indexOf(library) + 1;
+        var currentTheme = href.substring(index + library.length);
+        this.replaceLink(linkElement, href.replace(currentTheme, theme));
+        
+        this.changeLayout('layout-' + theme);
+    },
+
+    beforeResourceChange: function() {
+        PrimeFaces.ajax.RESOURCE = null;    //prevent resource append
+    },
+    
+    replaceLink: function(linkElement, href) {
+        PrimeFaces.ajax.RESOURCE = 'javax.faces.Resource';
+        
+        var isIE = this.isIE();
+
+        if (isIE) {
+            linkElement.attr('href', href);
+        }
+        else {
+            var cloneLinkElement = linkElement.clone(false);
+
+            cloneLinkElement.attr('href', href);
+            linkElement.after(cloneLinkElement);
+            
+            cloneLinkElement.off('load').on('load', function() {
+                linkElement.remove();
+            });
+        }
+    },
+
+    changeMenuToStatic: function() {
+        $('.layout-wrapper').removeClass('menu-layout-overlay menu-layout-horizontal layout-menu-slim').addClass('menu-layout-static');
+        this.clearLayoutState();
+    },
+
+    changeMenuToOverlay: function() {
+        $('.layout-wrapper').removeClass('menu-layout-horizontal menu-layout-static layout-menu-slim').addClass('menu-layout-overlay');
+        this.clearLayoutState();
+    },
+
+    changeMenuToHorizontal: function() {
+        $('.layout-wrapper').removeClass('menu-layout-overlay layout-menu-slim ').addClass('menu-layout-horizontal menu-layout-static');
+        this.clearLayoutState();
+    },
+
+    changeMenuToSlim: function() {
+        $('.layout-wrapper').removeClass('menu-layout-overlay  menu-layout-horizontal').addClass('layout-menu-slim menu-layout-static');
+        this.clearLayoutState();
+    },
+
+    changeMenuToDark: function() {
+        $('.layout-menu-container').removeClass('layout-menu-light').addClass('layout-menu-dark');
+    },
+
+    changeMenuToLight: function() {
+        $('.layout-menu-container').removeClass('layout-menu-dark').addClass('layout-menu-light');
+    },
+
+    setCompact: function(isCompact) {
+        if(isCompact){
+            $('.main-body').addClass('layout-compact');
+        }
+        else {
+            $('.main-body').removeClass('layout-compact');
+        }
+    },
+
+    changeMenuToLTR: function() {
+        $('.layout-wrapper').removeClass('layout-rtl');
+        this.updateNano(false);
+    },
+
+    changeMenuToRTL: function() {
+        $('.layout-wrapper').addClass('layout-rtl');
+        this.updateNano(true);
+    },
+    
+    updateNano: function(isRTL) {
+        var nanoPanel = $('.layout-wrapper').find('.nano');
+        nanoPanel.nanoScroller({destroy: true});
+        nanoPanel.nanoScroller({isRTL: isRTL});
+    },
+
+    clearLayoutState: function() {
+        var menu = PF('me');
+
+        if (menu) {
+            menu.clearLayoutState();
+        }
+    },
+
+    isIE: function() {
+        return /(MSIE|Trident\/|Edge\/)/i.test(navigator.userAgent);
+    }
+};
 
 /*!
  * jQuery Cookie Plugin v1.4.1

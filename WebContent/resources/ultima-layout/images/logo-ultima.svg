@@ -2011,7 +2011,7 @@
        clipPathUnits="userSpaceOnUse"><path
          id="path2012"
          d="m 116.112,16.652 h -10e-4 c 0.031,2.261 0.062,4.522 0.092,6.782 0,10e-4 10e-4,10e-4 10e-4,10e-4 -0.03,-2.261 -0.061,-4.522 -0.092,-6.783" /></clipPath><clipPath
-       id="clipPath2018"
+       id="clipPath2020"
        clipPathUnits="userSpaceOnUse"><path
          id="path2016"
          d="m 115.692,23.4932 h 0.779 v -6.9073 h -0.779 z" /></clipPath><clipPath
@@ -7177,7 +7177,7 @@
                              id="g7774" /><g
                              id="g7782"><g
                                id="g7780"
-                               clip-path="url(#clipPath2018)"><g
+                               clip-path="url(#clipPath2020)"><g
                                  id="g7778"
                                  transform="translate(116.4707,23.4932)"><path
                                    id="path7776"

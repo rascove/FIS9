@@ -1,8 +1,8 @@
 $(function() {     
 
     var ink, d, x, y;
-    $(document.body).off('mousedown.ripple','.ripplelink,.ui-button,.ui-selectlistbox-item,.ui-multiselectlistbox-item,.ui-tabs-header,.ui-fieldset-toggler')
-            .on('mousedown.ripple','.ripplelink,.ui-button,.ui-selectlistbox-item,.ui-multiselectlistbox-item,.ui-tabs-header,.ui-fieldset-toggler', null, function(e){
+    $(document.body).off('mousedown.ripple','.ripplelink,.ui-button,.ui-selectlistbox-item,.ui-multiselectlistbox-item,.ui-tabs-header,.ui-fieldset-toggler,.fc-button-primary')
+            .on('mousedown.ripple','.ripplelink,.ui-button,.ui-selectlistbox-item,.ui-multiselectlistbox-item,.ui-tabs-header,.ui-fieldset-toggler,.fc-button-primary', null, function(e){
         var element = $(this);
         
         if(element.find(".ink").length === 0){
