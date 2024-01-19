@@ -898,7 +898,7 @@ CREATE TABLE CuttingLimit
 
 CREATE TABLE CuttingOptionRecommendation
 (
-	Rank INT NOT NULL,
+	`Rank` INT NOT NULL,
 	PreFellingSurveyID BIGINT NOT NULL,
 	CuttingOptionID INT NOT NULL,
 	PRIMARY KEY (PreFellingSurveyID, CuttingOptionID),
